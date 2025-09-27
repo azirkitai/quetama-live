@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit, Trash2, User, UserCheck } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,10 +31,22 @@ export function WindowCard({
   const [editName, setEditName] = useState(window.name);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Auto-reset delete confirmation after 5 seconds using useEffect
+  useEffect(() => {
+    if (isDeleting) {
+      const timer = setTimeout(() => {
+        setIsDeleting(false);
+      }, 5000);
+
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [isDeleting, window.id]);
+
   const handleEdit = () => {
     if (isEditing) {
       if (editName.trim()) {
-        console.log(`Editing window ${window.id} to name: ${editName}`);
         onEdit(window.id, editName.trim());
         setIsEditing(false);
       }
@@ -46,17 +58,14 @@ export function WindowCard({
 
   const handleDelete = () => {
     if (isDeleting) {
-      console.log(`Deleting window ${window.id}`);
       onDelete(window.id);
+      setIsDeleting(false);
     } else {
       setIsDeleting(true);
-      // Reset delete confirmation after 3 seconds
-      setTimeout(() => setIsDeleting(false), 3000);
     }
   };
 
   const handleToggleStatus = () => {
-    console.log(`Toggling status for window ${window.id}`);
     onToggleStatus(window.id);
   };
 

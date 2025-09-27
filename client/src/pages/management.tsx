@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { WindowCard } from "@/components/window-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Settings } from "lucide-react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface Window {
   id: string;
@@ -16,95 +19,117 @@ interface Window {
 }
 
 export default function Management() {
-  const [windows, setWindows] = useState<Window[]>([]);
   const [newWindowName, setNewWindowName] = useState("");
-  const [isAdding, setIsAdding] = useState(false);
+  const { toast } = useToast();
 
-  // TODO: Remove mock functionality - replace with real data from backend
-  useEffect(() => {
-    const mockWindows: Window[] = [
-      {
-        id: "w1",
-        name: "Bilik 1 - Dr. Sarah Ahmad",
-        isActive: true,
-        currentPatientId: "p1",
-        currentPatientName: "Ahmad bin Rahman",
-        currentPatientNumber: 15
-      },
-      {
-        id: "w2",
-        name: "Bilik 2 - Dr. Azman",
-        isActive: false
-      },
-      {
-        id: "w3",
-        name: "Bilik 3 - Nurse Linda",
-        isActive: true
-      },
-      {
-        id: "w4",
-        name: "Bilik 4 - Dr. Aisyah",
-        isActive: true
-      },
-      {
-        id: "w5",
-        name: "Bilik Kecemasan",
-        isActive: false
-      }
-    ];
+  // Fetch windows data
+  const { data: windows = [], isLoading, refetch } = useQuery({
+    queryKey: ["/api/windows"],
+    queryFn: () => fetch("/api/windows").then(res => res.json()) as Promise<Window[]>
+  });
 
-    setWindows(mockWindows);
-  }, []);
+  // Create window mutation
+  const createWindowMutation = useMutation({
+    mutationFn: async (name: string) => {
+      return await apiRequest("POST", "/api/windows", { name });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/windows"] });
+      setNewWindowName("");
+      toast({
+        title: "Bilik berjaya ditambah",
+        description: "Bilik baru telah didaftarkan dalam sistem."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Ralat",
+        description: error.message || "Gagal menambah bilik.",
+        variant: "destructive"
+      });
+    }
+  });
 
   const handleAddWindow = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newWindowName.trim()) return;
-
-    setIsAdding(true);
-    try {
-      const newWindow: Window = {
-        id: `w${Date.now()}`,
-        name: newWindowName.trim(),
-        isActive: true
-      };
-
-      console.log("Adding new window:", newWindow);
-      setWindows(prev => [...prev, newWindow]);
-      setNewWindowName("");
-      
-      // TODO: Remove mock functionality - send to backend
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-    } catch (error) {
-      console.error("Failed to add window:", error);
-    } finally {
-      setIsAdding(false);
-    }
+    
+    createWindowMutation.mutate(newWindowName.trim());
   };
+
+  // Update window mutation
+  const updateWindowMutation = useMutation({
+    mutationFn: async ({ windowId, name }: { windowId: string; name: string }) => {
+      return await apiRequest("PUT", `/api/windows/${windowId}`, { name });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/windows"] });
+      toast({
+        title: "Bilik berjaya dikemaskini",
+        description: "Maklumat bilik telah disimpan."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Ralat",
+        description: error.message || "Gagal mengemaskini bilik.",
+        variant: "destructive"
+      });
+    }
+  });
 
   const handleEditWindow = async (windowId: string, newName: string) => {
-    console.log(`Editing window ${windowId} to: ${newName}`);
-    setWindows(prev => prev.map(w => 
-      w.id === windowId ? { ...w, name: newName } : w
-    ));
-    
-    // TODO: Remove mock functionality - send to backend
+    updateWindowMutation.mutate({ windowId, name: newName });
   };
+
+  // Delete window mutation
+  const deleteWindowMutation = useMutation({
+    mutationFn: async (windowId: string) => {
+      return await apiRequest("DELETE", `/api/windows/${windowId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/windows"] });
+      toast({
+        title: "Bilik berjaya dipadam",
+        description: "Bilik telah dikeluarkan dari sistem."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Ralat",
+        description: error.message || "Gagal memadam bilik.",
+        variant: "destructive"
+      });
+    }
+  });
 
   const handleDeleteWindow = async (windowId: string) => {
-    console.log(`Deleting window: ${windowId}`);
-    setWindows(prev => prev.filter(w => w.id !== windowId));
-    
-    // TODO: Remove mock functionality - send to backend
+    deleteWindowMutation.mutate(windowId);
   };
 
+  // Toggle window status mutation
+  const toggleStatusMutation = useMutation({
+    mutationFn: async (windowId: string) => {
+      return await apiRequest("PATCH", `/api/windows/${windowId}/status`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/windows"] });
+      toast({
+        title: "Status bilik dikemaskini",
+        description: "Status aktif bilik telah ditukar."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Ralat",
+        description: error.message || "Gagal mengubah status bilik.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleToggleStatus = async (windowId: string) => {
-    console.log(`Toggling status for window: ${windowId}`);
-    setWindows(prev => prev.map(w => 
-      w.id === windowId ? { ...w, isActive: !w.isActive } : w
-    ));
-    
-    // TODO: Remove mock functionality - send to backend
+    toggleStatusMutation.mutate(windowId);
   };
 
   return (
@@ -140,11 +165,11 @@ export default function Management() {
             </div>
             <Button
               type="submit"
-              disabled={isAdding || !newWindowName.trim()}
+              disabled={createWindowMutation.isPending || !newWindowName.trim()}
               data-testid="button-add-window"
             >
               <Plus className="h-4 w-4 mr-2" />
-              {isAdding ? "Menambah..." : "Tambah"}
+              {createWindowMutation.isPending ? "Menambah..." : "Tambah"}
             </Button>
           </form>
         </CardContent>
@@ -157,7 +182,15 @@ export default function Management() {
           Senarai Bilik ({windows.length})
         </h2>
         
-        {windows.length === 0 ? (
+        {isLoading ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <div className="text-muted-foreground">
+                Memuat data bilik...
+              </div>
+            </CardContent>
+          </Card>
+        ) : windows.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
               <div className="text-muted-foreground">

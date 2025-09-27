@@ -26,6 +26,10 @@ export interface IStorage {
   
   // Window methods
   getWindows(): Promise<Window[]>;
+  createWindow(name: string): Promise<Window>;
+  updateWindow(windowId: string, name: string): Promise<Window | undefined>;
+  deleteWindow(windowId: string): Promise<boolean>;
+  toggleWindowStatus(windowId: string): Promise<Window | undefined>;
   updateWindowPatient(windowId: string, patientId?: string): Promise<Window | undefined>;
 }
 
@@ -174,6 +178,63 @@ export class MemStorage implements IStorage {
 
   async getWindows(): Promise<Window[]> {
     return Array.from(this.windows.values());
+  }
+
+  async createWindow(name: string): Promise<Window> {
+    const id = randomUUID();
+    const window: Window = {
+      id,
+      name: name.trim(),
+      isActive: true
+    };
+    
+    this.windows.set(id, window);
+    return window;
+  }
+
+  async updateWindow(windowId: string, name: string): Promise<Window | undefined> {
+    const window = this.windows.get(windowId);
+    if (!window) return undefined;
+
+    const updatedWindow = {
+      ...window,
+      name: name.trim()
+    };
+
+    this.windows.set(windowId, updatedWindow);
+    return updatedWindow;
+  }
+
+  async deleteWindow(windowId: string): Promise<boolean> {
+    const window = this.windows.get(windowId);
+    if (!window) return false;
+
+    // Check if window has a current patient - prevent deletion if occupied
+    if (window.currentPatientId) {
+      return false;
+    }
+
+    // Clear any patients assigned to this window
+    this.patients.forEach((patient, patientId) => {
+      if (patient.windowId === windowId) {
+        this.patients.set(patientId, { ...patient, windowId: null });
+      }
+    });
+
+    return this.windows.delete(windowId);
+  }
+
+  async toggleWindowStatus(windowId: string): Promise<Window | undefined> {
+    const window = this.windows.get(windowId);
+    if (!window) return undefined;
+
+    const updatedWindow = {
+      ...window,
+      isActive: !window.isActive
+    };
+
+    this.windows.set(windowId, updatedWindow);
+    return updatedWindow;
   }
 
   async updateWindowPatient(windowId: string, patientId?: string): Promise<Window | undefined> {

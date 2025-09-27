@@ -113,6 +113,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create new window
+  app.post("/api/windows", async (req, res) => {
+    try {
+      const { name } = req.body;
+      
+      if (!name || !name.trim()) {
+        return res.status(400).json({ error: "Window name is required" });
+      }
+      
+      const window = await storage.createWindow(name);
+      res.status(201).json(window);
+    } catch (error) {
+      console.error("Error creating window:", error);
+      res.status(500).json({ error: "Failed to create window" });
+    }
+  });
+
+  // Update window
+  app.put("/api/windows/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name } = req.body;
+      
+      if (!name || !name.trim()) {
+        return res.status(400).json({ error: "Window name is required" });
+      }
+      
+      const window = await storage.updateWindow(id, name);
+      if (!window) {
+        return res.status(404).json({ error: "Window not found" });
+      }
+      
+      res.json(window);
+    } catch (error) {
+      console.error("Error updating window:", error);
+      res.status(500).json({ error: "Failed to update window" });
+    }
+  });
+
+  // Delete window
+  app.delete("/api/windows/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const success = await storage.deleteWindow(id);
+      if (!success) {
+        return res.status(400).json({ error: "Cannot delete window - window not found or currently occupied" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting window:", error);
+      res.status(500).json({ error: "Failed to delete window" });
+    }
+  });
+
+  // Toggle window status
+  app.patch("/api/windows/:id/status", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const window = await storage.toggleWindowStatus(id);
+      if (!window) {
+        return res.status(404).json({ error: "Window not found" });
+      }
+      
+      res.json(window);
+    } catch (error) {
+      console.error("Error toggling window status:", error);
+      res.status(500).json({ error: "Failed to toggle window status" });
+    }
+  });
+
   // Update window patient assignment
   app.patch("/api/windows/:id/patient", async (req, res) => {
     try {
