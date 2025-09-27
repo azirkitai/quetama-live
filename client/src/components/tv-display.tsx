@@ -76,7 +76,7 @@ export function TVDisplay({
     <div className="min-h-screen bg-white text-gray-900" data-testid="tv-display">
       <div className="flex h-[calc(100vh-120px)]">
         {/* Main Content Area - Media Display (16:9 Aspect Ratio) */}
-        <div className="w-2/3 p-6 flex items-center">
+        <div className="w-2/3 pt-2 px-6 pb-2 flex items-start">
           <div className="w-full bg-gray-100 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
             {mediaContent ? (
               mediaType === "image" ? (
@@ -185,7 +185,7 @@ export function TVDisplay({
 
       {/* Bottom Section - Date and Time (Separated) */}
       <div className="flex">
-        <div className="w-2/3 px-6 space-y-2">
+        <div className="w-2/3 px-6 space-y-1">
           {/* Date Section */}
           <div className="bg-blue-800 text-white p-4 rounded-lg">
             <div className="flex items-center justify-center space-x-3">
