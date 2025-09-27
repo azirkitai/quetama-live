@@ -381,38 +381,39 @@ export default function Settings() {
                 )}
               </div>
 
-              {/* Media Type */}
-              <div className="space-y-2">
-                <Label>Media Type</Label>
-                <div className="flex space-x-2">
-                  <Select 
-                    value={currentSettings.mediaType} 
-                    onValueChange={(value) => updateDisplaySetting('mediaType', value)}
-                  >
-                    <SelectTrigger data-testid="select-media-type" className="flex-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="image">Own Media</SelectItem>
-                      <SelectItem value="youtube">YouTube Video</SelectItem>
-                      <SelectItem value="none">Tiada Background</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    onClick={handleAddMedia}
-                    variant="default"
-                    className="bg-blue-600 hover:bg-blue-700"
-                    data-testid="button-add-media"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Media
-                  </Button>
+              {/* Media Type - Only for Own Media (when dashboardMediaType is "own") */}
+              {currentSettings.dashboardMediaType === "own" && (
+                <div className="space-y-2">
+                  <Label>Own Media Type</Label>
+                  <div className="flex space-x-2">
+                    <Select 
+                      value={currentSettings.mediaType} 
+                      onValueChange={(value) => updateDisplaySetting('mediaType', value)}
+                    >
+                      <SelectTrigger data-testid="select-media-type" className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="image">Image Media</SelectItem>
+                        <SelectItem value="none">No Background</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      onClick={handleAddMedia}
+                      variant="default"
+                      className="bg-blue-600 hover:bg-blue-700"
+                      data-testid="button-add-media"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Media
+                    </Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Note: Please rename your media files in sequence to display in order<br/>
+                    Example: 1.jpg, 2.jpg, 3.jpg
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Note: Please rename your media files in sequence to display in order<br/>
-                  Example: 1.jpg, 2.jpg, 3.jpg
-                </p>
-              </div>
+              )}
 
               {/* File Uploads */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
