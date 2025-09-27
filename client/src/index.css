@@ -26,21 +26,21 @@
 
   --card-border: 0 0% 90%;
 
-  --sidebar: 210 100% 50%;
+  --sidebar: 220 40% 15%;
 
-  --sidebar-foreground: 0 0% 98%;
+  --sidebar-foreground: 0 0% 95%;
 
-  --sidebar-border: 210 100% 45%;
+  --sidebar-border: 220 30% 20%;
 
-  --sidebar-primary: 210 100% 55%;
+  --sidebar-primary: 220 60% 25%;
 
   --sidebar-primary-foreground: 0 0% 98%;
 
-  --sidebar-accent: 210 95% 55%;
+  --sidebar-accent: 220 50% 30%;
 
   --sidebar-accent-foreground: 0 0% 98%;
 
-  --sidebar-ring: 210 100% 60%;
+  --sidebar-ring: 220 60% 40%;
 
   --popover: 0 0% 94%;
 
@@ -339,5 +339,24 @@
 
   .animate-marquee {
     animation: marquee 30s linear infinite;
+  }
+
+  /* Custom Sidebar Gradient */
+  .sidebar-gradient {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #020617 100%);
+  }
+
+  .sidebar-section-header {
+    color: rgba(148, 163, 184, 0.7);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .sidebar-section-header:first-child {
+    margin-top: 0;
   }
 }
