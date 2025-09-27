@@ -31,6 +31,17 @@ export interface IStorage {
   deleteWindow(windowId: string): Promise<boolean>;
   toggleWindowStatus(windowId: string): Promise<Window | undefined>;
   updateWindowPatient(windowId: string, patientId?: string): Promise<Window | undefined>;
+  
+  // Dashboard methods
+  getDashboardStats(): Promise<{
+    totalWaiting: number;
+    totalCalled: number;
+    totalCompleted: number;
+    activeWindows: number;
+    totalWindows: number;
+  }>;
+  getCurrentCall(): Promise<Patient | undefined>;
+  getRecentHistory(limit?: number): Promise<Patient[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -248,6 +259,68 @@ export class MemStorage implements IStorage {
 
     this.windows.set(windowId, updatedWindow);
     return updatedWindow;
+  }
+
+  async getDashboardStats(): Promise<{
+    totalWaiting: number;
+    totalCalled: number;
+    totalCompleted: number;
+    activeWindows: number;
+    totalWindows: number;
+  }> {
+    const allPatients = Array.from(this.patients.values());
+    const allWindows = Array.from(this.windows.values());
+    
+    // Get today's start and end boundaries (local timezone)
+    const today = new Date();
+    const startOfDay = new Date(today);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(today);
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    const totalWaiting = allPatients.filter(p => p.status === 'waiting').length;
+    const totalCalled = allPatients.filter(p => p.status === 'called').length;
+    const totalCompleted = allPatients.filter(p => 
+      p.status === 'completed' && 
+      p.completedAt && 
+      p.completedAt >= startOfDay && 
+      p.completedAt <= endOfDay
+    ).length;
+    const activeWindows = allWindows.filter(w => w.isActive).length;
+    const totalWindows = allWindows.length;
+
+    return {
+      totalWaiting,
+      totalCalled,
+      totalCompleted,
+      activeWindows,
+      totalWindows
+    };
+  }
+
+  async getCurrentCall(): Promise<Patient | undefined> {
+    // Get the most recently called patient
+    const calledPatients = Array.from(this.patients.values())
+      .filter(p => p.status === 'called')
+      .sort((a, b) => {
+        const timeA = a.calledAt?.getTime() || a.registeredAt.getTime();
+        const timeB = b.calledAt?.getTime() || b.registeredAt.getTime();
+        return timeB - timeA;
+      });
+    
+    return calledPatients[0];
+  }
+
+  async getRecentHistory(limit: number = 10): Promise<Patient[]> {
+    // Get recently completed patients, sorted by completion time (most recent first)
+    return Array.from(this.patients.values())
+      .filter(p => p.status === 'completed')
+      .sort((a, b) => {
+        const timeA = a.completedAt?.getTime() || a.registeredAt.getTime();
+        const timeB = b.completedAt?.getTime() || b.registeredAt.getTime();
+        return timeB - timeA;
+      })
+      .slice(0, limit);
   }
 }
 

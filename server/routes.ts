@@ -204,6 +204,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Dashboard routes
+  
+  // Get dashboard statistics
+  app.get("/api/dashboard/stats", async (req, res) => {
+    try {
+      const stats = await storage.getDashboardStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      res.status(500).json({ error: "Failed to fetch dashboard statistics" });
+    }
+  });
+
+  // Get current call (currently called patient)
+  app.get("/api/dashboard/current-call", async (req, res) => {
+    try {
+      const currentCall = await storage.getCurrentCall();
+      res.json(currentCall || null);
+    } catch (error) {
+      console.error("Error fetching current call:", error);
+      res.status(500).json({ error: "Failed to fetch current call" });
+    }
+  });
+
+  // Get recent history (recently completed patients)
+  app.get("/api/dashboard/history", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const history = await storage.getRecentHistory(limit);
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching recent history:", error);
+      res.status(500).json({ error: "Failed to fetch recent history" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

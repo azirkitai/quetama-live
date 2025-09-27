@@ -1,16 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { TVDisplay } from "@/components/tv-display";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Monitor, Settings, Users, Clock } from "lucide-react";
-
-interface Patient {
-  id: string;
-  name: string | null;
-  number: number;
-  windowName: string;
-  status: string;
-}
+import { type Patient } from "@shared/schema";
 
 interface QueueItem {
   id: string;
@@ -30,45 +24,44 @@ interface DashboardStats {
 
 export default function Dashboard() {
   const [fullscreen, setFullscreen] = useState(false);
-  const [currentCall, setCurrentCall] = useState<Patient | undefined>();
-  const [history, setHistory] = useState<Patient[]>([]);
-  const [stats, setStats] = useState<DashboardStats>({
-    totalWaiting: 8,
-    totalCalled: 2,
-    totalCompleted: 15,
-    activeWindows: 3
+
+  // Fetch dashboard statistics
+  const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats & { totalWindows: number }>({
+    queryKey: ['/api/dashboard/stats'],
+  });
+
+  // Fetch current call
+  const { data: currentCall } = useQuery<Patient | null>({
+    queryKey: ['/api/dashboard/current-call'],
+    refetchInterval: 5000, // Refresh every 5 seconds for real-time updates
+  });
+
+  // Fetch recent history 
+  const { data: history = [] } = useQuery<Patient[]>({
+    queryKey: ['/api/dashboard/history'],
+    refetchInterval: 10000, // Refresh every 10 seconds
+  });
+
+  // Fetch windows data to map window IDs to names
+  const { data: windows = [] } = useQuery<any[]>({
+    queryKey: ['/api/windows'],
   });
 
   // Convert Patient to QueueItem for TV display
-  const convertToQueueItem = (patient: Patient): QueueItem => ({
-    id: patient.id,
-    name: patient.name || `No. ${patient.number}`,
-    number: patient.number.toString(),
-    room: patient.windowName,
-    status: patient.status === "called" ? "calling" : patient.status === "completed" ? "completed" : "waiting",
-    timestamp: new Date()
-  });
-
-  // TODO: Remove mock functionality - replace with real-time data from backend
-  useEffect(() => {
-    const mockCurrentCall: Patient = {
-      id: "1",
-      name: "Ahmad bin Ali",
-      number: 15,
-      windowName: "Bilik 1 - Dr. Sarah",
-      status: "called"
+  const convertToQueueItem = (patient: Patient): QueueItem => {
+    // Map windowId to window name
+    const window = windows.find(w => w.id === patient.windowId);
+    const windowName = window?.name || "Tidak tersedia";
+    
+    return {
+      id: patient.id,
+      name: patient.name || `No. ${patient.number}`,
+      number: patient.number.toString(),
+      room: windowName,
+      status: patient.status === "called" ? "calling" : patient.status === "completed" ? "completed" : "waiting",
+      timestamp: new Date()
     };
-
-    const mockHistory: Patient[] = [
-      { id: "2", name: null, number: 14, windowName: "Bilik 2 - Dr. Ahmad", status: "completed" },
-      { id: "3", name: "Siti Nurhaliza", number: 13, windowName: "Bilik 1 - Dr. Sarah", status: "completed" },
-      { id: "4", name: null, number: 12, windowName: "Bilik 3 - Nurse Linda", status: "completed" },
-      { id: "5", name: "Rahman Abdullah", number: 11, windowName: "Bilik 2 - Dr. Ahmad", status: "completed" },
-    ];
-
-    setCurrentCall(mockCurrentCall);
-    setHistory(mockHistory);
-  }, []);
+  };
 
   const toggleFullscreen = () => {
     if (!fullscreen) {
@@ -134,7 +127,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600" data-testid="text-waiting-count">
-              {stats.totalWaiting}
+              {statsLoading ? "..." : (stats?.totalWaiting || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
               pesakit dalam barisan
@@ -149,7 +142,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600" data-testid="text-called-count">
-              {stats.totalCalled}
+              {statsLoading ? "..." : (stats?.totalCalled || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
               pesakit sedang dipanggil
@@ -164,7 +157,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600" data-testid="text-completed-count">
-              {stats.totalCompleted}
+              {statsLoading ? "..." : (stats?.totalCompleted || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
               pesakit hari ini
@@ -179,10 +172,10 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary" data-testid="text-active-windows">
-              {stats.activeWindows}
+              {statsLoading ? "..." : (stats?.activeWindows || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              daripada 5 bilik
+              daripada {stats?.totalWindows || 0} bilik
             </p>
           </CardContent>
         </Card>
