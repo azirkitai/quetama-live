@@ -193,8 +193,8 @@ export default function Dashboard() {
           <CardTitle>Pratonton Paparan TV</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden max-w-md mx-auto" style={{ aspectRatio: '16/9' }}>
-            <div className="h-full scale-[0.33] origin-top-left" style={{ width: '300%', height: '300%' }}>
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden max-w-2xl mx-auto" style={{ aspectRatio: '16/9' }}>
+            <div className="h-full scale-[0.42] origin-top-left" style={{ width: '238%', height: '238%' }}>
               <TVDisplay
                 currentPatient={currentCall ? convertToQueueItem(currentCall) : undefined}
                 queueHistory={history.slice(0, 4).map(convertToQueueItem)}
