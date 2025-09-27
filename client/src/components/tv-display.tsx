@@ -75,12 +75,13 @@ export function TVDisplay({
   return (
     <div className="h-screen bg-white text-gray-900 grid" 
          style={{ 
-           gridTemplateRows: '1fr minmax(160px, 22vh)',
-           gridTemplateColumns: '70% 30%'
+           gridTemplateRows: '1fr 180px',
+           gridTemplateColumns: '65% 35%',
+           gap: '0'
          }} 
          data-testid="tv-display">
       {/* Main Content Area - Media Display */}
-      <div className="px-6 flex items-center">
+      <div className="p-4 flex items-center">
         <div className="w-full h-full bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
             {mediaContent ? (
               mediaType === "image" ? (
@@ -113,139 +114,130 @@ export function TVDisplay({
           </div>
         </div>
 
-      {/* Right Sidebar - Grid Layout */}
-      <div className="pr-6 grid" style={{ gridTemplateRows: 'auto auto 1fr' }}>
-        {/* Div 1: Clinic Logo and Name */}
-        <Card className="bg-blue-600 text-white mb-2">
-          <CardContent className="p-3">
-            <div className="flex items-center space-x-2">
-              {clinicLogo ? (
-                <img 
-                  src={clinicLogo} 
-                  alt="Logo Klinik" 
-                  className="h-12 w-auto object-contain bg-white rounded p-1"
-                  data-testid="clinic-logo"
-                />
-              ) : (
-                <div className="w-12 h-12 bg-white rounded flex items-center justify-center">
-                  <span className="text-blue-600 font-bold text-xs">KLINIK</span>
-                </div>
-              )}
-              <div>
-                <h1 className="font-bold leading-tight" 
-                    style={{ fontSize: 'clamp(1.5rem, 3vw, 3rem)' }} 
-                    data-testid="clinic-name">
-                  {clinicName}
-                </h1>
-                <p className="text-blue-200" style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1.5rem)' }}>
-                  TROPICANA AMAN
-                </p>
+      {/* Right Panel - Queue Board Style */}
+      <div className="bg-blue-700 text-white p-4 flex flex-col">
+        {/* Header */}
+        <div className="text-center mb-4">
+          <div className="flex items-center justify-center space-x-3 mb-2">
+            {clinicLogo ? (
+              <img 
+                src={clinicLogo} 
+                alt="Logo Klinik" 
+                className="h-16 w-auto object-contain bg-white rounded p-1"
+                data-testid="clinic-logo"
+              />
+            ) : (
+              <div className="w-16 h-16 bg-white rounded flex items-center justify-center">
+                <span className="text-blue-600 font-bold text-sm">KLINIK</span>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            )}
+          </div>
+          <h1 className="font-bold text-yellow-400" 
+              style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)' }} 
+              data-testid="clinic-name">
+            {clinicName}
+          </h1>
+          <p className="text-yellow-400" style={{ fontSize: 'clamp(1rem, 1.5vw, 1.5rem)' }}>
+            TROPICANA AMAN
+          </p>
+          <div className="bg-blue-800 text-yellow-400 px-4 py-2 rounded-lg mt-2">
+            <h2 className="font-bold" style={{ fontSize: 'clamp(1.25rem, 2vw, 2rem)' }}>CALLING</h2>
+          </div>
+        </div>
 
-        {/* Div 2: Current Patient Being Called */}
-        <Card className="bg-red-600 text-white mb-2">
-          <CardContent className="p-3">
-            <div className="text-center">
-              <h3 className="font-bold mb-2" style={{ fontSize: 'clamp(1.125rem, 2vw, 2rem)' }}>
-                SEDANG DIPANGGIL
-              </h3>
-              {currentPatient ? (
-                <>
-                  <div className="font-bold mb-2 leading-tight" 
-                       style={{ fontSize: 'clamp(2rem, 4vw, 4rem)' }} 
-                       data-testid="current-patient-display">
-                    {currentPatient.name}
-                  </div>
-                  <div style={{ fontSize: 'clamp(1rem, 1.5vw, 1.5rem)' }} data-testid="current-room">
-                    {currentPatient.room}
-                  </div>
-                </>
-              ) : (
-                <div style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)' }}>TIADA PANGGILAN</div>
-              )}
+        {/* Current Patient Display */}
+        {currentPatient ? (
+          <div className="bg-blue-600 p-3 rounded-lg mb-3 text-center">
+            <div className="font-bold text-yellow-400" 
+                 style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)' }} 
+                 data-testid="current-patient-display">
+              {currentPatient.name}
             </div>
-          </CardContent>
-        </Card>
+            <div className="text-yellow-400" style={{ fontSize: 'clamp(1rem, 1.5vw, 1.5rem)' }} data-testid="current-room">
+              {currentPatient.room}
+            </div>
+          </div>
+        ) : (
+          <div className="bg-blue-600 p-3 rounded-lg mb-3 text-center">
+            <div className="text-yellow-400" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)' }}>N/A</div>
+          </div>
+        )}
 
-        {/* Div 3: Patient History - Scrollable */}
-        <Card className="bg-white">
-          <CardContent className="p-2">
-            <div className="text-center mb-2">
-              <h3 className="font-bold text-blue-800" style={{ fontSize: 'clamp(1rem, 1.5vw, 1.5rem)' }}>
-                SEJARAH PANGGILAN
-              </h3>
-            </div>
-            <div className="space-y-2 overflow-y-auto" 
-                 style={{ maxHeight: '200px' }} 
-                 data-testid="queue-list">
-              {queueHistory.length > 0 ? (
-                queueHistory.slice(-4).map((item) => (
-                  <div key={item.id} className="p-2 bg-gray-100 rounded text-center">
-                    <div className="font-bold text-gray-800" 
-                         style={{ fontSize: 'clamp(0.875rem, 1.2vw, 1.25rem)' }}>
-                      {item.name}
-                    </div>
-                    <div className="text-gray-600" 
-                         style={{ fontSize: 'clamp(0.75rem, 1vw, 1rem)' }}>
-                      {item.room}
-                    </div>
+        {/* Queue List */}
+        <div className="flex-1">
+          <div className="grid grid-cols-2 gap-1 text-center mb-2">
+            <div className="font-bold text-yellow-400" style={{ fontSize: 'clamp(1rem, 1.5vw, 1.5rem)' }}>NAME</div>
+            <div className="font-bold text-yellow-400" style={{ fontSize: 'clamp(1rem, 1.5vw, 1.5rem)' }}>ROOM</div>
+          </div>
+          <div className="space-y-1 overflow-y-auto" style={{ maxHeight: '300px' }} data-testid="queue-list">
+            {queueHistory.length > 0 ? (
+              queueHistory.slice(-6).map((item) => (
+                <div key={item.id} className="bg-blue-600 p-2 rounded grid grid-cols-2 gap-1">
+                  <div className="font-bold text-yellow-400" 
+                       style={{ fontSize: 'clamp(0.875rem, 1.2vw, 1.25rem)' }}>
+                    {item.name}
                   </div>
-                ))
-              ) : (
-                <div className="text-center text-gray-500 py-2">
-                  <p style={{ fontSize: 'clamp(0.875rem, 1.2vw, 1.25rem)' }}>Tiada sejarah panggilan</p>
+                  <div className="text-yellow-400" 
+                       style={{ fontSize: 'clamp(0.875rem, 1.2vw, 1.25rem)' }}>
+                    {item.room}
+                  </div>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              ))
+            ) : (
+              <div className="text-center text-yellow-300 py-4">
+                <p style={{ fontSize: 'clamp(0.875rem, 1.2vw, 1.25rem)' }}>Tiada dalam barisan</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Bottom Section - Spans Both Columns */}
-      <div className="px-6 space-y-1 flex flex-col justify-center" style={{ gridColumn: 'span 2' }}>
-        {/* Date & Time Section */}
-        <div className="bg-blue-800 text-white p-3 rounded-lg">
-          <div className="flex items-center justify-center space-x-4">
-            <Calendar className="h-6 w-6" />
-            <div className="font-bold" style={{ fontSize: 'clamp(1.25rem, 2vw, 2rem)' }}>
-              {dateInfo.dayName}, {dateInfo.day} {dateInfo.month} {dateInfo.year}
-            </div>
-            <Clock className="h-6 w-6" />
-            <div className="font-mono font-bold" 
-                 style={{ fontSize: 'clamp(2rem, 4vw, 4rem)' }} 
-                 data-testid="display-time">
-              {formatTime(currentTime)}
-            </div>
-          </div>
-        </div>
-        
-        {/* Prayer Times Section */}
-        <div className="bg-green-800 text-white p-2 rounded-lg">
-          <div className="flex items-center justify-center space-x-4 flex-wrap gap-2">
-            <span className="font-bold" style={{ fontSize: 'clamp(1rem, 1.5vw, 1.5rem)' }}>WAKTU SOLAT:</span>
-            {prayerTimes.map((prayer, index) => (
-              <div key={index} className="text-center">
-                <div className="font-bold text-yellow-300" 
-                     style={{ fontSize: 'clamp(0.875rem, 1.2vw, 1.25rem)' }}>
-                  {prayer.name}
-                </div>
-                <div style={{ fontSize: 'clamp(0.875rem, 1.2vw, 1.25rem)' }}>
-                  {prayer.time}
-                </div>
+      <div className="px-4 py-2 bg-blue-800 text-white" style={{ gridColumn: 'span 2' }}>
+        <div className="flex items-center justify-between">
+          {/* Left - Calendar Widget */}
+          <div className="bg-white text-gray-900 p-3 rounded-lg flex items-center space-x-3">
+            <div className="bg-teal-500 text-white p-2 rounded">
+              <div className="text-center">
+                <div className="text-xs">Today</div>
+                <div className="text-2xl font-bold">{dateInfo.day}</div>
+                <div className="text-xs">Sep</div>
               </div>
-            ))}
+            </div>
+            <div>
+              <div className="font-bold text-lg">{dateInfo.dayName}</div>
+              <div className="text-sm text-gray-600">{dateInfo.month} {dateInfo.year}</div>
+              <div className="font-mono font-bold text-lg" data-testid="display-time">
+                {formatTime(currentTime)}
+              </div>
+            </div>
           </div>
+
+          {/* Center - Prayer Times */}
+          <div className="flex-1 mx-8">
+            <div className="flex items-center justify-center space-x-2 mb-2">
+              <span className="text-yellow-400">🏠</span>
+              <span className="font-bold text-lg text-yellow-400">PRAYER TIME</span>
+            </div>
+            <div className="flex justify-center space-x-6">
+              {prayerTimes.map((prayer, index) => (
+                <div key={index} className="text-center">
+                  <div className="font-bold text-yellow-400 text-sm">{prayer.name}</div>
+                  <div className="text-white text-sm">{prayer.time}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right - Empty space for balance */}
+          <div className="w-48"></div>
         </div>
         
-        {/* Welcome Message with Marquee */}
-        <div className="bg-gray-800 text-white p-2 rounded-lg overflow-hidden">
+        {/* Bottom Marquee */}
+        <div className="mt-3 overflow-hidden">
           <div className="whitespace-nowrap">
-            <div className="inline-block animate-marquee font-bold" 
-                 style={{ fontSize: 'clamp(1rem, 1.5vw, 1.5rem)' }}>
-              SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH ★ SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH ★ 
+            <div className="inline-block animate-marquee font-bold text-lg">
+              SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH
             </div>
           </div>
         </div>
