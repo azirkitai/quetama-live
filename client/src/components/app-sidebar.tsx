@@ -131,7 +131,6 @@ export function AppSidebar() {
         {/* Administration Section */}
         <div className="mt-8">
           <div className="sidebar-section-header">ADMINISTRATION</div>
-          <div className="text-sidebar-foreground/80 text-sm mb-4">Key Your Personal Record Here</div>
           <SidebarMenu className="space-y-1">
             {administrationItems.map((item) => (
               <SidebarMenuItem key={item.title}>
