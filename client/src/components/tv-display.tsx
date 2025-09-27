@@ -110,10 +110,10 @@ export function TVDisplay({
         </div>
 
         {/* Right Sidebar - 3 Vertical Divs */}
-        <div className="w-1/3 p-2 space-y-2">
+        <div className="w-1/3 p-2 space-y-2 flex flex-col" style={{ height: 'calc(100vw * 2/3 * 9/16)' }}>
           {/* Div 1: Clinic Logo and Name */}
           <Card className="bg-blue-600 text-white">
-            <CardContent className="p-4">
+            <CardContent className="p-3">
               <div className="flex items-center space-x-4">
                 {clinicLogo ? (
                   <img 
@@ -139,7 +139,7 @@ export function TVDisplay({
 
           {/* Div 2: Current Patient Being Called */}
           <Card className="bg-red-600 text-white">
-            <CardContent className="p-4">
+            <CardContent className="p-2">
               <div className="text-center">
                 <h3 className="text-3xl font-bold mb-4">SEDANG DIPANGGIL</h3>
                 {currentPatient ? (
@@ -159,22 +159,22 @@ export function TVDisplay({
           </Card>
 
           {/* Div 3: Patient History */}
-          <Card className="bg-white flex-1">
-            <CardContent className="p-4">
-              <div className="text-center mb-4">
-                <h3 className="text-3xl font-bold text-blue-800">SEJARAH PANGGILAN</h3>
+          <Card className="bg-white flex-1 overflow-hidden">
+            <CardContent className="p-2">
+              <div className="text-center mb-2">
+                <h3 className="text-2xl font-bold text-blue-800">SEJARAH PANGGILAN</h3>
               </div>
-              <div className="space-y-4" data-testid="queue-list">
+              <div className="space-y-2" data-testid="queue-list">
                 {queueHistory.length > 0 ? (
                   queueHistory.slice(-4).map((item) => (
-                    <div key={item.id} className="p-4 bg-gray-100 rounded text-center">
-                      <div className="text-2xl font-bold text-gray-800">{item.name}</div>
-                      <div className="text-lg text-gray-600">{item.room}</div>
+                    <div key={item.id} className="p-2 bg-gray-100 rounded text-center">
+                      <div className="text-lg font-bold text-gray-800">{item.name}</div>
+                      <div className="text-sm text-gray-600">{item.room}</div>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center text-gray-500 py-4">
-                    <p className="text-2xl">Tiada sejarah panggilan</p>
+                  <div className="text-center text-gray-500 py-2">
+                    <p className="text-lg">Tiada sejarah panggilan</p>
                   </div>
                 )}
               </div>
