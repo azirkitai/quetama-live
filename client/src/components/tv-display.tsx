@@ -74,7 +74,7 @@ export function TVDisplay({
 
   return (
     <div className="h-screen bg-white text-gray-900 flex flex-col" data-testid="tv-display">
-      <div className="flex" style={{ height: 'calc(100vh - 200px)' }}>
+      <div className="flex" style={{ height: '60vh' }}>
         {/* Main Content Area - Media Display (Larger for TV) */}
         <div className="w-3/4 px-6 flex items-center">
           <div className="w-full bg-gray-100 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
@@ -110,7 +110,7 @@ export function TVDisplay({
         </div>
 
         {/* Right Sidebar - 3 Vertical Divs */}
-        <div className="w-1/4 pr-6 space-y-2 flex flex-col" style={{ height: 'calc(100vh - 200px)' }}>
+        <div className="w-1/4 pr-6 space-y-2 flex flex-col h-full">
           {/* Div 1: Clinic Logo and Name */}
           <Card className="bg-blue-600 text-white">
             <CardContent className="p-4">
@@ -183,40 +183,40 @@ export function TVDisplay({
         </div>
       </div>
 
-      {/* Bottom Section - Date and Time (Separated) - FIXED HEIGHT */}
-      <div className="flex h-48 flex-shrink-0">
-        <div className="w-3/4 px-6 space-y-1">
+      {/* Bottom Section - COMPACT & GUARANTEED VISIBLE */}
+      <div className="flex flex-1">
+        <div className="w-3/4 px-6 space-y-2 flex flex-col justify-center">
           {/* Date Section */}
-          <div className="bg-blue-800 text-white p-3 rounded-lg">
-            <div className="flex items-center justify-center space-x-4">
-              <Calendar className="h-6 w-6" />
-              <div className="text-2xl font-bold">
+          <div className="bg-blue-800 text-white p-2 rounded-lg">
+            <div className="flex items-center justify-center space-x-3">
+              <Calendar className="h-5 w-5" />
+              <div className="text-xl font-bold">
                 {dateInfo.dayName}, {dateInfo.day} {dateInfo.month} {dateInfo.year}
               </div>
-              <Clock className="h-6 w-6" />
-              <div className="text-4xl font-mono font-bold" data-testid="display-time">
+              <Clock className="h-5 w-5" />
+              <div className="text-3xl font-mono font-bold" data-testid="display-time">
                 {formatTime(currentTime)}
               </div>
             </div>
           </div>
           
           {/* Prayer Times Section */}
-          <div className="bg-green-800 text-white p-3 rounded-lg">
-            <div className="flex items-center justify-center space-x-6">
+          <div className="bg-green-800 text-white p-2 rounded-lg">
+            <div className="flex items-center justify-center space-x-4">
               <span className="font-bold text-lg">WAKTU SOLAT:</span>
               {prayerTimes.map((prayer, index) => (
                 <div key={index} className="text-center">
-                  <div className="text-lg font-bold text-yellow-300">{prayer.name}</div>
-                  <div className="text-lg">{prayer.time}</div>
+                  <div className="text-sm font-bold text-yellow-300">{prayer.name}</div>
+                  <div className="text-sm">{prayer.time}</div>
                 </div>
               ))}
             </div>
           </div>
           
           {/* Welcome Message with Marquee */}
-          <div className="bg-gray-800 text-white p-3 rounded-lg overflow-hidden">
+          <div className="bg-gray-800 text-white p-2 rounded-lg overflow-hidden">
             <div className="whitespace-nowrap">
-              <div className="inline-block animate-marquee text-xl font-bold">
+              <div className="inline-block animate-marquee text-lg font-bold">
                 SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH ★ SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH ★ 
               </div>
             </div>
