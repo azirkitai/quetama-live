@@ -75,9 +75,9 @@ export function TVDisplay({
   return (
     <div className="min-h-screen bg-white text-gray-900" data-testid="tv-display">
       <div className="flex h-[calc(100vh-120px)]">
-        {/* Main Content Area - Media Display (Smaller) */}
-        <div className="w-2/3 p-6">
-          <div className="h-full bg-gray-100 rounded-lg overflow-hidden">
+        {/* Main Content Area - Media Display (16:9 Aspect Ratio) */}
+        <div className="w-2/3 p-6 flex items-center">
+          <div className="w-full bg-gray-100 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
             {mediaContent ? (
               mediaType === "image" ? (
                 <img 
@@ -164,9 +164,9 @@ export function TVDisplay({
               <div className="text-center mb-4">
                 <h3 className="text-3xl font-bold text-blue-800">SEJARAH PANGGILAN</h3>
               </div>
-              <div className="space-y-4 max-h-96 overflow-y-auto" data-testid="queue-list">
+              <div className="space-y-4" data-testid="queue-list">
                 {queueHistory.length > 0 ? (
-                  queueHistory.slice(-15).map((item) => (
+                  queueHistory.slice(-4).map((item) => (
                     <div key={item.id} className="p-4 bg-gray-100 rounded text-center">
                       <div className="text-2xl font-bold text-gray-800">{item.name}</div>
                       <div className="text-lg text-gray-600">{item.room}</div>
@@ -183,39 +183,39 @@ export function TVDisplay({
         </div>
       </div>
 
-      {/* Bottom Section - Date, Time and Prayer Times (Same Width as Display Only) */}
+      {/* Bottom Section - Date and Time (Separated) */}
       <div className="flex">
-        <div className="w-2/3 px-6">
-          <div className="bg-blue-800 text-white p-4 rounded-t-lg">
-            <div className="flex items-center justify-between space-x-6">
-              {/* Date */}
-              <div className="flex items-center space-x-3">
-                <Calendar className="h-8 w-8" />
-                <div className="text-2xl font-bold">
-                  {dateInfo.dayName}, {dateInfo.day} {dateInfo.month} {dateInfo.year}
-                </div>
+        <div className="w-2/3 px-6 space-y-2">
+          {/* Date Section */}
+          <div className="bg-blue-800 text-white p-4 rounded-lg">
+            <div className="flex items-center justify-center space-x-3">
+              <Calendar className="h-8 w-8" />
+              <div className="text-2xl font-bold">
+                {dateInfo.dayName}, {dateInfo.day} {dateInfo.month} {dateInfo.year}
               </div>
-
-              {/* Time */}
-              <div className="flex items-center space-x-3">
-                <Clock className="h-8 w-8" />
-                <div className="text-5xl font-mono font-bold" data-testid="display-time">
-                  {formatTime(currentTime)}
-                </div>
-              </div>
-
-              {/* Prayer Times */}
-              <div className="flex items-center space-x-4">
-                <span className="font-bold text-2xl">WAKTU SOLAT:</span>
-                {prayerTimes.map((prayer, index) => (
-                  <div key={index} className="text-center">
-                    <div className="text-lg font-bold text-yellow-300">{prayer.name}</div>
-                    <div className="text-lg">{prayer.time}</div>
-                  </div>
-                ))}
+              <Clock className="h-8 w-8" />
+              <div className="text-5xl font-mono font-bold" data-testid="display-time">
+                {formatTime(currentTime)}
               </div>
             </div>
-            <div className="mt-4 text-center text-2xl">
+          </div>
+          
+          {/* Prayer Times Section */}
+          <div className="bg-green-800 text-white p-4 rounded-lg">
+            <div className="flex items-center justify-center space-x-6">
+              <span className="font-bold text-2xl">WAKTU SOLAT:</span>
+              {prayerTimes.map((prayer, index) => (
+                <div key={index} className="text-center">
+                  <div className="text-lg font-bold text-yellow-300">{prayer.name}</div>
+                  <div className="text-lg">{prayer.time}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Welcome Message */}
+          <div className="bg-gray-800 text-white p-3 rounded-lg">
+            <div className="text-center text-xl">
               <span>SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH</span>
             </div>
           </div>
