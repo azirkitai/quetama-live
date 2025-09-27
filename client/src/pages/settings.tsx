@@ -16,6 +16,7 @@ import type { Setting, Media } from "@shared/schema";
 interface SettingsState {
   mediaType: string;
   dashboardMediaType: string; // "own" or "youtube"
+  youtubeUrl: string; // YouTube video URL
   theme: string;
   showPrayerTimes: boolean;
   showWeather: boolean;
@@ -49,6 +50,7 @@ export default function Settings() {
   const [currentSettings, setCurrentSettings] = useState<SettingsState>({
     mediaType: "image",
     dashboardMediaType: "own",
+    youtubeUrl: "",
     theme: "blue",
     showPrayerTimes: true,
     showWeather: false,
@@ -71,6 +73,7 @@ export default function Settings() {
       const newSettings = {
         mediaType: settingsObj.mediaType || "image",
         dashboardMediaType: settingsObj.dashboardMediaType || "own",
+        youtubeUrl: settingsObj.youtubeUrl || "",
         theme: settingsObj.theme || "blue",
         showPrayerTimes: settingsObj.showPrayerTimes === "true",
         showWeather: settingsObj.showWeather === "true",
@@ -85,7 +88,7 @@ export default function Settings() {
       setCurrentSettings(newSettings);
       setUnsavedChanges([]); // Clear unsaved changes when loading fresh data
     }
-  }, [settings, settingsObj.mediaType, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.enableSound, settingsObj.soundType, settingsObj.enableTTS, settingsObj.volume]);
+  }, [settings, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.enableSound, settingsObj.soundType, settingsObj.enableTTS, settingsObj.volume]);
 
   // Save settings mutation
   const saveSettingsMutation = useMutation({
@@ -143,6 +146,7 @@ export default function Settings() {
     const displaySettingsToSave = [
       { key: 'mediaType', value: currentSettings.mediaType, category: 'display' },
       { key: 'dashboardMediaType', value: currentSettings.dashboardMediaType, category: 'display' },
+      { key: 'youtubeUrl', value: currentSettings.youtubeUrl, category: 'display' },
       { key: 'theme', value: currentSettings.theme, category: 'display' },
       { key: 'showPrayerTimes', value: currentSettings.showPrayerTimes.toString(), category: 'display' },
       { key: 'showWeather', value: currentSettings.showWeather.toString(), category: 'display' },
@@ -354,6 +358,27 @@ export default function Settings() {
                     <Label htmlFor="youtube-media">YouTube</Label>
                   </div>
                 </div>
+                
+                {/* YouTube URL Input - appears when YouTube is selected */}
+                {currentSettings.dashboardMediaType === "youtube" && (
+                  <div className="mt-4 space-y-2">
+                    <Label htmlFor="youtube-url" className="text-sm font-medium">
+                      YouTube Video URL:
+                    </Label>
+                    <Input
+                      id="youtube-url"
+                      type="url"
+                      placeholder="https://www.youtube.com/watch?v=..."
+                      value={currentSettings.youtubeUrl}
+                      onChange={(e) => updateDisplaySetting('youtubeUrl', e.target.value)}
+                      className="w-full"
+                      data-testid="input-youtube-url"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Masukkan URL YouTube video yang akan dipaparkan di paparan TV
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Media Type */}
