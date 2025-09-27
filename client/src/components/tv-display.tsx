@@ -74,9 +74,9 @@ export function TVDisplay({
 
   return (
     <div className="min-h-screen bg-white text-gray-900" data-testid="tv-display">
-      <div className="flex h-[calc(100vh-120px)]">
+      <div className="flex h-auto">
         {/* Main Content Area - Media Display (16:9 Aspect Ratio) */}
-        <div className="w-2/3 pt-2 px-6 pb-2 flex items-start">
+        <div className="w-2/3 px-6 flex items-start">
           <div className="w-full bg-gray-100 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
             {mediaContent ? (
               mediaType === "image" ? (
@@ -110,7 +110,7 @@ export function TVDisplay({
         </div>
 
         {/* Right Sidebar - 3 Vertical Divs */}
-        <div className="w-1/3 p-6 space-y-4">
+        <div className="w-1/3 p-2 space-y-2">
           {/* Div 1: Clinic Logo and Name */}
           <Card className="bg-blue-600 text-white">
             <CardContent className="p-4">
