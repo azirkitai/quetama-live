@@ -73,43 +73,31 @@ export function TVDisplay({
   const dateInfo = formatDate(currentTime);
 
   return (
-    <div className="min-h-screen bg-white text-gray-900" data-testid="tv-display">
-      {/* Top Header with Logo */}
-      <div className="bg-white border-b-2 border-gray-200 p-6">
-        <div className="flex items-center justify-between">
-          {/* Left: Clinic Logo */}
-          <div className="flex items-center space-x-4">
-            {clinicLogo ? (
-              <img 
-                src={clinicLogo} 
-                alt="Logo Klinik" 
-                className="h-20 w-auto object-contain"
-                data-testid="clinic-logo"
-              />
-            ) : (
-              <div className="w-20 h-20 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">KLINIK</span>
-              </div>
-            )}
-            <div>
-              <h1 className="text-xl font-bold text-blue-800" data-testid="clinic-name">
-                {clinicName}
-              </h1>
-              <p className="text-sm text-gray-600">TROPICANA AMAN</p>
-            </div>
+    <div className="min-h-screen bg-white text-gray-900 relative" data-testid="tv-display">
+      {/* Floating Clinic Logo and Name - Top Right */}
+      <div className="absolute top-6 right-6 z-20 flex items-center space-x-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+        {clinicLogo ? (
+          <img 
+            src={clinicLogo} 
+            alt="Logo Klinik" 
+            className="h-16 w-auto object-contain"
+            data-testid="clinic-logo"
+          />
+        ) : (
+          <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-xs">KLINIK</span>
           </div>
-
-          {/* Right: UTA Logo */}
-          <div className="flex items-center space-x-4">
-            <div className="w-20 h-20 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">UTA</span>
-            </div>
-          </div>
+        )}
+        <div>
+          <h1 className="text-lg font-bold text-blue-800" data-testid="clinic-name">
+            {clinicName}
+          </h1>
+          <p className="text-sm text-gray-600">TROPICANA AMAN</p>
         </div>
       </div>
 
-      <div className="flex h-[calc(100vh-140px)]">
-        {/* Main Content Area - Media Display */}
+      <div className="flex h-[calc(100vh-120px)]">
+        {/* Main Content Area - Full Height Media Display */}
         <div className="flex-1 p-6">
           <div className="h-full bg-gray-100 rounded-lg overflow-hidden">
             {mediaContent ? (
@@ -167,15 +155,15 @@ export function TVDisplay({
           </Card>
 
           {/* Queue List */}
-          <Card className="bg-white">
+          <Card className="bg-white flex-1">
             <CardContent className="p-4">
               <div className="flex justify-between text-sm font-bold mb-3 pb-2 border-b">
                 <span>NAME</span>
                 <span>ROOM</span>
               </div>
-              <div className="space-y-2 max-h-80 overflow-y-auto" data-testid="queue-list">
+              <div className="space-y-2 max-h-96 overflow-y-auto" data-testid="queue-list">
                 {queueHistory.length > 0 ? (
-                  queueHistory.slice(-10).map((item) => (
+                  queueHistory.slice(-15).map((item) => (
                     <div key={item.id} className="flex justify-between items-center py-2 px-2 bg-yellow-100 rounded text-sm">
                       <span className="font-medium text-yellow-800">{item.name}</span>
                       <span className="text-gray-600">{item.room}</span>
@@ -189,30 +177,36 @@ export function TVDisplay({
               </div>
             </CardContent>
           </Card>
-
-          {/* Date and Time Display */}
-          <Card className="bg-teal-600 text-white">
-            <CardContent className="p-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold">{dateInfo.day}</div>
-                <div className="text-sm">{dateInfo.dayName}</div>
-                <div className="text-xs">{dateInfo.month} {dateInfo.year}</div>
-                <div className="text-lg font-mono mt-2" data-testid="display-time">
-                  {formatTime(currentTime)}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
 
-      {/* Bottom Section - Prayer Times */}
+      {/* Bottom Section - Date, Time and Prayer Times */}
       <div className="bg-blue-800 text-white p-4">
-        <div className="flex items-center justify-center">
-          <div className="flex items-center space-x-12">
+        <div className="flex items-center justify-between">
+          {/* Left: Date and Time */}
+          <div className="flex items-center space-x-8">
+            <div className="flex items-center space-x-4">
+              <Calendar className="h-6 w-6" />
+              <div>
+                <div className="text-lg font-bold">{dateInfo.dayName}, {dateInfo.day} {dateInfo.month} {dateInfo.year}</div>
+                <div className="text-sm text-blue-200">Tarikh Hari Ini</div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Clock className="h-6 w-6" />
+              <div>
+                <div className="text-2xl font-mono font-bold" data-testid="display-time">
+                  {formatTime(currentTime)}
+                </div>
+                <div className="text-sm text-blue-200">Waktu Semasa</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Prayer Times */}
+          <div className="flex items-center space-x-8">
             <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5" />
-              <span className="font-bold">PRAYER TIME</span>
+              <span className="font-bold">WAKTU SOLAT</span>
             </div>
             {prayerTimes.map((prayer, index) => (
               <div key={index} className="text-center">
