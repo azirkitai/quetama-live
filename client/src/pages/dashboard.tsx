@@ -190,7 +190,7 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
-            <div className="h-full scale-[0.1] origin-top-left" style={{ width: '1000%', height: '1000%' }}>
+            <div className="h-full scale-[0.03] origin-top-left" style={{ width: '3333%', height: '3333%' }}>
               <TVDisplay
                 currentPatient={currentCall ? convertToQueueItem(currentCall) : undefined}
                 queueHistory={history.slice(0, 3).map(convertToQueueItem)}
