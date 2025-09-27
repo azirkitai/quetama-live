@@ -10,18 +10,16 @@ import { Badge } from "@/components/ui/badge";
 interface PatientRegistrationProps {
   onRegister: (patient: { name: string | null; number: number; type: "name" | "number" }) => void;
   nextNumber: number;
+  isRegistering?: boolean;
 }
 
-export function PatientRegistration({ onRegister, nextNumber }: PatientRegistrationProps) {
+export function PatientRegistration({ onRegister, nextNumber, isRegistering = false }: PatientRegistrationProps) {
   const [registrationType, setRegistrationType] = useState<"name" | "number">("name");
   const [patientName, setPatientName] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return;
-
-    setIsSubmitting(true);
+    if (isRegistering) return;
 
     try {
       const patientData = {
@@ -44,8 +42,6 @@ export function PatientRegistration({ onRegister, nextNumber }: PatientRegistrat
       
     } catch (error) {
       console.error("Registration failed:", error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -134,23 +130,23 @@ export function PatientRegistration({ onRegister, nextNumber }: PatientRegistrat
             {registrationType === "name" ? (
               <Button
                 type="submit"
-                disabled={isSubmitting || !patientName.trim()}
+                disabled={isRegistering || !patientName.trim()}
                 className="w-full"
                 data-testid="button-register-patient"
               >
                 <UserPlus className="h-4 w-4 mr-2" />
-                {isSubmitting ? "Mendaftar..." : "Daftar Pesakit"}
+                {isRegistering ? "Mendaftar..." : "Daftar Pesakit"}
               </Button>
             ) : (
               <Button
                 type="button"
                 onClick={handleGenerateNumber}
-                disabled={isSubmitting}
+                disabled={isRegistering}
                 className="w-full"
                 data-testid="button-generate-number"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                {isSubmitting ? "Menjana..." : "Jana Nombor & Cetak"}
+                {isRegistering ? "Menjana..." : "Jana Nombor & Cetak"}
               </Button>
             )}
           </div>

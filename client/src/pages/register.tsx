@@ -1,53 +1,92 @@
-import { useState } from "react";
+import { useMemo } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { PatientRegistration } from "@/components/patient-registration";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { UserPlus, Users, Hash, Clock } from "lucide-react";
-
-interface RecentPatient {
-  id: string;
-  name: string | null;
-  number: number;
-  registeredAt: string;
-  type: "name" | "number";
-}
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { type Patient } from "@shared/schema";
 
 export default function Register() {
-  const [nextNumber, setNextNumber] = useState(1);
-  const [recentPatients, setRecentPatients] = useState<RecentPatient[]>([]);
-  const [todayStats, setTodayStats] = useState({
-    totalRegistered: 0,
-    nameRegistrations: 0,
-    numberRegistrations: 0
+  const { toast } = useToast();
+
+  // Fetch today's patients
+  const { data: todayPatients = [], isLoading: patientsLoading } = useQuery<Patient[]>({
+    queryKey: ['/api/patients/today'],
   });
+
+  // Fetch next patient number
+  const { data: nextNumberData, isLoading: nextNumberLoading } = useQuery<{ nextNumber: number }>({
+    queryKey: ['/api/patients/next-number'],
+  });
+
+  // Create patient mutation
+  const createPatientMutation = useMutation({
+    mutationFn: async (patientData: { name: string | null; number: number }) => {
+      const response = await apiRequest("POST", "/api/patients", patientData);
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate and refetch relevant queries
+      queryClient.invalidateQueries({ queryKey: ['/api/patients/today'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/patients/next-number'] });
+      
+      toast({
+        title: "Pendaftaran Berjaya",
+        description: "Pesakit telah didaftarkan ke dalam sistem",
+      });
+    },
+    onError: (error) => {
+      console.error("Error registering patient:", error);
+      toast({
+        title: "Ralat Pendaftaran",
+        description: "Gagal mendaftarkan pesakit. Sila cuba semula.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Calculate stats from today's patients
+  const todayStats = useMemo(() => {
+    if (!todayPatients) {
+      return {
+        totalRegistered: 0,
+        nameRegistrations: 0,
+        numberRegistrations: 0
+      };
+    }
+
+    return {
+      totalRegistered: todayPatients.length,
+      nameRegistrations: todayPatients.filter(p => p.name).length,
+      numberRegistrations: todayPatients.filter(p => !p.name).length
+    };
+  }, [todayPatients]);
+
+  // Transform patients for recent list display
+  const recentPatients = useMemo(() => {
+    if (!todayPatients) return [];
+    
+    return todayPatients
+      .sort((a, b) => new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime())
+      .slice(0, 10)
+      .map(patient => ({
+        id: patient.id,
+        name: patient.name,
+        number: patient.number,
+        registeredAt: new Date(patient.registeredAt).toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: true 
+        }),
+        type: patient.name ? "name" as const : "number" as const
+      }));
+  }, [todayPatients]);
 
   const handleRegister = (patient: { name: string | null; number: number; type: "name" | "number" }) => {
     console.log("Registering patient:", patient);
-    
-    const newPatient: RecentPatient = {
-      id: `p${Date.now()}`,
-      name: patient.name,
-      number: patient.number,
-      registeredAt: new Date().toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: true 
-      }),
-      type: patient.type
-    };
-
-    // Add to recent patients
-    setRecentPatients(prev => [newPatient, ...prev.slice(0, 9)]);
-    
-    // Update next number
-    setNextNumber(prev => prev + 1);
-    
-    // Update stats
-    setTodayStats(prev => ({
-      totalRegistered: prev.totalRegistered + 1,
-      nameRegistrations: prev.nameRegistrations + (patient.type === "name" ? 1 : 0),
-      numberRegistrations: prev.numberRegistrations + (patient.type === "number" ? 1 : 0)
-    }));
+    createPatientMutation.mutate(patient);
   };
 
   return (
@@ -63,7 +102,8 @@ export default function Register() {
         <div className="lg:col-span-1">
           <PatientRegistration
             onRegister={handleRegister}
-            nextNumber={nextNumber}
+            nextNumber={nextNumberData?.nextNumber || 1}
+            isRegistering={createPatientMutation.isPending}
           />
         </div>
 
