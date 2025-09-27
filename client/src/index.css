@@ -343,12 +343,12 @@
 
   /* Custom Sidebar Gradient - Force Override */
   .sidebar-gradient {
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #020617 100%) !important;
+    background: linear-gradient(180deg, #e74c3c 0%, #3498db 30%, #2c3e50 70%, #1a252f 100%) !important;
   }
 
   /* Override Shadcn Sidebar default background */
   .bg-sidebar {
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #020617 100%) !important;
+    background: linear-gradient(180deg, #e74c3c 0%, #3498db 30%, #2c3e50 70%, #1a252f 100%) !important;
   }
 
   .sidebar-section-header {
