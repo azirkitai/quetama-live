@@ -74,7 +74,7 @@ export function TVDisplay({
 
   return (
     <div className="h-screen bg-white text-gray-900 flex flex-col" data-testid="tv-display">
-      <div className="flex flex-1">
+      <div className="flex" style={{ height: 'calc(100vh - 200px)' }}>
         {/* Main Content Area - Media Display (Larger for TV) */}
         <div className="w-3/4 px-6 flex items-center">
           <div className="w-full bg-gray-100 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
@@ -110,7 +110,7 @@ export function TVDisplay({
         </div>
 
         {/* Right Sidebar - 3 Vertical Divs */}
-        <div className="w-1/4 pr-6 space-y-2 flex flex-col h-full">
+        <div className="w-1/4 pr-6 space-y-2 flex flex-col" style={{ height: 'calc(100vh - 200px)' }}>
           {/* Div 1: Clinic Logo and Name */}
           <Card className="bg-blue-600 text-white">
             <CardContent className="p-4">
@@ -183,11 +183,11 @@ export function TVDisplay({
         </div>
       </div>
 
-      {/* Bottom Section - Date and Time (Separated) */}
-      <div className="flex flex-shrink-0">
+      {/* Bottom Section - Date and Time (Separated) - FIXED HEIGHT */}
+      <div className="flex h-48 flex-shrink-0">
         <div className="w-3/4 px-6 space-y-1">
           {/* Date Section */}
-          <div className="bg-blue-800 text-white p-2 rounded-lg">
+          <div className="bg-blue-800 text-white p-3 rounded-lg">
             <div className="flex items-center justify-center space-x-4">
               <Calendar className="h-6 w-6" />
               <div className="text-2xl font-bold">
@@ -201,7 +201,7 @@ export function TVDisplay({
           </div>
           
           {/* Prayer Times Section */}
-          <div className="bg-green-800 text-white p-2 rounded-lg">
+          <div className="bg-green-800 text-white p-3 rounded-lg">
             <div className="flex items-center justify-center space-x-6">
               <span className="font-bold text-lg">WAKTU SOLAT:</span>
               {prayerTimes.map((prayer, index) => (
@@ -214,7 +214,7 @@ export function TVDisplay({
           </div>
           
           {/* Welcome Message with Marquee */}
-          <div className="bg-gray-800 text-white p-2 rounded-lg overflow-hidden">
+          <div className="bg-gray-800 text-white p-3 rounded-lg overflow-hidden">
             <div className="whitespace-nowrap">
               <div className="inline-block animate-marquee text-xl font-bold">
                 SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH ★ SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH ★ 
