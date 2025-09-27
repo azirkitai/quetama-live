@@ -115,11 +115,12 @@ export function AppSidebar() {
                   asChild 
                   isActive={location === item.url}
                   data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="text-sidebar-foreground hover:bg-sidebar-accent/10 data-[active=true]:bg-sidebar-accent/20"
+                  className="sidebar-nav-item"
+                  data-active={location === item.url}
                 >
                   <Link href={item.url}>
                     <item.icon className="w-5 h-5" />
-                    <span>{item.title}</span>
+                    <span className="sidebar-nav-text">{item.title}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -138,11 +139,12 @@ export function AppSidebar() {
                   asChild 
                   isActive={location === item.url}
                   data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="text-sidebar-foreground hover:bg-sidebar-accent/10 data-[active=true]:bg-sidebar-accent/20"
+                  className="sidebar-nav-item"
+                  data-active={location === item.url}
                 >
                   <Link href={item.url}>
                     <item.icon className="w-5 h-5" />
-                    <span>{item.title}</span>
+                    <span className="sidebar-nav-text">{item.title}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
