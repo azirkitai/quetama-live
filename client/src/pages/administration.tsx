@@ -27,48 +27,16 @@ export default function Administration() {
   const [isAdding, setIsAdding] = useState(false);
   const [editingUser, setEditingUser] = useState<string | null>(null);
 
-  // Check if current user is admin (mock check)
-  // TODO: Remove mock functionality - implement real admin check
-  const isCurrentUserAdmin = true;
+  // Real admin check would require authentication system
+  const isCurrentUserAdmin = true; // Implement proper auth check
 
-  // TODO: Remove mock functionality - replace with real data from backend
+  // Load real users from database - currently empty until backend API is implemented
   useEffect(() => {
-    const mockUsers: User[] = [
-      {
-        id: "u1",
-        username: "admin",
-        role: "admin",
-        isActive: true,
-        lastLogin: "27 September 2025, 10:30 AM",
-        createdAt: "1 Januari 2025"
-      },
-      {
-        id: "u2",
-        username: "doctor1",
-        role: "user",
-        isActive: true,
-        lastLogin: "27 September 2025, 9:15 AM",
-        createdAt: "15 Januari 2025"
-      },
-      {
-        id: "u3",
-        username: "nurse1",
-        role: "user",
-        isActive: true,
-        lastLogin: "26 September 2025, 4:30 PM",
-        createdAt: "20 Januari 2025"
-      },
-      {
-        id: "u4",
-        username: "reception",
-        role: "user",
-        isActive: false,
-        lastLogin: "25 September 2025, 2:00 PM",
-        createdAt: "10 Februari 2025"
-      }
-    ];
-
-    setUsers(mockUsers);
+    // TODO: Implement real API call to fetch users from backend
+    // Example: fetch('/api/users').then(res => res.json()).then(setUsers)
+    
+    // For now, start with empty state - no mock data
+    setUsers([]);
   }, []);
 
   const handleAddUser = async (e: React.FormEvent) => {
@@ -105,8 +73,8 @@ export default function Administration() {
       // Reset form
       setNewUser({ username: "", password: "", role: "user" });
       
-      // TODO: Remove mock functionality - send to backend
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // TODO: Implement real API call to create user in backend
+      // Example: await apiRequest("POST", "/api/users", newUser)
       
     } catch (error) {
       console.error("Failed to add user:", error);
@@ -122,7 +90,8 @@ export default function Administration() {
       u.id === userId ? { ...u, isActive: !u.isActive } : u
     ));
     
-    // TODO: Remove mock functionality - send to backend
+    // TODO: Implement real API call to update user status in backend
+    // Example: await apiRequest("PATCH", `/api/users/${userId}/status`)
   };
 
   const handleDeleteUser = async (userId: string) => {

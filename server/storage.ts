@@ -54,22 +54,9 @@ export class MemStorage implements IStorage {
     this.patients = new Map();
     this.windows = new Map();
     
-    // Initialize default windows
-    this.initializeWindows();
+    // No default data - all data must be created by users
   }
 
-  private initializeWindows() {
-    const defaultWindows: Window[] = [
-      { id: "w1", name: "Bilik 1 - Dr. Sarah", isActive: true },
-      { id: "w2", name: "Bilik 2 - Dr. Ahmad", isActive: true },
-      { id: "w3", name: "Bilik 3 - Nurse Linda", isActive: true },
-      { id: "w4", name: "Bilik 4 - Dr. Aisyah", isActive: false },
-    ];
-    
-    defaultWindows.forEach(window => {
-      this.windows.set(window.id, window);
-    });
-  }
 
   async getUser(id: string): Promise<User | undefined> {
     return this.users.get(id);
