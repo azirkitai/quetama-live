@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { PatientRegistration } from "@/components/patient-registration";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,58 +13,15 @@ interface RecentPatient {
 }
 
 export default function Register() {
-  const [nextNumber, setNextNumber] = useState(16);
+  const [nextNumber, setNextNumber] = useState(1);
   const [recentPatients, setRecentPatients] = useState<RecentPatient[]>([]);
   const [todayStats, setTodayStats] = useState({
-    totalRegistered: 15,
-    nameRegistrations: 8,
-    numberRegistrations: 7
+    totalRegistered: 0,
+    nameRegistrations: 0,
+    numberRegistrations: 0
   });
 
-  // TODO: Remove mock functionality - replace with real data from backend
-  useEffect(() => {
-    const mockRecentPatients: RecentPatient[] = [
-      {
-        id: "p1",
-        name: "Ahmad bin Rahman",
-        number: 15,
-        registeredAt: "10:30 AM",
-        type: "name"
-      },
-      {
-        id: "p2",
-        name: null,
-        number: 14,
-        registeredAt: "10:25 AM",
-        type: "number"
-      },
-      {
-        id: "p3",
-        name: "Siti Aishah",
-        number: 13,
-        registeredAt: "10:20 AM",
-        type: "name"
-      },
-      {
-        id: "p4",
-        name: null,
-        number: 12,
-        registeredAt: "10:15 AM",
-        type: "number"
-      },
-      {
-        id: "p5",
-        name: "Rahman Abdullah",
-        number: 11,
-        registeredAt: "10:10 AM",
-        type: "name"
-      }
-    ];
-
-    setRecentPatients(mockRecentPatients);
-  }, []);
-
-  const handleRegister = async (patient: { name: string | null; number: number; type: "name" | "number" }) => {
+  const handleRegister = (patient: { name: string | null; number: number; type: "name" | "number" }) => {
     console.log("Registering patient:", patient);
     
     const newPatient: RecentPatient = {
@@ -91,9 +48,6 @@ export default function Register() {
       nameRegistrations: prev.nameRegistrations + (patient.type === "name" ? 1 : 0),
       numberRegistrations: prev.numberRegistrations + (patient.type === "number" ? 1 : 0)
     }));
-
-    // TODO: Remove mock functionality - send to backend
-    await new Promise(resolve => setTimeout(resolve, 1000));
   };
 
   return (
