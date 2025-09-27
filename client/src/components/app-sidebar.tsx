@@ -29,23 +29,23 @@ const mainNavigationItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
+    title: "Patient Register",
+    url: "/register",
+    icon: UserPlus,
   },
   {
     title: "Queue Management",
     url: "/queue",
     icon: ClipboardList,
   },
-  {
-    title: "Patient Register",
-    url: "/register",
-    icon: UserPlus,
-  },
 ];
 
 const administrationItems = [
+  {
+    title: "Settings",
+    url: "/settings",
+    icon: Settings,
+  },
   {
     title: "Account Settings",
     url: "/account",
@@ -107,7 +107,6 @@ export function AppSidebar() {
         {/* Main Navigation Section */}
         <div>
           <div className="sidebar-section-header">MAIN NAVIGATION</div>
-          <div className="text-sidebar-foreground/80 text-sm mb-4">Key Your Personal Record Here</div>
           <SidebarMenu className="space-y-1">
             {mainNavigationItems.map((item) => (
               <SidebarMenuItem key={item.title}>
