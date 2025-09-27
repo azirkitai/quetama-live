@@ -106,7 +106,10 @@ export default function Queue() {
     const window = windows.find(w => w.id === selectedWindow);
     if (!window) return;
 
-    if (window.currentPatientId) {
+    // Allow calling if:
+    // 1. Window is empty (no currentPatientId), OR
+    // 2. Same patient is being called again (recall scenario)
+    if (window.currentPatientId && window.currentPatientId !== patientId) {
       toast({
         title: "Ralat",
         description: "Bilik ini sedang melayani pesakit lain",
@@ -144,7 +147,10 @@ export default function Queue() {
     const window = windows.find(w => w.id === selectedWindow);
     if (!window) return;
 
-    if (window.currentPatientId) {
+    // Allow recall if:
+    // 1. Window is empty (no currentPatientId), OR  
+    // 2. Same patient is being recalled
+    if (window.currentPatientId && window.currentPatientId !== patientId) {
       toast({
         title: "Ralat",
         description: "Bilik ini sedang melayani pesakit lain",
@@ -226,7 +232,6 @@ export default function Queue() {
                   <SelectItem 
                     key={window.id} 
                     value={window.id}
-                    disabled={!!window.currentPatientId}
                   >
                     {window.name} {window.currentPatientId && "(Sedang Digunakan)"}
                   </SelectItem>
