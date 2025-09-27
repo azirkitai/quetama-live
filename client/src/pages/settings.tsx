@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Monitor, Volume2, Palette, Upload, Save, RefreshCw, CheckCircle, Plus, ChevronLeft, ChevronRight, Eye, Trash2 } from "lucide-react";
+import { Monitor, Volume2, Palette, Upload, Save, RefreshCw, CheckCircle, Plus, ChevronLeft, ChevronRight, Eye, Trash2, Edit } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -227,6 +227,30 @@ export default function Settings() {
     },
   });
 
+  // Rename media mutation
+  const renameMediaMutation = useMutation({
+    mutationFn: async ({ id, name }: { id: string, name: string }) => {
+      const response = await apiRequest("PATCH", `/api/media/${id}`, { name });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/media'] });
+      toast({
+        title: "Media Dinamakan Semula",
+        description: "Nama media telah dikemaskini",
+      });
+      setEditingMediaId(null);
+    },
+    onError: (error) => {
+      console.error("Error renaming media:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal mengemas kini nama media",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleAddMedia = () => {
     const mediaCount = mediaFiles.length + 1;
     addMediaMutation.mutate({
@@ -239,8 +263,31 @@ export default function Settings() {
     deleteMediaMutation.mutate(id);
   };
 
+  const handleStartRename = (id: string, currentName: string) => {
+    setEditingMediaId(id);
+    setEditingName(currentName);
+  };
+
+  const handleSaveRename = () => {
+    if (editingMediaId && editingName.trim()) {
+      renameMediaMutation.mutate({
+        id: editingMediaId,
+        name: editingName.trim()
+      });
+    }
+  };
+
+  const handleCancelRename = () => {
+    setEditingMediaId(null);
+    setEditingName("");
+  };
+
   // Media carousel state with safe pagination
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  
+  // Rename functionality state
+  const [editingMediaId, setEditingMediaId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
   
   const totalPages = Math.max(1, Math.ceil(mediaFiles.length / 4));
   
@@ -503,11 +550,38 @@ export default function Settings() {
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
                         <div className="text-center p-2">
                           <Eye className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-                          <p className="text-xs text-gray-600 font-medium truncate">{media.name}</p>
+                          {editingMediaId === media.id ? (
+                            <Input
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleSaveRename();
+                                } else if (e.key === 'Escape') {
+                                  handleCancelRename();
+                                }
+                              }}
+                              onBlur={handleSaveRename}
+                              autoFocus
+                              className="text-xs h-6 text-center"
+                              data-testid={`input-rename-${media.id}`}
+                            />
+                          ) : (
+                            <p className="text-xs text-gray-600 font-medium truncate">{media.name}</p>
+                          )}
                         </div>
                       </div>
                     </div>
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleStartRename(media.id, media.name)}
+                        className="h-6 w-6 p-0 bg-white/80 hover:bg-white"
+                        data-testid={`button-edit-media-${media.id}`}
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
                       <Button
                         variant="destructive"
                         size="sm"
