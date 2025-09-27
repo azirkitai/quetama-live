@@ -28,6 +28,7 @@ export default function Dashboard() {
   // Fetch dashboard statistics
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats & { totalWindows: number }>({
     queryKey: ['/api/dashboard/stats'],
+    refetchInterval: 3000, // Refresh every 3 seconds for real-time dashboard updates
   });
 
   // Fetch current call
