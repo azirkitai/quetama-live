@@ -197,7 +197,7 @@ export default function Dashboard() {
             <div className="h-full scale-50 origin-top-left" style={{ width: '200%', height: '200%' }}>
               <TVDisplay
                 currentPatient={currentCall ? convertToQueueItem(currentCall) : undefined}
-                queueHistory={history.slice(0, 3).map(convertToQueueItem)}
+                queueHistory={history.slice(0, 4).map(convertToQueueItem)}
                 clinicName="KLINIK UTAMA 24 JAM"
                 clinicLogo={undefined}
                 mediaContent={undefined}

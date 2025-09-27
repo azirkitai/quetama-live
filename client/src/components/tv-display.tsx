@@ -97,20 +97,52 @@ export function TVDisplay({
          style={containerStyle} 
          data-testid="tv-display">
       {/* Main Content Area - Media Display */}
-      <div className={`${isFullscreen ? 'm-0 p-0' : 'p-4'} flex items-center w-full h-full`}>
-        <div className={`w-full h-full bg-gray-100 ${isFullscreen ? 'm-0 p-0' : 'rounded-lg'} overflow-hidden flex items-center justify-center`}>
+      <div className={`${isFullscreen ? 'm-0 p-0' : 'p-4'} flex items-center justify-center w-full h-full`}>
+        {isFullscreen ? (
+          <div className="bg-gray-100 overflow-hidden flex items-center justify-center w-full max-h-full" style={{ aspectRatio: '16/9' }}>
+              {mediaContent ? (
+                mediaType === "image" ? (
+                  <img 
+                    src={mediaContent} 
+                    alt="Media Content" 
+                    className="w-full h-full object-cover"
+                    data-testid="media-content"
+                  />
+                ) : (
+                  <video 
+                    src={mediaContent} 
+                    className="w-full h-full object-cover"
+                    autoPlay
+                    muted
+                    loop
+                    data-testid="media-content"
+                  />
+                )
+              ) : (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center text-gray-500">
+                    <div className="text-5xl font-bold mb-4" data-testid="no-display-message">
+                      NO DISPLAY
+                    </div>
+                    <p className="text-lg">Tiada media dimuatnaik</p>
+                  </div>
+                </div>
+              )}
+          </div>
+        ) : (
+          <div className="w-full h-full bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
             {mediaContent ? (
               mediaType === "image" ? (
                 <img 
                   src={mediaContent} 
                   alt="Media Content" 
-                  className={`w-full h-full ${isFullscreen ? 'object-cover' : 'object-contain'}`}
+                  className="w-full h-full object-contain"
                   data-testid="media-content"
                 />
               ) : (
                 <video 
                   src={mediaContent} 
-                  className={`w-full h-full ${isFullscreen ? 'object-cover' : 'object-contain'}`}
+                  className="w-full h-full object-contain"
                   autoPlay
                   muted
                   loop
@@ -128,7 +160,8 @@ export function TVDisplay({
               </div>
             )}
           </div>
-        </div>
+        )}
+      </div>
 
       {/* Right Panel - Queue Board Style */}
       <div className={`bg-blue-700 text-white ${isFullscreen ? 'p-0 m-0' : 'p-4'} flex flex-col w-full h-full`}>
@@ -187,7 +220,7 @@ export function TVDisplay({
           </div>
           <div className="space-y-1 overflow-y-auto" style={{ maxHeight: '300px' }} data-testid="queue-list">
             {queueHistory.length > 0 ? (
-              queueHistory.slice(-6).map((item) => (
+              queueHistory.slice(-4).map((item) => (
                 <div key={item.id} className="bg-blue-600 p-3 rounded grid grid-cols-2 gap-1">
                   <div className="font-bold text-yellow-400" 
                        style={{ fontSize: 'clamp(1.25rem, 2vw, 2rem)' }}>
@@ -250,11 +283,14 @@ export function TVDisplay({
         </div>
         
         {/* Bottom Marquee */}
-        <div className={`${isFullscreen ? 'mt-4' : 'mt-3'} overflow-hidden`}>
-          <div className="whitespace-nowrap">
-            <div className={`inline-block animate-marquee font-bold ${isFullscreen ? 'text-3xl' : 'text-2xl'}`}>
+        <div className={`${isFullscreen ? 'mt-4' : 'mt-3'} overflow-hidden w-full`}>
+          <div className="inline-flex whitespace-nowrap animate-marquee" data-testid="marquee-container" aria-hidden="false">
+            <span className={`px-8 font-bold ${isFullscreen ? 'text-2xl' : 'text-xl'}`} style={isFullscreen ? { fontSize: 'clamp(1.5rem, 2vw, 2rem)' } : {}}>
               SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH
-            </div>
+            </span>
+            <span className={`px-8 font-bold ${isFullscreen ? 'text-2xl' : 'text-xl'}`} style={isFullscreen ? { fontSize: 'clamp(1.5rem, 2vw, 2rem)' } : {}} aria-hidden="true">
+              SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH
+            </span>
           </div>
         </div>
       </div>
