@@ -21,7 +21,7 @@ export interface IStorage {
   getPatients(): Promise<Patient[]>;
   getPatientsByDate(date: string): Promise<Patient[]>;
   getNextPatientNumber(): Promise<number>;
-  updatePatientStatus(patientId: string, status: string, windowId?: string | null): Promise<Patient | undefined>;
+  updatePatientStatus(patientId: string, status: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined>;
   deletePatient(patientId: string): Promise<boolean>;
   
   // Window methods
@@ -104,6 +104,7 @@ export class MemStorage implements IStorage {
       registeredAt: new Date(),
       calledAt: null,
       completedAt: null,
+      requeueReason: null,
       trackingHistory: []
     };
     this.patients.set(id, patient);
@@ -132,7 +133,7 @@ export class MemStorage implements IStorage {
     return todayPatients.length + 1;
   }
 
-  async updatePatientStatus(patientId: string, status: string, windowId?: string | null): Promise<Patient | undefined> {
+  async updatePatientStatus(patientId: string, status: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined> {
     const patient = this.patients.get(patientId);
     if (!patient) return undefined;
 
@@ -158,13 +159,15 @@ export class MemStorage implements IStorage {
       newTrackingHistory.push(`Consultation completed at ${timeString}`);
       patient.completedAt = now;
     } else if (status === "requeue") {
-      newTrackingHistory.push(`Requeued at ${timeString}`);
+      const reasonText = requeueReason ? ` - ${requeueReason}` : '';
+      newTrackingHistory.push(`Requeued at ${timeString}${reasonText}`);
     }
 
     const updatedPatient = {
       ...patient,
       status,
       windowId: windowId === null ? null : (windowId || patient.windowId),
+      requeueReason: status === "requeue" ? requeueReason || null : patient.requeueReason,
       trackingHistory: newTrackingHistory
     };
 

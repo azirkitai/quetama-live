@@ -56,12 +56,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/patients/:id/status", async (req, res) => {
     try {
       const { id } = req.params;
-      const { status, windowId } = req.body;
+      const { status, windowId, requeueReason } = req.body;
       
       // Clear windowId for completed or requeue status
       const finalWindowId = (status === "completed" || status === "requeue") ? null : windowId;
       
-      const patient = await storage.updatePatientStatus(id, status, finalWindowId);
+      const patient = await storage.updatePatientStatus(id, status, finalWindowId, requeueReason);
       if (!patient) {
         return res.status(404).json({ error: "Patient not found" });
       }

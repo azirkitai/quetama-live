@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Bell, Trash2, RotateCcw, CheckCircle } from "lucide-react";
+import { Bell, Trash2, RotateCcw, CheckCircle, X } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Patient {
   id: string;
@@ -19,7 +20,7 @@ interface PatientCardProps {
   onCall: (patientId: string) => void;
   onDelete: (patientId: string) => void;
   onComplete: (patientId: string) => void;
-  onRequeue: (patientId: string) => void;
+  onRequeue: (patientId: string, reason?: string) => void;
   disabled?: boolean;
 }
 
@@ -32,6 +33,7 @@ export function PatientCard({
   disabled = false
 }: PatientCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showRequeueDropdown, setShowRequeueDropdown] = useState(false);
 
   const handleCall = () => {
     console.log(`Calling patient ${patient.id}`);
@@ -55,8 +57,17 @@ export function PatientCard({
   };
 
   const handleRequeue = () => {
-    console.log(`Requeueing patient ${patient.id}`);
-    onRequeue(patient.id);
+    setShowRequeueDropdown(true);
+  };
+
+  const handleRequeueWithReason = (reason: string) => {
+    console.log(`Requeueing patient ${patient.id} with reason: ${reason}`);
+    onRequeue(patient.id, reason);
+    setShowRequeueDropdown(false);
+  };
+
+  const handleCancelRequeue = () => {
+    setShowRequeueDropdown(false);
   };
 
   const getStatusColor = (status: string) => {
@@ -155,7 +166,7 @@ export function PatientCard({
             </Button>
           )}
 
-          {patient.status === "in-progress" && (
+          {(patient.status === "called" || patient.status === "in-progress") && (
             <>
               <Button
                 onClick={handleComplete}
@@ -168,17 +179,46 @@ export function PatientCard({
                 <CheckCircle className="h-4 w-4 mr-1" />
                 Selesai
               </Button>
-              <Button
-                onClick={handleRequeue}
-                disabled={disabled}
-                size="sm"
-                variant="outline"
-                className="flex-1"
-                data-testid={`button-requeue-${patient.id}`}
-              >
-                <RotateCcw className="h-4 w-4 mr-1" />
-                Baris Semula
-              </Button>
+              
+              {!showRequeueDropdown ? (
+                <Button
+                  onClick={handleRequeue}
+                  disabled={disabled}
+                  size="sm"
+                  variant="outline"
+                  className="flex-1"
+                  data-testid={`button-requeue-${patient.id}`}
+                >
+                  <RotateCcw className="h-4 w-4 mr-1" />
+                  Reque
+                </Button>
+              ) : (
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Pilih sebab reque:</span>
+                    <Button
+                      onClick={handleCancelRequeue}
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0"
+                      data-testid={`button-cancel-requeue-${patient.id}`}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Select onValueChange={handleRequeueWithReason}>
+                    <SelectTrigger className="w-full" data-testid={`select-requeue-reason-${patient.id}`}>
+                      <SelectValue placeholder="Pilih sebab..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NEBULISER">NEBULISER</SelectItem>
+                      <SelectItem value="AMBIL UBATAN">AMBIL UBATAN</SelectItem>
+                      <SelectItem value="MENUNGGU KEPUTUSAN UJIAN">MENUNGGU KEPUTUSAN UJIAN</SelectItem>
+                      <SelectItem value="MGTT">MGTT</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </>
           )}
 

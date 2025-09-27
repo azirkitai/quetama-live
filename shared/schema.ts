@@ -30,6 +30,7 @@ export const patients = pgTable("patients", {
   registeredAt: timestamp("registered_at").notNull().default(sql`now()`),
   calledAt: timestamp("called_at"),
   completedAt: timestamp("completed_at"),
+  requeueReason: text("requeue_reason"), // Reason for requeue: NEBULISER, AMBIL UBATAN, MENUNGGU KEPUTUSAN UJIAN, MGTT
   trackingHistory: text("tracking_history").array().default(sql`'{}'::text[]`), // Array of status changes
 });
 

@@ -40,8 +40,8 @@ export default function Queue() {
 
   // Update patient status mutation
   const updatePatientStatusMutation = useMutation({
-    mutationFn: async ({ patientId, status, windowId }: { patientId: string; status: string; windowId?: string }) => {
-      const response = await apiRequest("PATCH", `/api/patients/${patientId}/status`, { status, windowId });
+    mutationFn: async ({ patientId, status, windowId, requeueReason }: { patientId: string; status: string; windowId?: string; requeueReason?: string }) => {
+      const response = await apiRequest("PATCH", `/api/patients/${patientId}/status`, { status, windowId, requeueReason });
       return response.json();
     },
     onSuccess: () => {
@@ -133,10 +133,11 @@ export default function Queue() {
     });
   };
 
-  const handleRequeuePatient = (patientId: string) => {
+  const handleRequeuePatient = (patientId: string, reason?: string) => {
     updatePatientStatusMutation.mutate({
       patientId,
-      status: "requeue"
+      status: "requeue",
+      requeueReason: reason
     });
   };
 
@@ -219,7 +220,7 @@ export default function Queue() {
                 onDelete={handleDeletePatient}
                 onComplete={handleCompletePatient}
                 onRequeue={handleRequeuePatient}
-                disabled={patient.status === "called" || updatePatientStatusMutation.isPending}
+                disabled={updatePatientStatusMutation.isPending}
               />
             ))}
           </div>
