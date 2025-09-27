@@ -340,17 +340,14 @@ export function TVDisplay({
         </div>
       )}
 
-      {/* Highlight Card Overlay - Appears in center for 5 seconds when new patient is called */}
+      {/* Highlight Card Overlay - Rectangle showing name and window */}
       {showHighlight && currentPatient && (
         <div className="fixed inset-0 flex items-center justify-center z-[100]" 
              style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
              data-testid="highlight-overlay">
-          <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-12 rounded-2xl shadow-2xl border-4 border-yellow-400 animate-pulse transform scale-110">
-            <div className="text-center">
-              <div className="text-yellow-400 font-bold mb-4" style={{ fontSize: 'clamp(2rem, 6vw, 4rem)' }}>
-                DIPANGGIL
-              </div>
-              <div className="text-white font-bold mb-6" style={{ fontSize: 'clamp(3rem, 8vw, 6rem)' }}
+          <div className="bg-blue-600 px-16 py-8 shadow-2xl border-4 border-yellow-400">
+            <div className="text-center space-y-4">
+              <div className="text-white font-bold" style={{ fontSize: 'clamp(3rem, 8vw, 6rem)' }}
                    data-testid="highlight-patient-name">
                 {currentPatient.name}
               </div>
