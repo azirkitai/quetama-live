@@ -43,6 +43,19 @@ export const settings = pgTable("settings", {
   category: text("category").notNull(), // 'display', 'sound', 'general'
 });
 
+// Media files table
+export const media = pgTable("media", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  filename: text("filename").notNull(), // Original filename
+  url: text("url").notNull(), // Storage URL/path
+  type: text("type").notNull(), // 'image' or 'video'
+  mimeType: text("mime_type").notNull(), // e.g., 'image/jpeg', 'video/mp4'
+  size: integer("size").notNull(), // File size in bytes
+  uploadedAt: timestamp("uploaded_at").notNull().default(sql`now()`),
+  isActive: boolean("is_active").notNull().default(true),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -65,14 +78,25 @@ export const insertSettingSchema = createInsertSchema(settings).pick({
   category: true,
 });
 
+export const insertMediaSchema = createInsertSchema(media).pick({
+  name: true,
+  filename: true,
+  url: true,
+  type: true,
+  mimeType: true,
+  size: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertWindow = z.infer<typeof insertWindowSchema>;
 export type InsertPatient = z.infer<typeof insertPatientSchema>;
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
+export type InsertMedia = z.infer<typeof insertMediaSchema>;
 
 // Select types
 export type User = typeof users.$inferSelect;
 export type Window = typeof windows.$inferSelect;
 export type Patient = typeof patients.$inferSelect;
 export type Setting = typeof settings.$inferSelect;
+export type Media = typeof media.$inferSelect;

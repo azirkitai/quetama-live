@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting } from "@shared/schema";
+import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting, type Media, type InsertMedia } from "@shared/schema";
 
 interface Window {
   id: string;
@@ -55,6 +55,14 @@ export interface IStorage {
   setSetting(key: string, value: string, category: string): Promise<Setting>;
   updateSetting(key: string, value: string): Promise<Setting | undefined>;
   deleteSetting(key: string): Promise<boolean>;
+  
+  // Media methods
+  getMedia(): Promise<Media[]>;
+  getMediaById(id: string): Promise<Media | undefined>;
+  createMedia(media: InsertMedia): Promise<Media>;
+  updateMedia(id: string, updates: Partial<Media>): Promise<Media | undefined>;
+  deleteMedia(id: string): Promise<boolean>;
+  getActiveMedia(): Promise<Media[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -62,12 +70,14 @@ export class MemStorage implements IStorage {
   private patients: Map<string, Patient>;
   private windows: Map<string, Window>;
   private settings: Map<string, Setting>;
+  private media: Map<string, Media>;
 
   constructor() {
     this.users = new Map();
     this.patients = new Map();
     this.windows = new Map();
     this.settings = new Map();
+    this.media = new Map();
     
     // Initialize default settings
     this.initializeDefaultSettings();
@@ -425,6 +435,44 @@ export class MemStorage implements IStorage {
 
   async deleteSetting(key: string): Promise<boolean> {
     return this.settings.delete(key);
+  }
+
+  // Media methods implementation
+  async getMedia(): Promise<Media[]> {
+    return Array.from(this.media.values());
+  }
+
+  async getMediaById(id: string): Promise<Media | undefined> {
+    return this.media.get(id);
+  }
+
+  async createMedia(insertMedia: InsertMedia): Promise<Media> {
+    const id = randomUUID();
+    const media: Media = {
+      ...insertMedia,
+      id,
+      uploadedAt: new Date(),
+      isActive: true,
+    };
+    this.media.set(id, media);
+    return media;
+  }
+
+  async updateMedia(id: string, updates: Partial<Media>): Promise<Media | undefined> {
+    const media = this.media.get(id);
+    if (!media) return undefined;
+
+    const updatedMedia = { ...media, ...updates };
+    this.media.set(id, updatedMedia);
+    return updatedMedia;
+  }
+
+  async deleteMedia(id: string): Promise<boolean> {
+    return this.media.delete(id);
+  }
+
+  async getActiveMedia(): Promise<Media[]> {
+    return Array.from(this.media.values()).filter(media => media.isActive);
   }
 }
 

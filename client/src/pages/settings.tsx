@@ -7,14 +7,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Monitor, Volume2, Palette, Upload, Save, RefreshCw, CheckCircle } from "lucide-react";
+import { Monitor, Volume2, Palette, Upload, Save, RefreshCw, CheckCircle, Plus, ChevronLeft, ChevronRight, Eye, Trash2 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Setting } from "@shared/schema";
+import type { Setting, Media } from "@shared/schema";
 
 interface SettingsState {
   mediaType: string;
+  dashboardMediaType: string; // "own" or "youtube"
   theme: string;
   showPrayerTimes: boolean;
   showWeather: boolean;
@@ -25,6 +26,8 @@ interface SettingsState {
   enableTTS: boolean;
   volume: number;
 }
+
+// Using Media type from shared schema instead of local interface
 
 export default function Settings() {
   const { toast } = useToast();
@@ -45,6 +48,7 @@ export default function Settings() {
   // Current settings state
   const [currentSettings, setCurrentSettings] = useState<SettingsState>({
     mediaType: "image",
+    dashboardMediaType: "own",
     theme: "blue",
     showPrayerTimes: true,
     showWeather: false,
@@ -56,11 +60,17 @@ export default function Settings() {
     volume: 70
   });
 
+  // Fetch media files from API
+  const { data: mediaFiles = [], isLoading: mediaLoading, refetch: refetchMedia } = useQuery<Media[]>({
+    queryKey: ['/api/media'],
+  });
+
   // Update state when settings are loaded from database
   useEffect(() => {
     if (settings.length > 0) {
       const newSettings = {
         mediaType: settingsObj.mediaType || "image",
+        dashboardMediaType: settingsObj.dashboardMediaType || "own",
         theme: settingsObj.theme || "blue",
         showPrayerTimes: settingsObj.showPrayerTimes === "true",
         showWeather: settingsObj.showWeather === "true",
@@ -132,6 +142,7 @@ export default function Settings() {
   const handleSaveDisplay = () => {
     const displaySettingsToSave = [
       { key: 'mediaType', value: currentSettings.mediaType, category: 'display' },
+      { key: 'dashboardMediaType', value: currentSettings.dashboardMediaType, category: 'display' },
       { key: 'theme', value: currentSettings.theme, category: 'display' },
       { key: 'showPrayerTimes', value: currentSettings.showPrayerTimes.toString(), category: 'display' },
       { key: 'showWeather', value: currentSettings.showWeather.toString(), category: 'display' },
@@ -166,7 +177,85 @@ export default function Settings() {
     });
   };
 
-  if (isLoading) {
+  // Add media mutation
+  const addMediaMutation = useMutation({
+    mutationFn: async ({ name, type }: { name: string, type: 'image' | 'video' }) => {
+      const response = await apiRequest("POST", "/api/media", { name, type });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/media'] });
+      toast({
+        title: "Media Ditambah",
+        description: "Media baru telah ditambah ke koleksi",
+      });
+    },
+    onError: (error) => {
+      console.error("Error adding media:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal menambah media",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete media mutation
+  const deleteMediaMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/media/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/media'] });
+      toast({
+        title: "Media Dipadam",
+        description: "Media telah dipadam dari koleksi",
+      });
+    },
+    onError: (error) => {
+      console.error("Error deleting media:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal memadam media",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddMedia = () => {
+    const mediaCount = mediaFiles.length + 1;
+    addMediaMutation.mutate({
+      name: `Media Baru ${mediaCount}`,
+      type: 'image'
+    });
+  };
+
+  const handleDeleteMedia = (id: string) => {
+    deleteMediaMutation.mutate(id);
+  };
+
+  // Media carousel state with safe pagination
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  
+  const totalPages = Math.max(1, Math.ceil(mediaFiles.length / 4));
+  
+  // Clamp currentMediaIndex to valid range
+  useEffect(() => {
+    if (currentMediaIndex >= totalPages) {
+      setCurrentMediaIndex(Math.max(0, totalPages - 1));
+    }
+  }, [mediaFiles.length, totalPages, currentMediaIndex]);
+  
+  const nextMedia = () => {
+    setCurrentMediaIndex((prev) => Math.min(prev + 1, totalPages - 1));
+  };
+  
+  const prevMedia = () => {
+    setCurrentMediaIndex((prev) => Math.max(prev - 1, 0));
+  };
+
+  if (isLoading || mediaLoading) {
     return (
       <div className="p-6 space-y-6">
         <div className="flex items-center space-x-2">
@@ -234,22 +323,70 @@ export default function Settings() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Show in Dashboard Section */}
+              <div className="space-y-4">
+                <Label className="text-base font-semibold">Show in Dashboard:</Label>
+                <div className="flex space-x-6">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="own-media"
+                      name="dashboardMedia"
+                      value="own"
+                      checked={currentSettings.dashboardMediaType === "own"}
+                      onChange={(e) => updateDisplaySetting('dashboardMediaType', e.target.value)}
+                      className="w-4 h-4 text-blue-600"
+                      data-testid="radio-own-media"
+                    />
+                    <Label htmlFor="own-media">Own Media</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="youtube-media"
+                      name="dashboardMedia"
+                      value="youtube"
+                      checked={currentSettings.dashboardMediaType === "youtube"}
+                      onChange={(e) => updateDisplaySetting('dashboardMediaType', e.target.value)}
+                      className="w-4 h-4 text-blue-600"
+                      data-testid="radio-youtube-media"
+                    />
+                    <Label htmlFor="youtube-media">YouTube</Label>
+                  </div>
+                </div>
+              </div>
+
               {/* Media Type */}
               <div className="space-y-2">
-                <Label>Jenis Media Background</Label>
-                <Select 
-                  value={currentSettings.mediaType} 
-                  onValueChange={(value) => updateDisplaySetting('mediaType', value)}
-                >
-                  <SelectTrigger data-testid="select-media-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="image">Gambar</SelectItem>
-                    <SelectItem value="youtube">YouTube Video</SelectItem>
-                    <SelectItem value="none">Tiada Background</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Media Type</Label>
+                <div className="flex space-x-2">
+                  <Select 
+                    value={currentSettings.mediaType} 
+                    onValueChange={(value) => updateDisplaySetting('mediaType', value)}
+                  >
+                    <SelectTrigger data-testid="select-media-type" className="flex-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="image">Own Media</SelectItem>
+                      <SelectItem value="youtube">YouTube Video</SelectItem>
+                      <SelectItem value="none">Tiada Background</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    onClick={handleAddMedia}
+                    variant="default"
+                    className="bg-blue-600 hover:bg-blue-700"
+                    data-testid="button-add-media"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Media
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Note: Please rename your media files in sequence to display in order<br/>
+                  Example: 1.jpg, 2.jpg, 3.jpg
+                </p>
               </div>
 
               {/* File Uploads */}
@@ -299,6 +436,85 @@ export default function Settings() {
                   </SelectContent>
                 </Select>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Media Gallery Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Media Gallery</span>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={prevMedia}
+                    disabled={currentMediaIndex <= 0}
+                    data-testid="button-prev-media"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    {currentMediaIndex + 1} / {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={nextMedia}
+                    disabled={currentMediaIndex >= totalPages - 1}
+                    data-testid="button-next-media"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-4 gap-4">
+                {mediaFiles.slice(currentMediaIndex * 4, (currentMediaIndex + 1) * 4).map((media, index) => (
+                  <div key={media.id} className="relative group">
+                    <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-blue-400 transition-colors">
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+                        <div className="text-center p-2">
+                          <Eye className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+                          <p className="text-xs text-gray-600 font-medium truncate">{media.name}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteMedia(media.id)}
+                        className="h-6 w-6 p-0"
+                        data-testid={`button-delete-media-${media.id}`}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <div className="absolute bottom-2 left-2 right-2">
+                      <div className="bg-black/50 text-white text-xs px-2 py-1 rounded text-center">
+                        {index + 1 + currentMediaIndex * 4} / {mediaFiles.length}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Empty slots if less than 4 items */}
+                {Array.from({ length: Math.max(0, 4 - mediaFiles.slice(currentMediaIndex * 4, (currentMediaIndex + 1) * 4).length) }).map((_, index) => (
+                  <div key={`empty-${index}`} className="aspect-square bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                    <Plus className="h-8 w-8 text-gray-400" />
+                  </div>
+                ))}
+              </div>
+              
+              {mediaFiles.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Eye className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>Tiada media yang dimuat naik</p>
+                  <p className="text-sm">Klik 'Add Media' untuk memuat naik fail media</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

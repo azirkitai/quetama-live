@@ -450,6 +450,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Media management routes
+  
+  // Get all media files
+  app.get("/api/media", async (req, res) => {
+    try {
+      const media = await storage.getActiveMedia();
+      res.json(media);
+    } catch (error) {
+      console.error("Error fetching media:", error);
+      res.status(500).json({ error: "Failed to fetch media" });
+    }
+  });
+
+  // Get media by ID
+  app.get("/api/media/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const media = await storage.getMediaById(id);
+      
+      if (!media) {
+        return res.status(404).json({ error: "Media not found" });
+      }
+      
+      res.json(media);
+    } catch (error) {
+      console.error("Error fetching media:", error);
+      res.status(500).json({ error: "Failed to fetch media" });
+    }
+  });
+
+  // Create new media (for now simulated upload)
+  app.post("/api/media", async (req, res) => {
+    try {
+      const { name, type } = req.body;
+      
+      if (!name || !type) {
+        return res.status(400).json({ error: "Name and type are required" });
+      }
+
+      // Simulate file upload data
+      const filename = `${name.toLowerCase().replace(/\s+/g, '_')}.${type === 'image' ? 'jpg' : 'mp4'}`;
+      const url = `/media/${filename}`;
+      const mimeType = type === 'image' ? 'image/jpeg' : 'video/mp4';
+      const size = Math.floor(Math.random() * 1000000) + 100000; // Random size between 100KB-1MB
+
+      const media = await storage.createMedia({
+        name,
+        filename,
+        url,
+        type: type as 'image' | 'video',
+        mimeType,
+        size,
+      });
+
+      res.status(201).json(media);
+    } catch (error) {
+      console.error("Error creating media:", error);
+      res.status(500).json({ error: "Failed to create media" });
+    }
+  });
+
+  // Update media (rename)
+  app.patch("/api/media/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ error: "Name is required" });
+      }
+
+      const media = await storage.updateMedia(id, { name });
+      
+      if (!media) {
+        return res.status(404).json({ error: "Media not found" });
+      }
+      
+      res.json(media);
+    } catch (error) {
+      console.error("Error updating media:", error);
+      res.status(500).json({ error: "Failed to update media" });
+    }
+  });
+
+  // Delete media
+  app.delete("/api/media/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteMedia(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Media not found" });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting media:", error);
+      res.status(500).json({ error: "Failed to delete media" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
