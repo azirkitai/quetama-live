@@ -12,9 +12,14 @@ import { randomUUID } from "crypto";
 // you might need
 
 export interface IStorage {
+  // User methods
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  getUsers(): Promise<User[]>;
+  updateUser(userId: string, updates: Partial<User>): Promise<User | undefined>;
+  deleteUser(userId: string): Promise<boolean>;
+  toggleUserStatus(userId: string): Promise<User | undefined>;
   
   // Patient methods
   createPatient(patient: InsertPatient): Promise<Patient>;
@@ -78,6 +83,32 @@ export class MemStorage implements IStorage {
     };
     this.users.set(id, user);
     return user;
+  }
+
+  async getUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
+  async updateUser(userId: string, updates: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(userId);
+    if (!user) return undefined;
+
+    const updatedUser = { ...user, ...updates };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+
+  async deleteUser(userId: string): Promise<boolean> {
+    return this.users.delete(userId);
+  }
+
+  async toggleUserStatus(userId: string): Promise<User | undefined> {
+    const user = this.users.get(userId);
+    if (!user) return undefined;
+
+    const updatedUser = { ...user, isActive: !user.isActive };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
   }
 
   async createPatient(insertPatient: InsertPatient): Promise<Patient> {

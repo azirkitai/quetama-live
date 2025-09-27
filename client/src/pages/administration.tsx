@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Shield, UserPlus, Trash2, Edit, Users } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { User, InsertUser } from "@shared/schema";
 
 interface User {
   id: string;
@@ -18,91 +22,129 @@ interface User {
 }
 
 export default function Administration() {
-  const [users, setUsers] = useState<User[]>([]);
+  const { toast } = useToast();
   const [newUser, setNewUser] = useState({
     username: "",
     password: "",
     role: "user" as "admin" | "user"
   });
-  const [isAdding, setIsAdding] = useState(false);
   const [editingUser, setEditingUser] = useState<string | null>(null);
 
   // Real admin check would require authentication system
   const isCurrentUserAdmin = true; // Implement proper auth check
 
-  // Load real users from database - currently empty until backend API is implemented
-  useEffect(() => {
-    // TODO: Implement real API call to fetch users from backend
-    // Example: fetch('/api/users').then(res => res.json()).then(setUsers)
-    
-    // For now, start with empty state - no mock data
-    setUsers([]);
-  }, []);
+  // Fetch users from database
+  const { data: users = [], isLoading } = useQuery<User[]>({
+    queryKey: ['/api/users'],
+  });
+
+  // Create user mutation
+  const createUserMutation = useMutation({
+    mutationFn: async (userData: InsertUser) => {
+      const response = await apiRequest("POST", "/api/users", userData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      setNewUser({ username: "", password: "", role: "user" });
+      toast({
+        title: "Pengguna Berjaya Ditambah",
+        description: "Pengguna baru telah didaftarkan ke dalam sistem",
+      });
+    },
+    onError: (error) => {
+      console.error("Error creating user:", error);
+      toast({
+        title: "Ralat Pendaftaran",
+        description: "Gagal menambah pengguna. Sila cuba semula.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!newUser.username.trim() || !newUser.password.trim()) {
-      alert("Sila lengkapkan semua maklumat");
+      toast({
+        title: "Ralat Validasi",
+        description: "Sila lengkapkan semua maklumat",
+        variant: "destructive",
+      });
       return;
     }
 
     if (users.some(u => u.username.toLowerCase() === newUser.username.toLowerCase())) {
-      alert("Username sudah wujud");
+      toast({
+        title: "Ralat Validasi",
+        description: "Username sudah wujud",
+        variant: "destructive",
+      });
       return;
     }
 
-    setIsAdding(true);
-    
-    try {
-      const user: User = {
-        id: `u${Date.now()}`,
-        username: newUser.username.trim(),
-        role: newUser.role,
-        isActive: true,
-        createdAt: new Date().toLocaleDateString('ms-MY', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric'
-        })
-      };
-
-      console.log("Adding new user:", user);
-      setUsers(prev => [...prev, user]);
-      
-      // Reset form
-      setNewUser({ username: "", password: "", role: "user" });
-      
-      // TODO: Implement real API call to create user in backend
-      // Example: await apiRequest("POST", "/api/users", newUser)
-      
-    } catch (error) {
-      console.error("Failed to add user:", error);
-      alert("Gagal menambah pengguna");
-    } finally {
-      setIsAdding(false);
-    }
+    createUserMutation.mutate({
+      username: newUser.username.trim(),
+      password: newUser.password.trim(),
+      role: newUser.role
+    });
   };
 
-  const handleToggleUserStatus = async (userId: string) => {
-    console.log(`Toggling status for user: ${userId}`);
-    setUsers(prev => prev.map(u => 
-      u.id === userId ? { ...u, isActive: !u.isActive } : u
-    ));
-    
-    // TODO: Implement real API call to update user status in backend
-    // Example: await apiRequest("PATCH", `/api/users/${userId}/status`)
+  // Toggle user status mutation
+  const toggleUserStatusMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await apiRequest("PATCH", `/api/users/${userId}/status`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      toast({
+        title: "Status Dikemaskini",
+        description: "Status pengguna telah berjaya dikemaskini",
+      });
+    },
+    onError: (error) => {
+      console.error("Error toggling user status:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal mengemaskini status pengguna",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleToggleUserStatus = (userId: string) => {
+    toggleUserStatusMutation.mutate(userId);
   };
 
-  const handleDeleteUser = async (userId: string) => {
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await apiRequest("DELETE", `/api/users/${userId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      toast({
+        title: "Pengguna Dipadam",
+        description: "Pengguna telah berjaya dipadam dari sistem",
+      });
+    },
+    onError: (error) => {
+      console.error("Error deleting user:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal memadam pengguna",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteUser = (userId: string) => {
     if (!confirm("Adakah anda pasti ingin memadam pengguna ini?")) {
       return;
     }
-
-    console.log(`Deleting user: ${userId}`);
-    setUsers(prev => prev.filter(u => u.id !== userId));
-    
-    // TODO: Remove mock functionality - send to backend
+    deleteUserMutation.mutate(userId);
   };
 
   if (!isCurrentUserAdmin) {
@@ -185,12 +227,12 @@ export default function Administration() {
 
               <Button
                 type="submit"
-                disabled={isAdding}
+                disabled={createUserMutation.isPending}
                 className="w-full"
                 data-testid="button-add-user"
               >
                 <UserPlus className="h-4 w-4 mr-2" />
-                {isAdding ? "Menambah..." : "Tambah Pengguna"}
+                {createUserMutation.isPending ? "Menambah..." : "Tambah Pengguna"}
               </Button>
             </form>
           </CardContent>
