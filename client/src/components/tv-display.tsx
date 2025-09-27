@@ -75,15 +75,15 @@ export function TVDisplay({
   const dateInfo = formatDate(currentTime);
 
   const containerStyle = isFullscreen ? {
-    gridTemplateRows: `1fr clamp(120px, 18vh, 220px)`,
-    gridTemplateColumns: `minmax(0, 1fr) clamp(320px, 35vw, 720px)`,
+    gridTemplateRows: `36.5625vw 1fr`,
+    gridTemplateColumns: `65vw 35vw`,
     gap: 0,
     height: "100dvh",
     width: "100vw",
     margin: 0,
     padding: 0
   } : {
-    gridTemplateRows: '1fr 180px',
+    gridTemplateRows: 'auto 1fr',
     gridTemplateColumns: '65% 35%',
     gap: '0'
   };
@@ -96,75 +96,42 @@ export function TVDisplay({
     <div className={wrapperClass}
          style={containerStyle} 
          data-testid="tv-display">
-      {/* Main Content Area - Media Display */}
-      <div className={`${isFullscreen ? 'm-0 p-0' : 'p-4'} flex items-center justify-center w-full h-full`}>
-        {isFullscreen ? (
-          <div className="bg-gray-100 overflow-hidden flex items-center justify-center w-full max-h-full" style={{ aspectRatio: '16/9' }}>
-              {mediaContent ? (
-                mediaType === "image" ? (
-                  <img 
-                    src={mediaContent} 
-                    alt="Media Content" 
-                    className="w-full h-full object-cover"
-                    data-testid="media-content"
-                  />
-                ) : (
-                  <video 
-                    src={mediaContent} 
-                    className="w-full h-full object-cover"
-                    autoPlay
-                    muted
-                    loop
-                    data-testid="media-content"
-                  />
-                )
-              ) : (
-                <div className="h-full flex items-center justify-center">
-                  <div className="text-center text-gray-500">
-                    <div className="text-5xl font-bold mb-4" data-testid="no-display-message">
-                      NO DISPLAY
-                    </div>
-                    <p className="text-lg">Tiada media dimuatnaik</p>
-                  </div>
-                </div>
-              )}
-          </div>
-        ) : (
-          <div className="w-full h-full bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-            {mediaContent ? (
-              mediaType === "image" ? (
-                <img 
-                  src={mediaContent} 
-                  alt="Media Content" 
-                  className="w-full h-full object-contain"
-                  data-testid="media-content"
-                />
-              ) : (
-                <video 
-                  src={mediaContent} 
-                  className="w-full h-full object-contain"
-                  autoPlay
-                  muted
-                  loop
-                  data-testid="media-content"
-                />
-              )
+      {/* Top Row - Advertisement Area with 16:9 ratio */}
+      <div className={`${isFullscreen ? 'm-0 p-0 w-full h-full' : 'p-4 w-full'}`}>
+        <div className="bg-gray-100 overflow-hidden flex items-center justify-center w-full h-full" style={{ aspectRatio: '16/9' }}>
+          {mediaContent ? (
+            mediaType === "image" ? (
+              <img 
+                src={mediaContent} 
+                alt="Media Content" 
+                className="w-full h-full object-cover"
+                data-testid="media-content"
+              />
             ) : (
-              <div className="h-full flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <div className="text-5xl font-bold mb-4" data-testid="no-display-message">
-                    NO DISPLAY
-                  </div>
-                  <p className="text-lg">Tiada media dimuatnaik</p>
+              <video 
+                src={mediaContent} 
+                className="w-full h-full object-cover"
+                autoPlay
+                muted
+                loop
+                data-testid="media-content"
+              />
+            )
+          ) : (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center text-gray-500">
+                <div className="text-5xl font-bold mb-4" data-testid="no-display-message">
+                  NO DISPLAY
                 </div>
+                <p className="text-lg">Tiada media dimuatnaik</p>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Right Panel - Queue Board Style */}
-      <div className={`bg-blue-700 text-white ${isFullscreen ? 'p-0 m-0' : 'p-4'} flex flex-col w-full h-full`}>
+      {/* Top Right - Patient Names Header */}
+      <div className={`bg-blue-700 text-white ${isFullscreen ? 'p-0 m-0' : 'p-4'} flex flex-col w-full`}>
         {/* Header */}
         <div className={`text-center ${isFullscreen ? 'mb-2 pt-4 px-4' : 'mb-4'}`}>
           <div className="flex items-center justify-center space-x-3 mb-2">
@@ -212,88 +179,88 @@ export function TVDisplay({
           </div>
         )}
 
-        {/* Queue List */}
-        <div className={`flex-1 ${isFullscreen ? 'px-4' : ''}`}>
-          <div className="grid grid-cols-2 gap-1 text-center mb-2">
-            <div className="font-bold text-yellow-400" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)' }}>NAME</div>
-            <div className="font-bold text-yellow-400" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)' }}>ROOM</div>
+      </div>
+
+      {/* Second Row Left - Date & Prayer Times Expanded */}
+      <div className={`${isFullscreen ? 'px-4 py-2 m-0' : 'px-4 py-2'} bg-blue-800 text-white w-full h-full flex flex-col justify-center`}>
+        {/* Date/Time Section - Larger */}
+        <div className={`bg-white text-gray-900 p-6 ${isFullscreen ? 'rounded-md mb-6' : 'rounded-lg mb-6'} flex items-center justify-center space-x-6`}>
+          <div className="bg-teal-500 text-white p-4 rounded-lg">
+            <div className="text-center">
+              <div className="text-sm">Today</div>
+              <div className="text-4xl font-bold">{dateInfo.day}</div>
+              <div className="text-sm">Sep</div>
+            </div>
           </div>
-          <div className="space-y-1 overflow-y-auto" style={{ maxHeight: '300px' }} data-testid="queue-list">
-            {queueHistory.length > 0 ? (
-              queueHistory.slice(-4).map((item) => (
-                <div key={item.id} className="bg-blue-600 p-3 rounded grid grid-cols-2 gap-1">
-                  <div className="font-bold text-yellow-400" 
-                       style={{ fontSize: 'clamp(1.25rem, 2vw, 2rem)' }}>
-                    {item.name}
-                  </div>
-                  <div className="text-yellow-400" 
-                       style={{ fontSize: 'clamp(1.25rem, 2vw, 2rem)' }}>
-                    {item.room}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center text-yellow-400 py-4">
-                <p style={{ fontSize: 'clamp(1.25rem, 2vw, 2rem)' }}>Tiada dalam barisan</p>
+          <div className="text-center">
+            <div className="font-bold text-3xl">{dateInfo.dayName}</div>
+            <div className="text-2xl text-gray-600">{dateInfo.month} {dateInfo.year}</div>
+            <div className="font-mono font-bold text-4xl" data-testid="display-time">
+              {formatTime(currentTime)}
+            </div>
+          </div>
+        </div>
+
+        {/* Prayer Times Section - Larger */}
+        <div className="text-center">
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <span className="text-yellow-400 text-3xl">🏠</span>
+            <span className="font-bold text-3xl text-yellow-400">PRAYER TIME</span>
+          </div>
+          <div className="grid grid-cols-5 gap-4">
+            {prayerTimes.map((prayer, index) => (
+              <div key={index} className="text-center">
+                <div className="font-bold text-yellow-400 text-2xl">{prayer.name}</div>
+                <div className="text-white text-2xl">{prayer.time}</div>
               </div>
-            )}
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Bottom Section - Spans Both Columns */}
-      <div className={`${isFullscreen ? 'px-4 py-2 m-0' : 'px-4 py-2'} bg-blue-800 text-white w-full`} style={{ gridColumn: 'span 2' }}>
-        <div className="flex items-center justify-between">
-          {/* Left - Calendar Widget */}
-          <div className={`bg-white text-gray-900 p-3 ${isFullscreen ? 'rounded-md' : 'rounded-lg'} flex items-center space-x-3`}>
-            <div className="bg-teal-500 text-white p-2 rounded">
-              <div className="text-center">
-                <div className="text-xs">Today</div>
-                <div className="text-2xl font-bold">{dateInfo.day}</div>
-                <div className="text-xs">Sep</div>
-              </div>
-            </div>
-            <div>
-              <div className="font-bold text-xl">{dateInfo.dayName}</div>
-              <div className="text-lg text-gray-600">{dateInfo.month} {dateInfo.year}</div>
-              <div className="font-mono font-bold text-2xl" data-testid="display-time">
-                {formatTime(currentTime)}
-              </div>
-            </div>
-          </div>
-
-          {/* Center - Prayer Times */}
-          <div className={`flex-1 ${isFullscreen ? 'mx-12' : 'mx-8'}`}>
-            <div className="flex items-center justify-center space-x-3 mb-2">
-              <span className="text-yellow-400 text-2xl">🏠</span>
-              <span className="font-bold text-2xl text-yellow-400">PRAYER TIME</span>
-            </div>
-            <div className="flex justify-center space-x-6">
-              {prayerTimes.map((prayer, index) => (
-                <div key={index} className="text-center">
-                  <div className="font-bold text-yellow-400 text-lg">{prayer.name}</div>
-                  <div className="text-white text-lg">{prayer.time}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right - Empty space for balance */}
-          <div className="w-48"></div>
+      {/* Second Row Right - Patient Queue */}
+      <div className={`bg-blue-700 text-white ${isFullscreen ? 'p-4' : 'p-4'} flex flex-col w-full h-full`}>
+        <div className="grid grid-cols-2 gap-1 text-center mb-2">
+          <div className="font-bold text-yellow-400" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)' }}>NAME</div>
+          <div className="font-bold text-yellow-400" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)' }}>ROOM</div>
         </div>
-        
-        {/* Bottom Marquee */}
-        <div className={`${isFullscreen ? 'mt-4' : 'mt-3'} overflow-hidden w-full`}>
-          <div className="inline-flex whitespace-nowrap animate-marquee" data-testid="marquee-container" aria-hidden="false">
-            <span className={`px-8 font-bold ${isFullscreen ? 'text-2xl' : 'text-xl'}`} style={isFullscreen ? { fontSize: 'clamp(1.5rem, 2vw, 2rem)' } : {}}>
-              SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH
-            </span>
-            <span className={`px-8 font-bold ${isFullscreen ? 'text-2xl' : 'text-xl'}`} style={isFullscreen ? { fontSize: 'clamp(1.5rem, 2vw, 2rem)' } : {}} aria-hidden="true">
-              SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH
-            </span>
-          </div>
+        <div className="space-y-1 overflow-y-auto flex-1" data-testid="queue-list">
+          {queueHistory.length > 0 ? (
+            queueHistory.slice(-4).map((item) => (
+              <div key={item.id} className="bg-blue-600 p-3 rounded grid grid-cols-2 gap-1">
+                <div className="font-bold text-yellow-400" 
+                     style={{ fontSize: 'clamp(1.25rem, 2vw, 2rem)' }}>
+                  {item.name}
+                </div>
+                <div className="text-yellow-400" 
+                     style={{ fontSize: 'clamp(1.25rem, 2vw, 2rem)' }}>
+                  {item.room}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center text-yellow-400 py-4">
+              <p style={{ fontSize: 'clamp(1.25rem, 2vw, 2rem)' }}>Tiada dalam barisan</p>
+            </div>
+          )}
         </div>
       </div>
+      
+      {/* Floating Marquee Overlay */}
+      {isFullscreen && (
+        <div className="fixed bottom-0 left-0 w-full bg-blue-800 bg-opacity-90 text-white py-2 z-50">
+          <div className="overflow-hidden w-full">
+            <div className="inline-flex whitespace-nowrap animate-marquee" data-testid="marquee-container" aria-hidden="false">
+              <span className="px-8 font-bold text-2xl" style={{ fontSize: 'clamp(1.5rem, 2vw, 2rem)' }}>
+                SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH
+              </span>
+              <span className="px-8 font-bold text-2xl" style={{ fontSize: 'clamp(1.5rem, 2vw, 2rem)' }} aria-hidden="true">
+                SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
