@@ -183,39 +183,44 @@ export function TVDisplay({
         </div>
       </div>
 
-      {/* Bottom Section - Date, Time and Prayer Times (Same Width as Display) */}
-      <div className="bg-blue-800 text-white p-4 mx-6 rounded-t-lg">
-        <div className="flex items-center justify-between space-x-8">
-          {/* Date */}
-          <div className="flex items-center space-x-2">
-            <Calendar className="h-5 w-5" />
-            <div className="text-lg font-bold">
-              {dateInfo.dayName}, {dateInfo.day} {dateInfo.month} {dateInfo.year}
-            </div>
-          </div>
-
-          {/* Time */}
-          <div className="flex items-center space-x-2">
-            <Clock className="h-5 w-5" />
-            <div className="text-xl font-mono font-bold" data-testid="display-time">
-              {formatTime(currentTime)}
-            </div>
-          </div>
-
-          {/* Prayer Times */}
-          <div className="flex items-center space-x-4">
-            <span className="font-bold">WAKTU SOLAT:</span>
-            {prayerTimes.map((prayer, index) => (
-              <div key={index} className="text-center">
-                <div className="text-sm font-bold text-yellow-300">{prayer.name}</div>
-                <div className="text-xs">{prayer.time}</div>
+      {/* Bottom Section - Date, Time and Prayer Times (Same Width as Display Only) */}
+      <div className="flex">
+        <div className="w-2/3 px-6">
+          <div className="bg-blue-800 text-white p-4 rounded-t-lg">
+            <div className="flex items-center justify-between space-x-6">
+              {/* Date */}
+              <div className="flex items-center space-x-2">
+                <Calendar className="h-5 w-5" />
+                <div className="text-lg font-bold">
+                  {dateInfo.dayName}, {dateInfo.day} {dateInfo.month} {dateInfo.year}
+                </div>
               </div>
-            ))}
+
+              {/* Time */}
+              <div className="flex items-center space-x-2">
+                <Clock className="h-5 w-5" />
+                <div className="text-xl font-mono font-bold" data-testid="display-time">
+                  {formatTime(currentTime)}
+                </div>
+              </div>
+
+              {/* Prayer Times */}
+              <div className="flex items-center space-x-3">
+                <span className="font-bold text-sm">WAKTU SOLAT:</span>
+                {prayerTimes.map((prayer, index) => (
+                  <div key={index} className="text-center">
+                    <div className="text-xs font-bold text-yellow-300">{prayer.name}</div>
+                    <div className="text-xs">{prayer.time}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-2 text-center text-sm">
+              <span>SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH</span>
+            </div>
           </div>
         </div>
-        <div className="mt-2 text-center text-sm">
-          <span>SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH</span>
-        </div>
+        <div className="w-1/3"></div>
       </div>
     </div>
   );
