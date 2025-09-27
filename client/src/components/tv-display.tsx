@@ -74,9 +74,9 @@ export function TVDisplay({
 
   return (
     <div className="min-h-screen bg-white text-gray-900" data-testid="tv-display">
-      <div className="flex h-[calc(100vh-120px)]">
+      <div className="flex h-[calc(100vh-80px)]">
         {/* Main Content Area - Media Display (Smaller) */}
-        <div className="w-2/3 p-6">
+        <div className="w-1/2 p-6">
           <div className="h-full bg-gray-100 rounded-lg overflow-hidden">
             {mediaContent ? (
               mediaType === "image" ? (
@@ -99,7 +99,7 @@ export function TVDisplay({
             ) : (
               <div className="h-full flex items-center justify-center">
                 <div className="text-center text-gray-500">
-                  <div className="text-5xl font-bold mb-4" data-testid="no-display-message">
+                  <div className="text-4xl font-bold mb-4" data-testid="no-display-message">
                     NO DISPLAY
                   </div>
                   <p className="text-lg">Tiada media dimuatnaik</p>
@@ -109,8 +109,8 @@ export function TVDisplay({
           </div>
         </div>
 
-        {/* Right Sidebar - 3 Vertical Divs */}
-        <div className="w-1/3 p-6 space-y-4">
+        {/* Right Sidebar - 3 Vertical Divs (Bigger) */}
+        <div className="w-1/2 p-6 space-y-4 flex flex-col">
           {/* Div 1: Clinic Logo and Name */}
           <Card className="bg-blue-600 text-white">
             <CardContent className="p-4">
@@ -185,7 +185,7 @@ export function TVDisplay({
 
       {/* Bottom Section - Date, Time and Prayer Times (Same Width as Display Only) */}
       <div className="flex">
-        <div className="w-2/3 px-6">
+        <div className="w-1/2 px-6">
           <div className="bg-blue-800 text-white p-4 rounded-t-lg">
             <div className="flex items-center justify-between space-x-6">
               {/* Date */}
@@ -220,7 +220,7 @@ export function TVDisplay({
             </div>
           </div>
         </div>
-        <div className="w-1/3"></div>
+        <div className="w-1/2"></div>
       </div>
     </div>
   );
