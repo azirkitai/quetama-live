@@ -355,9 +355,11 @@ export class MemStorage implements IStorage {
   }
 
   async getCurrentCall(): Promise<Patient | undefined> {
-    // Get the most recently called patient
+    // Get the most recently called patient - including requeued patients
+    // Keep showing the last called patient until a new one is called
     const calledPatients = Array.from(this.patients.values())
-      .filter(p => p.status === 'called')
+      .filter(p => p.status === 'called' || p.status === 'requeue' || p.status === 'completed' || p.status === 'in-progress')
+      .filter(p => p.calledAt) // Only patients that have actually been called
       .sort((a, b) => {
         const timeA = a.calledAt?.getTime() || a.registeredAt.getTime();
         const timeB = b.calledAt?.getTime() || b.registeredAt.getTime();
@@ -368,9 +370,10 @@ export class MemStorage implements IStorage {
   }
 
   async getRecentHistory(limit: number = 10): Promise<Patient[]> {
-    // Get all patients that have been called (called + completed), sorted by call time (most recent first)
+    // Get all patients that have been called - include requeued patients in history
+    // Don't clear history even when patients are requeued
     return Array.from(this.patients.values())
-      .filter(p => p.status === 'called' || p.status === 'completed')
+      .filter(p => p.status === 'called' || p.status === 'completed' || p.status === 'requeue' || p.status === 'in-progress')
       .filter(p => p.calledAt) // Only include patients that have actually been called
       .sort((a, b) => {
         const timeA = a.calledAt?.getTime() || 0;
