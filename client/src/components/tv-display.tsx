@@ -213,15 +213,14 @@ export function TVDisplay({
             </div>
           </div>
           
+          {/* Welcome Message */}
+          <div className="bg-gray-800 text-white p-3 rounded-lg">
+            <div className="text-center text-xl">
+              <span>SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH</span>
+            </div>
+          </div>
         </div>
         <div className="w-1/3"></div>
-      </div>
-      
-      {/* Full Width Marquee Welcome Message */}
-      <div className="bg-gray-800 text-white p-3 overflow-hidden">
-        <div className="whitespace-nowrap animate-marquee text-2xl font-bold">
-          <span>SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH • SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH • SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH</span>
-        </div>
       </div>
     </div>
   );
