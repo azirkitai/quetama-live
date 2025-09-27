@@ -29,6 +29,11 @@ const mainNavigationItems = [
     icon: LayoutDashboard,
   },
   {
+    title: "Settings",
+    url: "/settings",
+    icon: Settings,
+  },
+  {
     title: "Queue Management",
     url: "/queue",
     icon: ClipboardList,
@@ -41,11 +46,6 @@ const mainNavigationItems = [
 ];
 
 const administrationItems = [
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-  },
   {
     title: "Account Settings",
     url: "/account",
