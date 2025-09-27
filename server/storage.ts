@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Patient, type InsertPatient } from "@shared/schema";
+import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting } from "@shared/schema";
 
 interface Window {
   id: string;
@@ -47,19 +47,46 @@ export interface IStorage {
   }>;
   getCurrentCall(): Promise<Patient | undefined>;
   getRecentHistory(limit?: number): Promise<Patient[]>;
+  
+  // Settings methods
+  getSettings(): Promise<Setting[]>;
+  getSetting(key: string): Promise<Setting | undefined>;
+  getSettingsByCategory(category: string): Promise<Setting[]>;
+  setSetting(key: string, value: string, category: string): Promise<Setting>;
+  updateSetting(key: string, value: string): Promise<Setting | undefined>;
+  deleteSetting(key: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private patients: Map<string, Patient>;
   private windows: Map<string, Window>;
+  private settings: Map<string, Setting>;
 
   constructor() {
     this.users = new Map();
     this.patients = new Map();
     this.windows = new Map();
+    this.settings = new Map();
     
-    // No default data - all data must be created by users
+    // Initialize default settings
+    this.initializeDefaultSettings();
+  }
+  
+  private async initializeDefaultSettings() {
+    // Display settings
+    await this.setSetting("mediaType", "image", "display");
+    await this.setSetting("theme", "blue", "display");
+    await this.setSetting("showPrayerTimes", "true", "display");
+    await this.setSetting("showWeather", "false", "display");
+    await this.setSetting("marqueeText", "Selamat datang ke Klinik Kesihatan", "display");
+    await this.setSetting("marqueeColor", "#ffffff", "display");
+    
+    // Sound settings
+    await this.setSetting("enableSound", "true", "sound");
+    await this.setSetting("soundType", "beep", "sound");
+    await this.setSetting("enableTTS", "false", "sound");
+    await this.setSetting("volume", "70", "sound");
   }
 
 
@@ -351,6 +378,50 @@ export class MemStorage implements IStorage {
         return timeB - timeA; // Most recent call first
       })
       .slice(0, limit);
+  }
+
+  // Settings methods implementation
+  async getSettings(): Promise<Setting[]> {
+    return Array.from(this.settings.values());
+  }
+
+  async getSetting(key: string): Promise<Setting | undefined> {
+    return this.settings.get(key);
+  }
+
+  async getSettingsByCategory(category: string): Promise<Setting[]> {
+    return Array.from(this.settings.values()).filter(
+      (setting) => setting.category === category
+    );
+  }
+
+  async setSetting(key: string, value: string, category: string): Promise<Setting> {
+    const setting: Setting = {
+      id: randomUUID(),
+      key,
+      value,
+      category,
+    };
+    this.settings.set(key, setting);
+    return setting;
+  }
+
+  async updateSetting(key: string, value: string): Promise<Setting | undefined> {
+    const existingSetting = this.settings.get(key);
+    if (!existingSetting) {
+      return undefined;
+    }
+    
+    const updatedSetting: Setting = {
+      ...existingSetting,
+      value,
+    };
+    this.settings.set(key, updatedSetting);
+    return updatedSetting;
+  }
+
+  async deleteSetting(key: string): Promise<boolean> {
+    return this.settings.delete(key);
   }
 }
 

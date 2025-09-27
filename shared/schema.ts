@@ -67,10 +67,12 @@ export const insertSettingSchema = createInsertSchema(settings).pick({
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
 export type InsertWindow = z.infer<typeof insertWindowSchema>;
-export type Window = typeof windows.$inferSelect;
 export type InsertPatient = z.infer<typeof insertPatientSchema>;
-export type Patient = typeof patients.$inferSelect;
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
+
+// Select types
+export type User = typeof users.$inferSelect;
+export type Window = typeof windows.$inferSelect;
+export type Patient = typeof patients.$inferSelect;
 export type Setting = typeof settings.$inferSelect;
