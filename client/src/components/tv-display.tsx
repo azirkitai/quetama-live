@@ -128,10 +128,10 @@ export function TVDisplay({
                   </div>
                 )}
                 <div>
-                  <h1 className="text-lg font-bold" data-testid="clinic-name">
+                  <h1 className="text-2xl font-bold" data-testid="clinic-name">
                     {clinicName}
                   </h1>
-                  <p className="text-sm text-blue-200">TROPICANA AMAN</p>
+                  <p className="text-lg text-blue-200">TROPICANA AMAN</p>
                 </div>
               </div>
             </CardContent>
@@ -141,18 +141,18 @@ export function TVDisplay({
           <Card className="bg-red-600 text-white">
             <CardContent className="p-4">
               <div className="text-center">
-                <h3 className="text-lg font-bold mb-2">SEDANG DIPANGGIL</h3>
+                <h3 className="text-2xl font-bold mb-3">SEDANG DIPANGGIL</h3>
                 {currentPatient ? (
                   <>
-                    <div className="text-2xl font-bold mb-2" data-testid="current-patient-display">
+                    <div className="text-4xl font-bold mb-3" data-testid="current-patient-display">
                       {currentPatient.name}
                     </div>
-                    <div className="text-lg" data-testid="current-room">
+                    <div className="text-xl" data-testid="current-room">
                       {currentPatient.room}
                     </div>
                   </>
                 ) : (
-                  <div className="text-xl">TIADA PANGGILAN</div>
+                  <div className="text-2xl">TIADA PANGGILAN</div>
                 )}
               </div>
             </CardContent>
@@ -162,19 +162,19 @@ export function TVDisplay({
           <Card className="bg-white flex-1">
             <CardContent className="p-4">
               <div className="text-center mb-4">
-                <h3 className="text-lg font-bold text-blue-800">SEJARAH PANGGILAN</h3>
+                <h3 className="text-2xl font-bold text-blue-800">SEJARAH PANGGILAN</h3>
               </div>
-              <div className="space-y-2 max-h-96 overflow-y-auto" data-testid="queue-list">
+              <div className="space-y-3 max-h-96 overflow-y-auto" data-testid="queue-list">
                 {queueHistory.length > 0 ? (
                   queueHistory.slice(-15).map((item) => (
-                    <div key={item.id} className="p-2 bg-gray-100 rounded text-center">
-                      <div className="text-sm font-bold text-gray-800">{item.name}</div>
-                      <div className="text-xs text-gray-600">{item.room}</div>
+                    <div key={item.id} className="p-3 bg-gray-100 rounded text-center">
+                      <div className="text-lg font-bold text-gray-800">{item.name}</div>
+                      <div className="text-sm text-gray-600">{item.room}</div>
                     </div>
                   ))
                 ) : (
                   <div className="text-center text-gray-500 py-4">
-                    <p className="text-sm">Tiada sejarah panggilan</p>
+                    <p className="text-lg">Tiada sejarah panggilan</p>
                   </div>
                 )}
               </div>
@@ -189,33 +189,33 @@ export function TVDisplay({
           <div className="bg-blue-800 text-white p-4 rounded-t-lg">
             <div className="flex items-center justify-between space-x-6">
               {/* Date */}
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-5 w-5" />
-                <div className="text-lg font-bold">
+              <div className="flex items-center space-x-3">
+                <Calendar className="h-6 w-6" />
+                <div className="text-xl font-bold">
                   {dateInfo.dayName}, {dateInfo.day} {dateInfo.month} {dateInfo.year}
                 </div>
               </div>
 
               {/* Time */}
-              <div className="flex items-center space-x-2">
-                <Clock className="h-5 w-5" />
-                <div className="text-xl font-mono font-bold" data-testid="display-time">
+              <div className="flex items-center space-x-3">
+                <Clock className="h-6 w-6" />
+                <div className="text-3xl font-mono font-bold" data-testid="display-time">
                   {formatTime(currentTime)}
                 </div>
               </div>
 
               {/* Prayer Times */}
-              <div className="flex items-center space-x-3">
-                <span className="font-bold text-sm">WAKTU SOLAT:</span>
+              <div className="flex items-center space-x-4">
+                <span className="font-bold text-lg">WAKTU SOLAT:</span>
                 {prayerTimes.map((prayer, index) => (
                   <div key={index} className="text-center">
-                    <div className="text-xs font-bold text-yellow-300">{prayer.name}</div>
-                    <div className="text-xs">{prayer.time}</div>
+                    <div className="text-sm font-bold text-yellow-300">{prayer.name}</div>
+                    <div className="text-sm">{prayer.time}</div>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="mt-2 text-center text-sm">
+            <div className="mt-3 text-center text-lg">
               <span>SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH</span>
             </div>
           </div>
