@@ -333,13 +333,14 @@ export class MemStorage implements IStorage {
   }
 
   async getRecentHistory(limit: number = 10): Promise<Patient[]> {
-    // Get recently completed patients, sorted by completion time (most recent first)
+    // Get all patients that have been called (called + completed), sorted by call time (most recent first)
     return Array.from(this.patients.values())
-      .filter(p => p.status === 'completed')
+      .filter(p => p.status === 'called' || p.status === 'completed')
+      .filter(p => p.calledAt) // Only include patients that have actually been called
       .sort((a, b) => {
-        const timeA = a.completedAt?.getTime() || a.registeredAt.getTime();
-        const timeB = b.completedAt?.getTime() || b.registeredAt.getTime();
-        return timeB - timeA;
+        const timeA = a.calledAt?.getTime() || 0;
+        const timeB = b.calledAt?.getTime() || 0;
+        return timeB - timeA; // Most recent call first
       })
       .slice(0, limit);
   }

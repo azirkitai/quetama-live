@@ -226,7 +226,7 @@ export function TVDisplay({
         </div>
         <div className="space-y-1 overflow-y-auto flex-1" data-testid="queue-list">
           {queueHistory.length > 0 ? (
-            queueHistory.slice(-4).map((item) => (
+            queueHistory.slice(0, 4).map((item) => (
               <div key={item.id} className="bg-blue-600 p-3 rounded grid grid-cols-2 gap-1">
                 <div className="font-bold text-yellow-400" 
                      style={{ fontSize: 'clamp(1.25rem, 2vw, 2rem)' }}>
