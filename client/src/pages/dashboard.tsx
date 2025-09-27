@@ -81,7 +81,7 @@ export default function Dashboard() {
 
   if (fullscreen) {
     return (
-      <div className="relative">
+      <div className="relative group">
         <TVDisplay
           currentPatient={currentCall ? convertToQueueItem(currentCall) : undefined}
           queueHistory={history.map(convertToQueueItem)}
@@ -90,15 +90,18 @@ export default function Dashboard() {
           mediaContent={undefined}
           mediaType="image"
         />
-        <Button
-          onClick={toggleFullscreen}
-          className="absolute top-4 left-4 z-50"
-          variant="outline"
-          size="sm"
-          data-testid="button-exit-fullscreen"
-        >
-          Exit Fullscreen
-        </Button>
+        {/* Floating Exit Button - Invisible until hover over display area */}
+        <div className="absolute top-0 left-0 w-2/3 h-full group">
+          <Button
+            onClick={toggleFullscreen}
+            className="absolute top-4 right-4 z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/70 text-white border-white/20 hover:bg-black/90"
+            variant="outline"
+            size="sm"
+            data-testid="button-exit-fullscreen"
+          >
+            Exit Fullscreen
+          </Button>
+        </div>
       </div>
     );
   }
