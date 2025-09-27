@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useState, useEffect } from "react";
 
 // Import pages
 import Dashboard from "@/pages/dashboard";
@@ -34,6 +35,18 @@ function Router() {
 }
 
 export default function App() {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement !== null);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   // Custom sidebar width for clinic system
   const style = {
     "--sidebar-width": "20rem",       // 320px for better content
@@ -46,13 +59,17 @@ export default function App() {
         <TooltipProvider>
           <SidebarProvider style={style as React.CSSProperties}>
             <div className="flex h-screen w-full">
-              <AppSidebar />
+              {/* Hide sidebar when in fullscreen */}
+              {!isFullscreen && <AppSidebar />}
               <div className="flex flex-col flex-1">
-                <header className="flex items-center justify-between p-2 border-b bg-background">
-                  <SidebarTrigger data-testid="button-sidebar-toggle" />
-                  <ThemeToggle />
-                </header>
-                <main className="flex-1 overflow-auto">
+                {/* Hide header when in fullscreen */}
+                {!isFullscreen && (
+                  <header className="flex items-center justify-between p-2 border-b bg-background">
+                    <SidebarTrigger data-testid="button-sidebar-toggle" />
+                    <ThemeToggle />
+                  </header>
+                )}
+                <main className={`flex-1 ${isFullscreen ? 'h-screen' : 'overflow-auto'}`}>
                   <Router />
                 </main>
               </div>
