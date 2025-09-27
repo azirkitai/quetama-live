@@ -38,14 +38,14 @@ const mainNavigationItems = [
     url: "/register",
     icon: UserPlus,
   },
+];
+
+const administrationItems = [
   {
     title: "Settings",
     url: "/settings",
     icon: Settings,
   },
-];
-
-const administrationItems = [
   {
     title: "Account Settings",
     url: "/account",
