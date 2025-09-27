@@ -25,6 +25,7 @@ interface TVDisplayProps {
   mediaContent?: string;
   mediaType?: "image" | "video";
   prayerTimes?: PrayerTime[];
+  isFullscreen?: boolean;
 }
 
 export function TVDisplay({ 
@@ -40,7 +41,8 @@ export function TVDisplay({
     { name: "ASAR", time: "16:15 PM" },
     { name: "MAGHRIB", time: "19:08 PM" },
     { name: "ISYAK", time: "20:17 PM" }
-  ]
+  ],
+  isFullscreen = false
 }: TVDisplayProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -72,29 +74,40 @@ export function TVDisplay({
 
   const dateInfo = formatDate(currentTime);
 
+  const containerStyle = isFullscreen ? {
+    gridTemplateRows: `1fr clamp(120px, 18vh, 220px)`,
+    gridTemplateColumns: `minmax(0, 1fr) clamp(320px, 35vw, 720px)`,
+    gap: 0,
+    height: "100dvh"
+  } : {
+    gridTemplateRows: '1fr 180px',
+    gridTemplateColumns: '65% 35%',
+    gap: '0'
+  };
+
+  const wrapperClass = isFullscreen 
+    ? "fixed inset-0 w-screen h-screen overflow-hidden bg-white text-gray-900 grid"
+    : "h-screen bg-white text-gray-900 grid";
+
   return (
-    <div className="h-screen bg-white text-gray-900 grid" 
-         style={{ 
-           gridTemplateRows: '1fr 180px',
-           gridTemplateColumns: '65% 35%',
-           gap: '0'
-         }} 
+    <div className={wrapperClass}
+         style={containerStyle} 
          data-testid="tv-display">
       {/* Main Content Area - Media Display */}
-      <div className="p-4 flex items-center">
-        <div className="w-full h-full bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+      <div className={`${isFullscreen ? '' : 'p-4'} flex items-center`}>
+        <div className={`w-full h-full bg-gray-100 ${isFullscreen ? '' : 'rounded-lg'} overflow-hidden flex items-center justify-center`}>
             {mediaContent ? (
               mediaType === "image" ? (
                 <img 
                   src={mediaContent} 
                   alt="Media Content" 
-                  className="w-full h-full object-contain"
+                  className={`w-full h-full ${isFullscreen ? 'object-cover' : 'object-contain'}`}
                   data-testid="media-content"
                 />
               ) : (
                 <video 
                   src={mediaContent} 
-                  className="w-full h-full object-contain"
+                  className={`w-full h-full ${isFullscreen ? 'object-cover' : 'object-contain'}`}
                   autoPlay
                   muted
                   loop
@@ -193,10 +206,10 @@ export function TVDisplay({
       </div>
 
       {/* Bottom Section - Spans Both Columns */}
-      <div className="px-4 py-2 bg-blue-800 text-white" style={{ gridColumn: 'span 2' }}>
+      <div className={`${isFullscreen ? 'px-6 py-3' : 'px-4 py-2'} bg-blue-800 text-white`} style={{ gridColumn: 'span 2' }}>
         <div className="flex items-center justify-between">
           {/* Left - Calendar Widget */}
-          <div className="bg-white text-gray-900 p-3 rounded-lg flex items-center space-x-3">
+          <div className={`bg-white text-gray-900 p-3 ${isFullscreen ? 'rounded-md' : 'rounded-lg'} flex items-center space-x-3`}>
             <div className="bg-teal-500 text-white p-2 rounded">
               <div className="text-center">
                 <div className="text-xs">Today</div>
@@ -214,7 +227,7 @@ export function TVDisplay({
           </div>
 
           {/* Center - Prayer Times */}
-          <div className="flex-1 mx-8">
+          <div className={`flex-1 ${isFullscreen ? 'mx-12' : 'mx-8'}`}>
             <div className="flex items-center justify-center space-x-3 mb-2">
               <span className="text-yellow-400 text-2xl">🏠</span>
               <span className="font-bold text-2xl text-yellow-400">PRAYER TIME</span>
@@ -234,9 +247,9 @@ export function TVDisplay({
         </div>
         
         {/* Bottom Marquee */}
-        <div className="mt-3 overflow-hidden">
+        <div className={`${isFullscreen ? 'mt-4' : 'mt-3'} overflow-hidden`}>
           <div className="whitespace-nowrap">
-            <div className="inline-block animate-marquee font-bold text-2xl">
+            <div className={`inline-block animate-marquee font-bold ${isFullscreen ? 'text-3xl' : 'text-2xl'}`}>
               SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH
             </div>
           </div>

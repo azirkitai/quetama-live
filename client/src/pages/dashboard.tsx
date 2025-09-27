@@ -89,12 +89,13 @@ export default function Dashboard() {
           clinicLogo={undefined}
           mediaContent={undefined}
           mediaType="image"
+          isFullscreen={true}
         />
-        {/* Floating Exit Button - Invisible until hover over display area */}
-        <div className="absolute top-0 left-0 w-2/3 h-full group">
+        {/* Floating Exit Button - Always visible with high z-index */}
+        <div className="fixed top-4 right-4 z-[9999]">
           <Button
             onClick={toggleFullscreen}
-            className="absolute top-4 right-4 z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/70 text-white border-white/20 hover:bg-black/90"
+            className="bg-black/70 text-white border-white/20 hover:bg-black/90"
             variant="outline"
             size="sm"
             data-testid="button-exit-fullscreen"
