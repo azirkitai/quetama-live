@@ -213,12 +213,10 @@ export function TVDisplay({
             </div>
           </div>
           
-          {/* Welcome Message - Scrolling */}
-          <div className="bg-gray-800 text-white p-3 rounded-lg overflow-hidden">
-            <div className="whitespace-nowrap">
-              <div className="inline-block text-xl font-bold animate-marquee">
-                <span>SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN • TERIMA KASIH ATAS KUNJUNGAN ANDA • SEMOGA ANDA SENTIASA SIHAT • KLINIK BUKA 24 JAM SETIAP HARI • RAWATAN TERBAIK UNTUK KELUARGA ANDA • DOKTOR BERPENGALAMAN DAN PERALATAN MODEN • </span>
-              </div>
+          {/* Welcome Message */}
+          <div className="bg-gray-800 text-white p-3 rounded-lg">
+            <div className="text-center text-xl">
+              <span>SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH</span>
             </div>
           </div>
         </div>
