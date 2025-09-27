@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Volume2, Calendar } from "lucide-react";
@@ -45,6 +45,16 @@ export function TVDisplay({
   isFullscreen = false
 }: TVDisplayProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Animation states
+  const [showHighlight, setShowHighlight] = useState(false);
+  const [isBlinking, setIsBlinking] = useState(false);
+  const [blinkVisible, setBlinkVisible] = useState(true);
+  const [prevPatientId, setPrevPatientId] = useState<string | undefined>(undefined);
+  
+  // Timer refs for cleanup
+  const highlightTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const blinkTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -52,6 +62,64 @@ export function TVDisplay({
     }, 1000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // Detect new patient call and trigger animation sequence
+  useEffect(() => {
+    if (currentPatient && currentPatient.id !== prevPatientId) {
+      // Clean up any existing timers
+      if (highlightTimerRef.current) {
+        clearTimeout(highlightTimerRef.current);
+      }
+      if (blinkTimerRef.current) {
+        clearInterval(blinkTimerRef.current);
+      }
+      
+      // Reset all animation states
+      setShowHighlight(false);
+      setIsBlinking(false);
+      setBlinkVisible(true);
+      
+      // Step 1: Show highlight card for 5 seconds
+      setShowHighlight(true);
+      
+      highlightTimerRef.current = setTimeout(() => {
+        setShowHighlight(false);
+        
+        // Step 2: Start blinking after highlight disappears
+        setIsBlinking(true);
+        setBlinkVisible(true);
+        
+        // Blink 5 complete cycles (10 toggles: 5 off, 5 on)
+        let toggleCount = 0;
+        blinkTimerRef.current = setInterval(() => {
+          toggleCount++;
+          setBlinkVisible(toggleCount % 2 === 1); // true for odd, false for even
+          
+          if (toggleCount >= 10) { // 5 complete blinks = 10 toggles
+            clearInterval(blinkTimerRef.current!);
+            setIsBlinking(false);
+            setBlinkVisible(true); // Ensure final state is visible
+          }
+        }, 400); // 400ms per toggle (faster, crisper blinks)
+        
+      }, 5000); // 5 seconds for highlight
+
+      // Update previous patient ID
+      setPrevPatientId(currentPatient.id);
+    }
+  }, [currentPatient?.id]); // Only depend on patient ID change
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (highlightTimerRef.current) {
+        clearTimeout(highlightTimerRef.current);
+      }
+      if (blinkTimerRef.current) {
+        clearInterval(blinkTimerRef.current);
+      }
+    };
   }, []);
 
   const formatTime = (date: Date) => {
@@ -164,12 +232,22 @@ export function TVDisplay({
         {/* Current Patient Display */}
         {currentPatient ? (
           <div className={`bg-blue-600 ${isFullscreen ? 'p-2 mx-4 rounded-md mb-2' : 'p-3 rounded-lg mb-3'} text-center`}>
-            <div className="font-bold text-yellow-400" 
-                 style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)' }} 
+            <div className="font-bold text-yellow-400"
+                 style={{ 
+                   fontSize: 'clamp(2.5rem, 4vw, 4rem)',
+                   opacity: isBlinking ? (blinkVisible ? '1' : '0') : '1',
+                   transition: isBlinking ? 'none' : 'opacity 300ms ease-in-out'
+                 }} 
                  data-testid="current-patient-display">
               {currentPatient.name}
             </div>
-            <div className="text-yellow-400" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)' }} data-testid="current-room">
+            <div className="text-yellow-400"
+                 style={{ 
+                   fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
+                   opacity: isBlinking ? (blinkVisible ? '1' : '0') : '1',
+                   transition: isBlinking ? 'none' : 'opacity 300ms ease-in-out'
+                 }} 
+                 data-testid="current-room">
               {currentPatient.room}
             </div>
           </div>
@@ -257,6 +335,29 @@ export function TVDisplay({
               <span className="px-8 font-bold text-2xl" style={{ fontSize: 'clamp(1.5rem, 2vw, 2rem)' }} aria-hidden="true">
                 SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH
               </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Highlight Card Overlay - Appears in center for 5 seconds when new patient is called */}
+      {showHighlight && currentPatient && (
+        <div className="fixed inset-0 flex items-center justify-center z-[100]" 
+             style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
+             data-testid="highlight-overlay">
+          <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-12 rounded-2xl shadow-2xl border-4 border-yellow-400 animate-pulse transform scale-110">
+            <div className="text-center">
+              <div className="text-yellow-400 font-bold mb-4" style={{ fontSize: 'clamp(2rem, 6vw, 4rem)' }}>
+                DIPANGGIL
+              </div>
+              <div className="text-white font-bold mb-6" style={{ fontSize: 'clamp(3rem, 8vw, 6rem)' }}
+                   data-testid="highlight-patient-name">
+                {currentPatient.name}
+              </div>
+              <div className="text-yellow-400 font-bold" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
+                   data-testid="highlight-patient-room">
+                {currentPatient.room}
+              </div>
             </div>
           </div>
         </div>

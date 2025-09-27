@@ -49,6 +49,13 @@ export default function Queue() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/patients/today'] });
       queryClient.invalidateQueries({ queryKey: ['/api/windows'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/current-call'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/history'] });
+      
+      toast({
+        title: "Berjaya",
+        description: "Pesakit berjaya dipanggil",
+      });
     },
     onError: (error) => {
       console.error("Error updating patient status:", error);
