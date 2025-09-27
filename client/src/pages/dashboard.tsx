@@ -12,6 +12,15 @@ interface Patient {
   status: string;
 }
 
+interface QueueItem {
+  id: string;
+  name: string;
+  number: string;
+  room: string;
+  status: "waiting" | "calling" | "completed";
+  timestamp: Date;
+}
+
 interface DashboardStats {
   totalWaiting: number;
   totalCalled: number;
@@ -28,6 +37,16 @@ export default function Dashboard() {
     totalCalled: 2,
     totalCompleted: 15,
     activeWindows: 3
+  });
+
+  // Convert Patient to QueueItem for TV display
+  const convertToQueueItem = (patient: Patient): QueueItem => ({
+    id: patient.id,
+    name: patient.name || `No. ${patient.number}`,
+    number: patient.number.toString(),
+    room: patient.windowName,
+    status: patient.status === "called" ? "calling" : patient.status === "completed" ? "completed" : "waiting",
+    timestamp: new Date()
   });
 
   // TODO: Remove mock functionality - replace with real-time data from backend
@@ -64,12 +83,12 @@ export default function Dashboard() {
     return (
       <div className="relative">
         <TVDisplay
-          currentCall={currentCall}
-          history={history}
-          showPrayerTimes={true}
-          showWeather={false}
-          marqueeText="Selamat datang ke Klinik Kesihatan - Sila patuhi SOP yang ditetapkan"
-          marqueeColor="#ffffff"
+          currentPatient={currentCall ? convertToQueueItem(currentCall) : undefined}
+          queueHistory={history.map(convertToQueueItem)}
+          clinicName="KLINIK UTAMA 24 JAM"
+          clinicLogo={undefined}
+          mediaContent={undefined}
+          mediaType="image"
         />
         <Button
           onClick={toggleFullscreen}
@@ -173,12 +192,12 @@ export default function Dashboard() {
           <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
             <div className="h-full scale-50 origin-top-left" style={{ width: '200%', height: '200%' }}>
               <TVDisplay
-                currentCall={currentCall}
-                history={history.slice(0, 3)}
-                showPrayerTimes={true}
-                showWeather={false}
-                marqueeText="Selamat datang ke Klinik Kesihatan"
-                marqueeColor="#ffffff"
+                currentPatient={currentCall ? convertToQueueItem(currentCall) : undefined}
+                queueHistory={history.slice(0, 3).map(convertToQueueItem)}
+                clinicName="KLINIK UTAMA 24 JAM"
+                clinicLogo={undefined}
+                mediaContent={undefined}
+                mediaType="image"
               />
             </div>
           </div>
