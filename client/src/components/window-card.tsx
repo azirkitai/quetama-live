@@ -1,0 +1,174 @@
+import { useState } from "react";
+import { Edit, Trash2, User, UserCheck } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+
+interface Window {
+  id: string;
+  name: string;
+  isActive: boolean;
+  currentPatientId?: string;
+  currentPatientName?: string;
+  currentPatientNumber?: number;
+}
+
+interface WindowCardProps {
+  window: Window;
+  onEdit: (windowId: string, newName: string) => void;
+  onDelete: (windowId: string) => void;
+  onToggleStatus: (windowId: string) => void;
+}
+
+export function WindowCard({ 
+  window, 
+  onEdit, 
+  onDelete, 
+  onToggleStatus 
+}: WindowCardProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(window.name);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleEdit = () => {
+    if (isEditing) {
+      if (editName.trim()) {
+        console.log(`Editing window ${window.id} to name: ${editName}`);
+        onEdit(window.id, editName.trim());
+        setIsEditing(false);
+      }
+    } else {
+      setIsEditing(true);
+      setEditName(window.name);
+    }
+  };
+
+  const handleDelete = () => {
+    if (isDeleting) {
+      console.log(`Deleting window ${window.id}`);
+      onDelete(window.id);
+    } else {
+      setIsDeleting(true);
+      // Reset delete confirmation after 3 seconds
+      setTimeout(() => setIsDeleting(false), 3000);
+    }
+  };
+
+  const handleToggleStatus = () => {
+    console.log(`Toggling status for window ${window.id}`);
+    onToggleStatus(window.id);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleEdit();
+    } else if (e.key === 'Escape') {
+      setIsEditing(false);
+      setEditName(window.name);
+    }
+  };
+
+  return (
+    <Card className="w-full hover-elevate">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3 flex-1">
+            {isEditing ? (
+              <Input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onKeyDown={handleKeyPress}
+                onBlur={() => setIsEditing(false)}
+                autoFocus
+                className="font-medium"
+                data-testid={`input-edit-window-${window.id}`}
+              />
+            ) : (
+              <div 
+                className="text-lg font-medium flex-1"
+                data-testid={`text-window-name-${window.id}`}
+              >
+                {window.name}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center space-x-2">
+            <Badge 
+              variant={window.isActive ? "default" : "secondary"}
+              data-testid={`badge-status-${window.id}`}
+            >
+              {window.isActive ? "Aktif" : "Tidak Aktif"}
+            </Badge>
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        {/* Current Patient Info */}
+        {window.currentPatientId && window.isActive ? (
+          <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+            <div className="flex items-center text-green-700 dark:text-green-300">
+              <UserCheck className="h-4 w-4 mr-2" />
+              <span className="text-sm font-medium">Sedang Melayani:</span>
+            </div>
+            <div 
+              className="mt-1 font-semibold text-green-800 dark:text-green-200"
+              data-testid={`text-current-patient-${window.id}`}
+            >
+              {window.currentPatientName || `No. ${window.currentPatientNumber}`}
+            </div>
+          </div>
+        ) : (
+          <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center text-gray-500">
+              <User className="h-4 w-4 mr-2" />
+              <span className="text-sm">Tiada pesakit</span>
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={handleEdit}
+            size="sm"
+            variant="outline"
+            className="flex-1"
+            data-testid={`button-edit-${window.id}`}
+          >
+            <Edit className="h-4 w-4 mr-1" />
+            {isEditing ? "Simpan" : "Edit"}
+          </Button>
+
+          <Button
+            onClick={handleToggleStatus}
+            size="sm"
+            variant={window.isActive ? "secondary" : "default"}
+            className="flex-1"
+            data-testid={`button-toggle-${window.id}`}
+          >
+            {window.isActive ? "Nyahaktif" : "Aktifkan"}
+          </Button>
+
+          <Button
+            onClick={handleDelete}
+            size="sm"
+            variant={isDeleting ? "destructive" : "outline"}
+            disabled={!!window.currentPatientId}
+            data-testid={`button-delete-${window.id}`}
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            {isDeleting ? "Confirm" : "Delete"}
+          </Button>
+        </div>
+
+        {window.currentPatientId && (
+          <div className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+            Tidak boleh padam semasa melayani pesakit
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
