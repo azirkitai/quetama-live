@@ -12,6 +12,8 @@ interface Patient {
   status: "waiting" | "called" | "in-progress" | "completed" | "requeue";
   windowId?: string;
   windowName?: string;
+  lastWindowId?: string;
+  lastWindowName?: string;
   trackingHistory?: string[];
 }
 
@@ -139,9 +141,12 @@ export function PatientCard({
             {getStatusLabel(patient.status)}
           </Badge>
         </div>
-        {patient.windowName && (
+        {(patient.windowName || patient.lastWindowName) && (
           <div className="text-sm text-muted-foreground" data-testid={`text-window-${patient.id}`}>
-            {patient.windowName}
+            {patient.windowName || patient.lastWindowName}
+            {patient.lastWindowName && !patient.windowName && (
+              <span className="text-xs text-gray-400 ml-1">(Bilik Terakhir)</span>
+            )}
           </div>
         )}
       </CardHeader>

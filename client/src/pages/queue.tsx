@@ -21,6 +21,8 @@ interface QueuePatient extends Omit<Patient, 'status' | 'windowId' | 'trackingHi
   status: "waiting" | "called" | "in-progress" | "completed" | "requeue";
   windowId?: string;
   windowName?: string;
+  lastWindowId?: string;
+  lastWindowName?: string;
   trackingHistory?: string[];
 }
 
@@ -89,6 +91,8 @@ export default function Queue() {
       status: patient.status as "waiting" | "called" | "in-progress" | "completed" | "requeue",
       windowId: patient.windowId || undefined,
       windowName: patient.windowId ? windows.find(w => w.id === patient.windowId)?.name : undefined,
+      lastWindowId: patient.lastWindowId || undefined,
+      lastWindowName: patient.lastWindowId ? windows.find(w => w.id === patient.lastWindowId)?.name : undefined,
       trackingHistory: patient.trackingHistory || undefined
     }));
   }, [patients, windows]);

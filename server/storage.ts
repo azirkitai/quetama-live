@@ -119,6 +119,7 @@ export class MemStorage implements IStorage {
       number: insertPatient.number,
       status: "waiting",
       windowId: null,
+      lastWindowId: null,
       registeredAt: new Date(),
       calledAt: null,
       completedAt: null,
@@ -181,10 +182,17 @@ export class MemStorage implements IStorage {
       newTrackingHistory.push(`Requeued at ${timeString}${reasonText}`);
     }
 
+    // Preserve last window before clearing for completed/requeue status
+    let lastWindowId = patient.lastWindowId;
+    if ((status === "completed" || status === "requeue") && patient.windowId) {
+      lastWindowId = patient.windowId;
+    }
+
     const updatedPatient = {
       ...patient,
       status,
       windowId: windowId === null ? null : (windowId || patient.windowId),
+      lastWindowId: lastWindowId,
       requeueReason: status === "requeue" ? requeueReason || null : patient.requeueReason,
       trackingHistory: newTrackingHistory
     };

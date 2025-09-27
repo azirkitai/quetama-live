@@ -27,6 +27,7 @@ export const patients = pgTable("patients", {
   number: integer("number").notNull(),
   status: text("status").notNull().default("waiting"), // 'waiting', 'called', 'in-progress', 'completed', 'requeue'
   windowId: varchar("window_id"),
+  lastWindowId: varchar("last_window_id"), // Preserve last room they were called to
   registeredAt: timestamp("registered_at").notNull().default(sql`now()`),
   calledAt: timestamp("called_at"),
   completedAt: timestamp("completed_at"),
