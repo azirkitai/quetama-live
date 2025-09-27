@@ -52,6 +52,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update patient status (for queue management)
+  app.patch("/api/patients/:id/status", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status, windowId } = req.body;
+      
+      // Clear windowId for completed or requeue status
+      const finalWindowId = (status === "completed" || status === "requeue") ? null : windowId;
+      
+      const patient = await storage.updatePatientStatus(id, status, finalWindowId);
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+      
+      // Update window assignment if needed
+      if (windowId && status === "called") {
+        await storage.updateWindowPatient(windowId, id);
+      } else if (status === "completed" || status === "requeue") {
+        // Clear patient from window
+        const windows = await storage.getWindows();
+        const currentWindow = windows.find(w => w.currentPatientId === id);
+        if (currentWindow) {
+          await storage.updateWindowPatient(currentWindow.id, undefined);
+        }
+      }
+      
+      res.json(patient);
+    } catch (error) {
+      console.error("Error updating patient status:", error);
+      res.status(500).json({ error: "Failed to update patient status" });
+    }
+  });
+
+  // Delete patient
+  app.delete("/api/patients/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deletePatient(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting patient:", error);
+      res.status(500).json({ error: "Failed to delete patient" });
+    }
+  });
+
+  // Get all windows
+  app.get("/api/windows", async (req, res) => {
+    try {
+      const windows = await storage.getWindows();
+      res.json(windows);
+    } catch (error) {
+      console.error("Error fetching windows:", error);
+      res.status(500).json({ error: "Failed to fetch windows" });
+    }
+  });
+
+  // Update window patient assignment
+  app.patch("/api/windows/:id/patient", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { patientId } = req.body;
+      
+      const window = await storage.updateWindowPatient(id, patientId);
+      if (!window) {
+        return res.status(404).json({ error: "Window not found" });
+      }
+      
+      res.json(window);
+    } catch (error) {
+      console.error("Error updating window patient:", error);
+      res.status(500).json({ error: "Failed to update window patient" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

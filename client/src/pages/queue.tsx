@@ -1,20 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { PatientCard } from "@/components/patient-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ClipboardList, Users, RefreshCw } from "lucide-react";
-
-interface Patient {
-  id: string;
-  name: string | null;
-  number: number;
-  status: "waiting" | "called" | "in-progress" | "completed" | "requeue";
-  windowId?: string;
-  windowName?: string;
-  trackingHistory?: string[];
-}
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { type Patient } from "@shared/schema";
 
 interface Window {
   id: string;
@@ -23,78 +17,89 @@ interface Window {
   currentPatientId?: string;
 }
 
+interface QueuePatient extends Omit<Patient, 'status' | 'windowId' | 'trackingHistory'> {
+  status: "waiting" | "called" | "in-progress" | "completed" | "requeue";
+  windowId?: string;
+  windowName?: string;
+  trackingHistory?: string[];
+}
+
 export default function Queue() {
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [windows, setWindows] = useState<Window[]>([]);
   const [selectedWindow, setSelectedWindow] = useState<string>("");
+  const { toast } = useToast();
 
-  // TODO: Remove mock functionality - replace with real-time data from backend
-  useEffect(() => {
-    const mockPatients: Patient[] = [
-      {
-        id: "p1",
-        name: "Ahmad bin Rahman",
-        number: 16,
-        status: "waiting",
-        trackingHistory: ["Registered at 9:45 AM"]
-      },
-      {
-        id: "p2",
-        name: null,
-        number: 17,
-        status: "waiting",
-        trackingHistory: ["Registered at 9:50 AM"]
-      },
-      {
-        id: "p3",
-        name: "Siti Aishah",
-        number: 18,
-        status: "called",
-        windowId: "w1",
-        windowName: "Bilik 1 - Dr. Sarah",
-        trackingHistory: ["Registered at 9:55 AM", "Called to Bilik 1 at 10:00 AM"]
-      },
-      {
-        id: "p4",
-        name: null,
-        number: 15,
-        status: "in-progress",
-        windowId: "w2",
-        windowName: "Bilik 2 - Dr. Ahmad",
-        trackingHistory: [
-          "Registered at 9:30 AM", 
-          "Called to Bilik 2 at 9:45 AM",
-          "Consultation started at 9:50 AM"
-        ]
-      },
-      {
-        id: "p5",
-        name: "Rahman Abdullah",
-        number: 19,
-        status: "requeue",
-        trackingHistory: [
-          "Registered at 10:00 AM",
-          "Called to Bilik 3 at 10:15 AM",
-          "Consultation completed at 10:30 AM",
-          "Requeued for follow-up at 10:35 AM"
-        ]
-      },
-    ];
+  // Fetch today's patients
+  const { data: patients = [], isLoading: patientsLoading, refetch: refetchPatients } = useQuery<Patient[]>({
+    queryKey: ['/api/patients/today'],
+  });
 
-    const mockWindows: Window[] = [
-      { id: "w1", name: "Bilik 1 - Dr. Sarah", isActive: true, currentPatientId: "p3" },
-      { id: "w2", name: "Bilik 2 - Dr. Ahmad", isActive: true, currentPatientId: "p4" },
-      { id: "w3", name: "Bilik 3 - Nurse Linda", isActive: true },
-      { id: "w4", name: "Bilik 4 - Dr. Aisyah", isActive: false },
-    ];
+  // Fetch windows
+  const { data: windows = [], isLoading: windowsLoading, refetch: refetchWindows } = useQuery<Window[]>({
+    queryKey: ['/api/windows'],
+  });
 
-    setPatients(mockPatients);
-    setWindows(mockWindows);
-  }, []);
+  // Update patient status mutation
+  const updatePatientStatusMutation = useMutation({
+    mutationFn: async ({ patientId, status, windowId }: { patientId: string; status: string; windowId?: string }) => {
+      const response = await apiRequest("PATCH", `/api/patients/${patientId}/status`, { status, windowId });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/patients/today'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/windows'] });
+    },
+    onError: (error) => {
+      console.error("Error updating patient status:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal mengemas kini status pesakit",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete patient mutation
+  const deletePatientMutation = useMutation({
+    mutationFn: async (patientId: string) => {
+      const response = await apiRequest("DELETE", `/api/patients/${patientId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/patients/today'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/windows'] });
+      toast({
+        title: "Berjaya",
+        description: "Pesakit telah dipadam",
+      });
+    },
+    onError: (error) => {
+      console.error("Error deleting patient:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal memadam pesakit",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Enhanced patients with window names
+  const enhancedPatients = useMemo((): QueuePatient[] => {
+    return patients.map(patient => ({
+      ...patient,
+      status: patient.status as "waiting" | "called" | "in-progress" | "completed" | "requeue",
+      windowId: patient.windowId || undefined,
+      windowName: patient.windowId ? windows.find(w => w.id === patient.windowId)?.name : undefined,
+      trackingHistory: patient.trackingHistory || undefined
+    }));
+  }, [patients, windows]);
 
   const handleCallPatient = (patientId: string) => {
     if (!selectedWindow) {
-      alert("Sila pilih bilik terlebih dahulu");
+      toast({
+        title: "Ralat",
+        description: "Sila pilih bilik terlebih dahulu",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -102,82 +107,47 @@ export default function Queue() {
     if (!window) return;
 
     if (window.currentPatientId) {
-      alert("Bilik ini sedang melayani pesakit lain");
+      toast({
+        title: "Ralat",
+        description: "Bilik ini sedang melayani pesakit lain",
+        variant: "destructive",
+      });
       return;
     }
 
-    setPatients(prev => prev.map(p => {
-      if (p.id === patientId) {
-        const newTracking = [...(p.trackingHistory || []), `Called to ${window.name} at ${new Date().toLocaleTimeString()}`];
-        return {
-          ...p,
-          status: "called" as const,
-          windowId: selectedWindow,
-          windowName: window.name,
-          trackingHistory: newTracking
-        };
-      }
-      return p;
-    }));
-
-    setWindows(prev => prev.map(w => 
-      w.id === selectedWindow ? { ...w, currentPatientId: patientId } : w
-    ));
-
-    console.log(`Patient ${patientId} called to ${window.name}`);
+    updatePatientStatusMutation.mutate({
+      patientId,
+      status: "called",
+      windowId: selectedWindow
+    });
   };
 
   const handleDeletePatient = (patientId: string) => {
-    setPatients(prev => prev.filter(p => p.id !== patientId));
-    console.log(`Patient ${patientId} deleted`);
+    deletePatientMutation.mutate(patientId);
   };
 
   const handleCompletePatient = (patientId: string) => {
-    const patient = patients.find(p => p.id === patientId);
-    if (!patient) return;
-
-    setPatients(prev => prev.filter(p => p.id !== patientId));
-    
-    if (patient.windowId) {
-      setWindows(prev => prev.map(w => 
-        w.id === patient.windowId ? { ...w, currentPatientId: undefined } : w
-      ));
-    }
-
-    console.log(`Patient ${patientId} completed`);
+    updatePatientStatusMutation.mutate({
+      patientId,
+      status: "completed"
+    });
   };
 
   const handleRequeuePatient = (patientId: string) => {
-    const patient = patients.find(p => p.id === patientId);
-    if (!patient) return;
+    updatePatientStatusMutation.mutate({
+      patientId,
+      status: "requeue"
+    });
+  };
 
-    const newTracking = [...(patient.trackingHistory || []), `Requeued at ${new Date().toLocaleTimeString()}`];
-    
-    setPatients(prev => prev.map(p => {
-      if (p.id === patientId) {
-        return {
-          ...p,
-          status: "requeue" as const,
-          windowId: undefined,
-          windowName: undefined,
-          trackingHistory: newTracking
-        };
-      }
-      return p;
-    }));
-
-    if (patient.windowId) {
-      setWindows(prev => prev.map(w => 
-        w.id === patient.windowId ? { ...w, currentPatientId: undefined } : w
-      ));
-    }
-
-    console.log(`Patient ${patientId} requeued`);
+  const handleRefresh = () => {
+    refetchPatients();
+    refetchWindows();
   };
 
   const activeWindows = windows.filter(w => w.isActive);
-  const waitingPatients = patients.filter(p => p.status === "waiting" || p.status === "requeue");
-  const activePatients = patients.filter(p => p.status === "called" || p.status === "in-progress");
+  const waitingPatients = enhancedPatients.filter(p => p.status === "waiting" || p.status === "requeue");
+  const activePatients = enhancedPatients.filter(p => p.status === "called" || p.status === "in-progress");
 
   return (
     <div className="p-6 space-y-6">
@@ -189,11 +159,12 @@ export default function Queue() {
         </div>
         <Button
           variant="outline"
-          onClick={() => window.location.reload()}
+          onClick={handleRefresh}
+          disabled={patientsLoading || windowsLoading}
           data-testid="button-refresh-queue"
         >
           <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
+          {patientsLoading || windowsLoading ? "Loading..." : "Refresh"}
         </Button>
       </div>
 
@@ -248,7 +219,7 @@ export default function Queue() {
                 onDelete={handleDeletePatient}
                 onComplete={handleCompletePatient}
                 onRequeue={handleRequeuePatient}
-                disabled={patient.status === "called"}
+                disabled={patient.status === "called" || updatePatientStatusMutation.isPending}
               />
             ))}
           </div>
@@ -279,7 +250,7 @@ export default function Queue() {
                 onDelete={handleDeletePatient}
                 onComplete={handleCompletePatient}
                 onRequeue={handleRequeuePatient}
-                disabled={!selectedWindow}
+                disabled={!selectedWindow || updatePatientStatusMutation.isPending}
               />
             ))}
           </div>
