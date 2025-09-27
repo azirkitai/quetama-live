@@ -72,7 +72,12 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="sidebar-gradient border-r-0">
+    <Sidebar 
+      className="border-r-0" 
+      style={{ 
+        background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #020617 100%)' 
+      }}
+    >
       {/* Branding Header */}
       <div className="p-6 border-b border-sidebar-border/20">
         <div className="flex items-center space-x-3">
@@ -86,7 +91,12 @@ export function AppSidebar() {
         </div>
       </div>
 
-      <SidebarContent className="px-4 py-6">
+      <SidebarContent 
+        className="px-4 py-6"
+        style={{ 
+          background: 'transparent' 
+        }}
+      >
         {/* Main Navigation Section */}
         <div>
           <div className="sidebar-section-header">MAIN NAVIGATION</div>
