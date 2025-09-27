@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { TVDisplay } from "@/components/tv-display";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Monitor, Settings, Users, Clock, Eye, EyeOff } from "lucide-react";
+import { Monitor, Settings, Users, Clock } from "lucide-react";
 
 interface Patient {
   id: string;
@@ -30,7 +30,6 @@ interface DashboardStats {
 
 export default function Dashboard() {
   const [fullscreen, setFullscreen] = useState(false);
-  const [showStats, setShowStats] = useState(false); // Restrict stats display by default
   const [currentCall, setCurrentCall] = useState<Patient | undefined>();
   const [history, setHistory] = useState<Patient[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
@@ -116,28 +115,17 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
           <p className="text-muted-foreground">Paparan utama sistem panggilan klinik</p>
         </div>
-        <div className="flex gap-3">
-          <Button 
-            onClick={() => setShowStats(!showStats)}
-            variant={showStats ? "default" : "outline"}
-            data-testid="button-toggle-stats"
-          >
-            {showStats ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-            {showStats ? "Sembunyi Statistik" : "Tunjuk Statistik"}
-          </Button>
-          <Button
-            onClick={toggleFullscreen}
-            data-testid="button-fullscreen-tv"
-          >
-            <Monitor className="h-4 w-4 mr-2" />
-            Paparan TV Penuh
-          </Button>
-        </div>
+        <Button
+          onClick={toggleFullscreen}
+          data-testid="button-fullscreen-tv"
+        >
+          <Monitor className="h-4 w-4 mr-2" />
+          Paparan TV Penuh
+        </Button>
       </div>
 
-      {/* Stats Cards - Restricted Display */}
-      {showStats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Menunggu</CardTitle>
@@ -197,8 +185,7 @@ export default function Dashboard() {
             </p>
           </CardContent>
         </Card>
-        </div>
-      )}
+      </div>
 
       {/* TV Preview */}
       <Card>
