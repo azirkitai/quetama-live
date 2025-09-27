@@ -74,56 +74,9 @@ export function TVDisplay({
 
   return (
     <div className="min-h-screen bg-white text-gray-900" data-testid="tv-display">
-      {/* Top Row - Clinic Info and Patient Calling */}
-      <div className="bg-white border-b-2 border-gray-200 p-4">
-        <div className="flex items-center justify-between">
-          {/* Left: Clinic Logo and Name */}
-          <div className="flex items-center space-x-4">
-            {clinicLogo ? (
-              <img 
-                src={clinicLogo} 
-                alt="Logo Klinik" 
-                className="h-16 w-auto object-contain"
-                data-testid="clinic-logo"
-              />
-            ) : (
-              <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xs">KLINIK</span>
-              </div>
-            )}
-            <div>
-              <h1 className="text-lg font-bold text-blue-800" data-testid="clinic-name">
-                {clinicName}
-              </h1>
-              <p className="text-sm text-gray-600">TROPICANA AMAN</p>
-            </div>
-          </div>
-
-          {/* Right: Current Patient Calling */}
-          <div className="flex items-center">
-            {currentPatient ? (
-              <div className="bg-blue-600 text-white px-6 py-3 rounded-lg text-center">
-                <div className="text-sm font-bold">SEDANG DIPANGGIL</div>
-                <div className="text-xl font-bold" data-testid="current-patient-display">
-                  {currentPatient.name}
-                </div>
-                <div className="text-sm" data-testid="current-room">
-                  {currentPatient.room}
-                </div>
-              </div>
-            ) : (
-              <div className="bg-gray-400 text-white px-6 py-3 rounded-lg text-center">
-                <div className="text-sm font-bold">TIADA PANGGILAN</div>
-                <div className="text-lg">N/A</div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex h-[calc(100vh-160px)]">
+      <div className="flex h-[calc(100vh-120px)]">
         {/* Main Content Area - Media Display (Smaller) */}
-        <div className="flex-1 p-6">
+        <div className="w-2/3 p-6">
           <div className="h-full bg-gray-100 rounded-lg overflow-hidden">
             {mediaContent ? (
               mediaType === "image" ? (
@@ -156,24 +109,72 @@ export function TVDisplay({
           </div>
         </div>
 
-        {/* Right Sidebar - Patient Names Only */}
-        <div className="w-72 p-6">
-          <Card className="bg-white h-full">
+        {/* Right Sidebar - 3 Vertical Divs */}
+        <div className="w-1/3 p-6 space-y-4">
+          {/* Div 1: Clinic Logo and Name */}
+          <Card className="bg-blue-600 text-white">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-4">
+                {clinicLogo ? (
+                  <img 
+                    src={clinicLogo} 
+                    alt="Logo Klinik" 
+                    className="h-12 w-auto object-contain bg-white rounded p-1"
+                    data-testid="clinic-logo"
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-white rounded flex items-center justify-center">
+                    <span className="text-blue-600 font-bold text-xs">KLINIK</span>
+                  </div>
+                )}
+                <div>
+                  <h1 className="text-lg font-bold" data-testid="clinic-name">
+                    {clinicName}
+                  </h1>
+                  <p className="text-sm text-blue-200">TROPICANA AMAN</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Div 2: Current Patient Being Called */}
+          <Card className="bg-red-600 text-white">
+            <CardContent className="p-4">
+              <div className="text-center">
+                <h3 className="text-lg font-bold mb-2">SEDANG DIPANGGIL</h3>
+                {currentPatient ? (
+                  <>
+                    <div className="text-2xl font-bold mb-2" data-testid="current-patient-display">
+                      {currentPatient.name}
+                    </div>
+                    <div className="text-lg" data-testid="current-room">
+                      {currentPatient.room}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-xl">TIADA PANGGILAN</div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Div 3: Patient History */}
+          <Card className="bg-white flex-1">
             <CardContent className="p-4">
               <div className="text-center mb-4">
-                <h3 className="text-lg font-bold text-blue-800">SENARAI PESAKIT</h3>
+                <h3 className="text-lg font-bold text-blue-800">SEJARAH PANGGILAN</h3>
               </div>
-              <div className="space-y-3 max-h-full overflow-y-auto" data-testid="queue-list">
+              <div className="space-y-2 max-h-96 overflow-y-auto" data-testid="queue-list">
                 {queueHistory.length > 0 ? (
-                  queueHistory.slice(-20).map((item, index) => (
-                    <div key={item.id} className="p-3 bg-yellow-100 rounded-lg text-center">
-                      <div className="text-lg font-bold text-yellow-800">{item.name}</div>
-                      <div className="text-sm text-gray-600">{item.room}</div>
+                  queueHistory.slice(-15).map((item) => (
+                    <div key={item.id} className="p-2 bg-gray-100 rounded text-center">
+                      <div className="text-sm font-bold text-gray-800">{item.name}</div>
+                      <div className="text-xs text-gray-600">{item.room}</div>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center text-gray-500 py-8">
-                    <p>Tiada senarai giliran</p>
+                  <div className="text-center text-gray-500 py-4">
+                    <p className="text-sm">Tiada sejarah panggilan</p>
                   </div>
                 )}
               </div>
@@ -182,8 +183,8 @@ export function TVDisplay({
         </div>
       </div>
 
-      {/* Bottom Row - Date, Time and Prayer Times (One Long Line) */}
-      <div className="bg-blue-800 text-white p-4">
+      {/* Bottom Section - Date, Time and Prayer Times (Same Width as Display) */}
+      <div className="bg-blue-800 text-white p-4 mx-6 rounded-t-lg">
         <div className="flex items-center justify-between space-x-8">
           {/* Date */}
           <div className="flex items-center space-x-2">
@@ -202,7 +203,7 @@ export function TVDisplay({
           </div>
 
           {/* Prayer Times */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4">
             <span className="font-bold">WAKTU SOLAT:</span>
             {prayerTimes.map((prayer, index) => (
               <div key={index} className="text-center">
