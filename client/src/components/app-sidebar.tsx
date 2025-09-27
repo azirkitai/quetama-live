@@ -47,11 +47,6 @@ const mainNavigationItems = [
 
 const administrationItems = [
   {
-    title: "User Management",
-    url: "/administration",
-    icon: Shield,
-  },
-  {
     title: "Account Settings",
     url: "/account",
     icon: UserCog,
@@ -60,6 +55,11 @@ const administrationItems = [
     title: "System Management",
     url: "/management",
     icon: Users,
+  },
+  {
+    title: "User Management",
+    url: "/administration",
+    icon: Shield,
   },
 ];
 
