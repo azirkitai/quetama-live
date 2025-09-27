@@ -131,6 +131,35 @@ export default function Queue() {
     });
   };
 
+  const handleRecall = (patientId: string) => {
+    if (!selectedWindow) {
+      toast({
+        title: "Ralat",
+        description: "Sila pilih bilik terlebih dahulu",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const window = windows.find(w => w.id === selectedWindow);
+    if (!window) return;
+
+    if (window.currentPatientId) {
+      toast({
+        title: "Ralat",
+        description: "Bilik ini sedang melayani pesakit lain",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updatePatientStatusMutation.mutate({
+      patientId,
+      status: "called",
+      windowId: selectedWindow
+    });
+  };
+
   const handleDeletePatient = (patientId: string) => {
     deletePatientMutation.mutate(patientId);
   };
@@ -227,6 +256,7 @@ export default function Queue() {
                 patient={patient}
                 onCall={handleCallPatient}
                 onCallAgain={handleCallAgain}
+                onRecall={handleRecall}
                 onDelete={handleDeletePatient}
                 onComplete={handleCompletePatient}
                 onRequeue={handleRequeuePatient}
@@ -259,6 +289,7 @@ export default function Queue() {
                 patient={patient}
                 onCall={handleCallPatient}
                 onCallAgain={handleCallAgain}
+                onRecall={handleRecall}
                 onDelete={handleDeletePatient}
                 onComplete={handleCompletePatient}
                 onRequeue={handleRequeuePatient}

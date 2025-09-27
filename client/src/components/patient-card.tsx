@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Trash2, RotateCcw, CheckCircle, X, Volume2 } from "lucide-react";
+import { Bell, Trash2, RotateCcw, CheckCircle, X, Volume2, PhoneCall } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,7 @@ interface PatientCardProps {
   patient: Patient;
   onCall: (patientId: string) => void;
   onCallAgain: (patientId: string) => void;
+  onRecall: (patientId: string) => void;
   onDelete: (patientId: string) => void;
   onComplete: (patientId: string) => void;
   onRequeue: (patientId: string, reason?: string) => void;
@@ -29,6 +30,7 @@ export function PatientCard({
   patient,
   onCall,
   onCallAgain,
+  onRecall,
   onDelete,
   onComplete,
   onRequeue,
@@ -45,6 +47,11 @@ export function PatientCard({
   const handleCallAgain = () => {
     console.log(`Calling again patient ${patient.id}`);
     onCallAgain(patient.id);
+  };
+
+  const handleRecall = () => {
+    console.log(`Recalling patient ${patient.id}`);
+    onRecall(patient.id);
   };
 
   const handleDelete = () => {
@@ -160,7 +167,7 @@ export function PatientCard({
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-2">
-          {(patient.status === "waiting" || patient.status === "requeue") && (
+          {patient.status === "waiting" && (
             <Button
               onClick={handleCall}
               disabled={disabled}
@@ -171,6 +178,33 @@ export function PatientCard({
               <Bell className="h-4 w-4 mr-1" />
               Panggil
             </Button>
+          )}
+
+          {patient.status === "requeue" && (
+            <>
+              <Button
+                onClick={handleCall}
+                disabled={disabled}
+                size="sm"
+                variant="default"
+                className="flex-1"
+                data-testid={`button-call-${patient.id}`}
+              >
+                <Bell className="h-4 w-4 mr-1" />
+                Panggil
+              </Button>
+              <Button
+                onClick={handleRecall}
+                disabled={disabled}
+                size="sm"
+                variant="secondary"
+                className="flex-1"
+                data-testid={`button-recall-${patient.id}`}
+              >
+                <PhoneCall className="h-4 w-4 mr-1" />
+                Recall
+              </Button>
+            </>
           )}
 
           {(patient.status === "called" || patient.status === "in-progress") && (
