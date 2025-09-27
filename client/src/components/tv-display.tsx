@@ -78,7 +78,10 @@ export function TVDisplay({
     gridTemplateRows: `1fr clamp(120px, 18vh, 220px)`,
     gridTemplateColumns: `minmax(0, 1fr) clamp(320px, 35vw, 720px)`,
     gap: 0,
-    height: "100dvh"
+    height: "100dvh",
+    width: "100vw",
+    margin: 0,
+    padding: 0
   } : {
     gridTemplateRows: '1fr 180px',
     gridTemplateColumns: '65% 35%',
@@ -86,7 +89,7 @@ export function TVDisplay({
   };
 
   const wrapperClass = isFullscreen 
-    ? "fixed inset-0 w-screen h-screen overflow-hidden bg-white text-gray-900 grid"
+    ? "fixed inset-0 w-screen h-screen overflow-hidden bg-white text-gray-900 grid m-0 p-0"
     : "h-screen bg-white text-gray-900 grid";
 
   return (
@@ -94,8 +97,8 @@ export function TVDisplay({
          style={containerStyle} 
          data-testid="tv-display">
       {/* Main Content Area - Media Display */}
-      <div className={`${isFullscreen ? '' : 'p-4'} flex items-center`}>
-        <div className={`w-full h-full bg-gray-100 ${isFullscreen ? '' : 'rounded-lg'} overflow-hidden flex items-center justify-center`}>
+      <div className={`${isFullscreen ? 'm-0 p-0' : 'p-4'} flex items-center w-full h-full`}>
+        <div className={`w-full h-full bg-gray-100 ${isFullscreen ? 'm-0 p-0' : 'rounded-lg'} overflow-hidden flex items-center justify-center`}>
             {mediaContent ? (
               mediaType === "image" ? (
                 <img 
@@ -128,9 +131,9 @@ export function TVDisplay({
         </div>
 
       {/* Right Panel - Queue Board Style */}
-      <div className="bg-blue-700 text-white p-4 flex flex-col">
+      <div className={`bg-blue-700 text-white ${isFullscreen ? 'p-0 m-0' : 'p-4'} flex flex-col w-full h-full`}>
         {/* Header */}
-        <div className="text-center mb-4">
+        <div className={`text-center ${isFullscreen ? 'mb-2 pt-4 px-4' : 'mb-4'}`}>
           <div className="flex items-center justify-center space-x-3 mb-2">
             {clinicLogo ? (
               <img 
@@ -160,7 +163,7 @@ export function TVDisplay({
 
         {/* Current Patient Display */}
         {currentPatient ? (
-          <div className="bg-blue-600 p-3 rounded-lg mb-3 text-center">
+          <div className={`bg-blue-600 ${isFullscreen ? 'p-2 mx-4 rounded-md mb-2' : 'p-3 rounded-lg mb-3'} text-center`}>
             <div className="font-bold text-yellow-400" 
                  style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)' }} 
                  data-testid="current-patient-display">
@@ -171,13 +174,13 @@ export function TVDisplay({
             </div>
           </div>
         ) : (
-          <div className="bg-blue-600 p-3 rounded-lg mb-3 text-center">
+          <div className={`bg-blue-600 ${isFullscreen ? 'p-2 mx-4 rounded-md mb-2' : 'p-3 rounded-lg mb-3'} text-center`}>
             <div className="text-yellow-400" style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)' }}>N/A</div>
           </div>
         )}
 
         {/* Queue List */}
-        <div className="flex-1">
+        <div className={`flex-1 ${isFullscreen ? 'px-4' : ''}`}>
           <div className="grid grid-cols-2 gap-1 text-center mb-2">
             <div className="font-bold text-yellow-400" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)' }}>NAME</div>
             <div className="font-bold text-yellow-400" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)' }}>ROOM</div>
@@ -206,7 +209,7 @@ export function TVDisplay({
       </div>
 
       {/* Bottom Section - Spans Both Columns */}
-      <div className={`${isFullscreen ? 'px-6 py-3' : 'px-4 py-2'} bg-blue-800 text-white`} style={{ gridColumn: 'span 2' }}>
+      <div className={`${isFullscreen ? 'px-4 py-2 m-0' : 'px-4 py-2'} bg-blue-800 text-white w-full`} style={{ gridColumn: 'span 2' }}>
         <div className="flex items-center justify-between">
           {/* Left - Calendar Widget */}
           <div className={`bg-white text-gray-900 p-3 ${isFullscreen ? 'rounded-md' : 'rounded-lg'} flex items-center space-x-3`}>

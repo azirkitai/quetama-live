@@ -81,7 +81,7 @@ export default function Dashboard() {
 
   if (fullscreen) {
     return (
-      <div className="relative group">
+      <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-white m-0 p-0" style={{ width: "100vw", height: "100vh" }}>
         <TVDisplay
           currentPatient={currentCall ? convertToQueueItem(currentCall) : undefined}
           queueHistory={history.map(convertToQueueItem)}
