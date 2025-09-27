@@ -122,6 +122,15 @@ export default function Queue() {
     });
   };
 
+  const handleCallAgain = (patientId: string) => {
+    // For call again, we don't need to change status or window
+    // Just trigger a notification/sound (this could be enhanced later)
+    toast({
+      title: "Panggil Lagi",
+      description: "Pesakit telah dipanggil semula",
+    });
+  };
+
   const handleDeletePatient = (patientId: string) => {
     deletePatientMutation.mutate(patientId);
   };
@@ -217,6 +226,7 @@ export default function Queue() {
                 key={patient.id}
                 patient={patient}
                 onCall={handleCallPatient}
+                onCallAgain={handleCallAgain}
                 onDelete={handleDeletePatient}
                 onComplete={handleCompletePatient}
                 onRequeue={handleRequeuePatient}
@@ -248,6 +258,7 @@ export default function Queue() {
                 key={patient.id}
                 patient={patient}
                 onCall={handleCallPatient}
+                onCallAgain={handleCallAgain}
                 onDelete={handleDeletePatient}
                 onComplete={handleCompletePatient}
                 onRequeue={handleRequeuePatient}

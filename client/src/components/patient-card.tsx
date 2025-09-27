@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Trash2, RotateCcw, CheckCircle, X } from "lucide-react";
+import { Bell, Trash2, RotateCcw, CheckCircle, X, Volume2 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ interface Patient {
 interface PatientCardProps {
   patient: Patient;
   onCall: (patientId: string) => void;
+  onCallAgain: (patientId: string) => void;
   onDelete: (patientId: string) => void;
   onComplete: (patientId: string) => void;
   onRequeue: (patientId: string, reason?: string) => void;
@@ -27,6 +28,7 @@ interface PatientCardProps {
 export function PatientCard({
   patient,
   onCall,
+  onCallAgain,
   onDelete,
   onComplete,
   onRequeue,
@@ -38,6 +40,11 @@ export function PatientCard({
   const handleCall = () => {
     console.log(`Calling patient ${patient.id}`);
     onCall(patient.id);
+  };
+
+  const handleCallAgain = () => {
+    console.log(`Calling again patient ${patient.id}`);
+    onCallAgain(patient.id);
   };
 
   const handleDelete = () => {
@@ -153,7 +160,7 @@ export function PatientCard({
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-2">
-          {patient.status === "waiting" && (
+          {(patient.status === "waiting" || patient.status === "requeue") && (
             <Button
               onClick={handleCall}
               disabled={disabled}
@@ -168,6 +175,18 @@ export function PatientCard({
 
           {(patient.status === "called" || patient.status === "in-progress") && (
             <>
+              <Button
+                onClick={handleCallAgain}
+                disabled={disabled}
+                size="sm"
+                variant="secondary"
+                className="flex-1"
+                data-testid={`button-call-again-${patient.id}`}
+              >
+                <Volume2 className="h-4 w-4 mr-1" />
+                Panggil Lagi
+              </Button>
+              
               <Button
                 onClick={handleComplete}
                 disabled={disabled}
