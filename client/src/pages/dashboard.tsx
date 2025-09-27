@@ -118,6 +118,7 @@ export default function Dashboard() {
         <Button
           onClick={toggleFullscreen}
           data-testid="button-fullscreen-tv"
+          className="btn-gradient"
         >
           <Monitor className="h-4 w-4 mr-2" />
           Paparan TV Penuh
