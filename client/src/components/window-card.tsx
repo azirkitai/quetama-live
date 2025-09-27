@@ -44,16 +44,30 @@ export function WindowCard({
     }
   }, [isDeleting, window.id]);
 
+  // Update editName when window name changes from database
+  useEffect(() => {
+    if (!isEditing) {
+      setEditName(window.name);
+    }
+  }, [window.name, isEditing]);
+
   const handleEdit = () => {
     if (isEditing) {
-      if (editName.trim()) {
+      if (editName.trim() && editName.trim() !== window.name) {
         onEdit(window.id, editName.trim());
-        setIsEditing(false);
       }
+      setIsEditing(false);
     } else {
       setIsEditing(true);
       setEditName(window.name);
     }
+  };
+
+  const handleSave = () => {
+    if (editName.trim() && editName.trim() !== window.name) {
+      onEdit(window.id, editName.trim());
+    }
+    setIsEditing(false);
   };
 
   const handleDelete = () => {
@@ -71,7 +85,7 @@ export function WindowCard({
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleEdit();
+      handleSave();
     } else if (e.key === 'Escape') {
       setIsEditing(false);
       setEditName(window.name);
@@ -88,7 +102,7 @@ export function WindowCard({
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
                 onKeyDown={handleKeyPress}
-                onBlur={() => setIsEditing(false)}
+                onBlur={handleSave}
                 autoFocus
                 className="font-medium"
                 data-testid={`input-edit-window-${window.id}`}
