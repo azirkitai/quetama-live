@@ -98,8 +98,11 @@ export class AudioSystem {
       
       return new Promise((resolve, reject) => {
         source.onended = () => resolve();
-        source.onerror = () => reject(new Error('Audio playback failed'));
-        source.start();
+        try {
+          source.start();
+        } catch (error) {
+          reject(new Error('Audio playback failed'));
+        }
       });
     } catch (error) {
       console.error('Error playing audio file:', error);

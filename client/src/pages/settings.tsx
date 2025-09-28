@@ -75,8 +75,8 @@ export default function Settings() {
     presetKey: undefined,
     customAudioId: undefined,
     // Separate voice models for better quality
-    elevenVoiceIdBM: "EXAVITQu4vr4xnSDxMaL", // DIANA voice for Bahasa Malaysia
-    elevenVoiceIdEN: "21m00Tcm4TlvDq8ikWAM"  // Default ElevenLabs voice for EN
+    elevenVoiceIdBM: "21m00Tcm4TlvDq8ikWAM", // Default ElevenLabs voice for BM (Rachel)
+    elevenVoiceIdEN: "21m00Tcm4TlvDq8ikWAM"  // Default ElevenLabs voice for EN (Rachel)
   });
 
   // YouTube preview states
@@ -173,7 +173,7 @@ export default function Settings() {
         presetKey: settingsObj.presetKey || undefined,
         customAudioId: settingsObj.customAudioId || undefined,
         // Separate voice models for better quality
-        elevenVoiceIdBM: settingsObj.elevenVoiceIdBM || "EXAVITQu4vr4xnSDxMaL", // DIANA voice for BM
+        elevenVoiceIdBM: settingsObj.elevenVoiceIdBM || "21m00Tcm4TlvDq8ikWAM", // Default voice for BM
         elevenVoiceIdEN: settingsObj.elevenVoiceIdEN || "21m00Tcm4TlvDq8ikWAM"
       };
       
@@ -496,7 +496,10 @@ export default function Settings() {
         soundType: currentSettings.soundType,
         enableTTS: currentSettings.enableTTS,
         ttsLanguage: currentSettings.ttsLanguage,
-        volume: currentSettings.volume
+        volume: currentSettings.volume,
+        soundMode: currentSettings.soundMode,
+        presetKey: currentSettings.presetKey,
+        customAudioId: currentSettings.customAudioId
       };
 
       await audioSystem.playTestSequence(audioSettings);
@@ -1663,11 +1666,11 @@ export default function Settings() {
                                   setCurrentSettings(prev => ({ ...prev, elevenVoiceIdBM: e.target.value }));
                                   setUnsavedChanges(prev => [...prev.filter(key => key !== 'elevenVoiceIdBM'), 'elevenVoiceIdBM']);
                                 }}
-                                placeholder="EXAVITQu4vr4xnSDxMaL"
+                                placeholder="21m00Tcm4TlvDq8ikWAM"
                                 className="font-mono text-sm"
                               />
                               <div className="text-xs text-muted-foreground">
-                                Voice ID khusus untuk panggilan Bahasa Malaysia (Default: DIANA)
+                                Voice ID khusus untuk panggilan Bahasa Malaysia. Dapatkan ID dari elevenlabs.io/voice-library
                               </div>
                             </div>
 
