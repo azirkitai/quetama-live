@@ -910,6 +910,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Prayer Times API Routes
+  app.get("/api/prayer-times", async (req, res) => {
+    try {
+      const { city = 'Kuala Lumpur', country = 'Malaysia', latitude, longitude } = req.query;
+      
+      let apiUrl = 'https://api.aladhan.com/v1/timings';
+      let params: Record<string, string> = {
+        method: '11' // Singapore method for Malaysia
+      };
+
+      // Use coordinates if provided, otherwise use city/country
+      if (latitude && longitude) {
+        params.latitude = latitude as string;
+        params.longitude = longitude as string;
+      } else {
+        apiUrl = 'https://api.aladhan.com/v1/timingsByCity';
+        params.city = city as string;
+        params.country = country as string;
+      }
+
+      // Construct URL with params
+      const searchParams = new URLSearchParams(params);
+      const fullUrl = `${apiUrl}?${searchParams.toString()}`;
+
+      const response = await fetch(fullUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Prayer times API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.code !== 200) {
+        throw new Error('Failed to fetch prayer times');
+      }
+
+      // Extract prayer times and format them
+      const timings = data.data.timings;
+      const prayerTimes = [
+        { name: "SUBUH", time: timings.Fajr, key: "fajr" },
+        { name: "ZOHOR", time: timings.Dhuhr, key: "dhuhr" },
+        { name: "ASAR", time: timings.Asr, key: "asr" },
+        { name: "MAGHRIB", time: timings.Maghrib, key: "maghrib" },
+        { name: "ISYAK", time: timings.Isha, key: "isha" }
+      ];
+
+      // Return prayer times with metadata - let client handle highlighting with browser timezone
+      res.json({
+        prayerTimes,
+        date: data.data.date,
+        location: { 
+          city: city || 'Unknown', 
+          country: country || 'Unknown' 
+        },
+        meta: {
+          timezone: data.data.meta.timezone,
+          method: data.data.meta.method.name
+        }
+      });
+
+    } catch (error) {
+      console.error("Error fetching prayer times:", error);
+      res.status(500).json({ error: "Failed to fetch prayer times" });
+    }
+  });
+
+  // Get user's location based on IP (fallback for geolocation)
+  app.get("/api/location", async (req, res) => {
+    try {
+      // Simple IP-based location detection
+      const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+      
+      // For development, default to Malaysia
+      if (clientIP === '127.0.0.1' || clientIP === '::1' || !clientIP) {
+        return res.json({
+          city: 'Kuala Lumpur',
+          country: 'Malaysia',
+          latitude: 3.1390,
+          longitude: 101.6869
+        });
+      }
+
+      // In production, you could use a service like ipapi.co for IP geolocation
+      // For now, default to Malaysia
+      res.json({
+        city: 'Kuala Lumpur',
+        country: 'Malaysia', 
+        latitude: 3.1390,
+        longitude: 101.6869
+      });
+
+    } catch (error) {
+      console.error("Error detecting location:", error);
+      res.status(500).json({ error: "Failed to detect location" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

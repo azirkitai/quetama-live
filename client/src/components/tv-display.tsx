@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Volume2, Calendar } from "lucide-react";
 import { useActiveTheme, createGradientStyle, createTextGradientStyle } from "@/hooks/useActiveTheme";
+import { useQuery } from "@tanstack/react-query";
 
 interface QueueItem {
   id: string;
@@ -16,6 +17,23 @@ interface QueueItem {
 interface PrayerTime {
   name: string;
   time: string;
+  key?: string;
+}
+
+interface PrayerTimesResponse {
+  prayerTimes: PrayerTime[];
+  date: {
+    readable: string;
+    timestamp: string;
+  };
+  location: {
+    city: string;
+    country: string;
+  };
+  meta: {
+    timezone: string;
+    method: string;
+  };
 }
 
 interface MediaItem {
@@ -32,6 +50,8 @@ interface TVDisplayProps {
   mediaItems?: MediaItem[];
   prayerTimes?: PrayerTime[];
   isFullscreen?: boolean;
+  showPrayerTimes?: boolean;
+  showWeather?: boolean;
 }
 
 export function TVDisplay({ 
@@ -40,19 +60,105 @@ export function TVDisplay({
   clinicName = "KLINIK UTAMA 24 JAM",
   clinicLogo,
   mediaItems = [],
-  prayerTimes = [
-    { name: "SUBUH", time: "05:46 AM" },
-    { name: "ZOHOR", time: "13:05 PM" },
-    { name: "ASAR", time: "16:15 PM" },
-    { name: "MAGHRIB", time: "19:08 PM" },
-    { name: "ISYAK", time: "20:17 PM" }
-  ],
-  isFullscreen = false
+  prayerTimes = [],
+  isFullscreen = false,
+  showPrayerTimes = false,
+  showWeather = false
 }: TVDisplayProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
   
   // Fetch active theme
   const { data: theme } = useActiveTheme();
+
+  // Location state for prayer times
+  const [location, setLocation] = useState<{lat: number; lon: number} | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  // Get user location on component mount
+  useEffect(() => {
+    if (!showPrayerTimes) return;
+
+    const getLocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setLocation({
+              lat: position.coords.latitude,
+              lon: position.coords.longitude
+            });
+            setLocationError(null);
+          },
+          (error) => {
+            console.warn('Geolocation failed, using fallback location:', error.message);
+            setLocationError(error.message);
+            // Fallback to Kuala Lumpur
+            setLocation({ lat: 3.139, lon: 101.6869 });
+          }
+        );
+      } else {
+        console.warn('Geolocation not supported, using fallback location');
+        setLocationError('Geolocation not supported');
+        // Fallback to Kuala Lumpur
+        setLocation({ lat: 3.139, lon: 101.6869 });
+      }
+    };
+
+    getLocation();
+  }, [showPrayerTimes]);
+
+  // Fetch real prayer times from API when showPrayerTimes is enabled and location is available
+  const { data: prayerTimesData, isLoading: prayerTimesLoading } = useQuery<PrayerTimesResponse>({
+    queryKey: ['/api/prayer-times', location?.lat, location?.lon],
+    queryFn: async () => {
+      if (!location) throw new Error('Location not available');
+      
+      const params = new URLSearchParams({
+        latitude: location.lat.toString(),
+        longitude: location.lon.toString()
+      });
+      
+      const response = await fetch(`/api/prayer-times?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch prayer times');
+      return response.json();
+    },
+    enabled: showPrayerTimes && !!location,
+    staleTime: 1000 * 60 * 60, // 1 hour - prayer times don't change frequently
+    refetchInterval: 1000 * 60 * 30, // Refetch every 30 minutes
+  });
+
+  // Use real prayer times if available, otherwise fall back to props
+  const displayPrayerTimes = showPrayerTimes && prayerTimesData?.prayerTimes ? prayerTimesData.prayerTimes : prayerTimes;
+  
+  // Client-side highlight computation using browser timezone (more accurate)
+  const computeHighlighting = () => {
+    if (!showPrayerTimes || !prayerTimesData?.prayerTimes) {
+      return { nextPrayer: null, shouldHighlight: false };
+    }
+
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    // Find prayer that should be highlighted (within 5 minutes after start)
+    for (const prayer of prayerTimesData.prayerTimes) {
+      // Clean time string - remove timezone info like "(MYT)"
+      const cleanTime = prayer.time.replace(/[^\d:]/g, '');
+      const [hours, minutes] = cleanTime.split(':').map(Number);
+      
+      if (isNaN(hours) || isNaN(minutes)) continue; // Skip invalid times
+      
+      const prayerTime = hours * 60 + minutes;
+      
+      // Check if we're within 5 minutes AFTER prayer time started
+      const timeDiffAfterPrayer = currentTime - prayerTime;
+      if (timeDiffAfterPrayer >= 0 && timeDiffAfterPrayer <= 5) {
+        return { nextPrayer: prayer.key, shouldHighlight: true };
+      }
+    }
+    
+    return { nextPrayer: null, shouldHighlight: false };
+  };
+
+  const { nextPrayer, shouldHighlight } = computeHighlighting();
   
   // Animation states
   const [showHighlight, setShowHighlight] = useState(false);
@@ -390,21 +496,65 @@ export function TVDisplay({
           </div>
         </div>
 
-        {/* Prayer Times Section - Larger */}
-        <div className="text-center">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <span className="text-yellow-400 text-3xl">🏠</span>
-            <span className="font-bold text-3xl text-yellow-400">PRAYER TIME</span>
-          </div>
-          <div className="grid grid-cols-5 gap-4">
-            {prayerTimes.map((prayer, index) => (
-              <div key={index} className="text-center">
-                <div className="font-bold text-yellow-400 text-2xl">{prayer.name}</div>
-                <div className="text-white text-2xl">{prayer.time}</div>
+        {/* Prayer Times Section - Conditional with Loading/Error States */}
+        {showPrayerTimes && (
+          <div className="text-center">
+            <div className="flex items-center justify-center space-x-3 mb-4">
+              <span className="text-yellow-400 text-3xl">🏠</span>
+              <span className="font-bold text-3xl text-yellow-400">PRAYER TIME</span>
+            </div>
+            
+            {prayerTimesLoading && (
+              <div className="text-white text-xl">
+                Loading prayer times...
               </div>
-            ))}
+            )}
+            
+            {locationError && !prayerTimesLoading && (
+              <div className="text-yellow-300 text-lg mb-2">
+                Using default location (Kuala Lumpur)
+              </div>
+            )}
+            
+            {!prayerTimesLoading && displayPrayerTimes.length > 0 && (
+              <div className="grid grid-cols-5 gap-4">
+                {displayPrayerTimes.map((prayer, index) => {
+                  const isCurrentPrayer = nextPrayer === prayer.key && shouldHighlight;
+                  
+                  return (
+                    <div key={prayer.key || index} className="text-center">
+                      <div className={`font-bold text-2xl ${isCurrentPrayer ? 'text-red-400 animate-pulse' : 'text-yellow-400'}`}>
+                        {prayer.name}
+                      </div>
+                      <div className={`text-2xl ${isCurrentPrayer ? 'text-red-300 font-bold' : 'text-white'}`}>
+                        {prayer.time}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            
+            {!prayerTimesLoading && displayPrayerTimes.length === 0 && (
+              <div className="text-white text-xl">
+                Prayer times not available
+              </div>
+            )}
           </div>
-        </div>
+        )}
+
+        {/* Weather Section - Placeholder for future implementation */}
+        {showWeather && (
+          <div className="text-center">
+            <div className="flex items-center justify-center space-x-3 mb-4">
+              <span className="text-blue-400 text-3xl">🌤️</span>
+              <span className="font-bold text-3xl text-blue-400">WEATHER</span>
+            </div>
+            <div className="text-white text-xl">
+              Weather implementation coming soon...
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Second Row Right - Patient Queue */}

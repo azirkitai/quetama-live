@@ -54,6 +54,20 @@ export default function Dashboard() {
     refetchInterval: 10000, // Refresh every 10 seconds to get updated media
   });
 
+  // Fetch display settings
+  const { data: settingsData = [] } = useQuery<Array<{key: string; value: string}>>({
+    queryKey: ['/api/settings'],
+  });
+
+  // Convert settings array to object and parse booleans
+  const settings = settingsData.reduce((acc: Record<string, any>, setting) => {
+    acc[setting.key] = setting.value === "true" ? true : setting.value === "false" ? false : setting.value;
+    return acc;
+  }, {});
+
+  const showPrayerTimes = settings.showPrayerTimes === true;
+  const showWeather = settings.showWeather === true;
+
   // Convert Patient to QueueItem for TV display
   const convertToQueueItem = (patient: Patient): QueueItem => {
     // Map windowId to window name
@@ -93,6 +107,8 @@ export default function Dashboard() {
             name: media.name
           }))}
           isFullscreen={true}
+          showPrayerTimes={showPrayerTimes}
+          showWeather={showWeather}
         />
         {/* Floating Exit Button - Always visible with high z-index */}
         <div className="fixed top-4 right-4 z-[9999]">
@@ -209,6 +225,8 @@ export default function Dashboard() {
                   type: media.url.includes('youtube') || media.url.includes('youtu.be') ? 'youtube' : media.type,
                   name: media.name
                 }))}
+                showPrayerTimes={showPrayerTimes}
+                showWeather={showWeather}
               />
             </div>
           </div>
