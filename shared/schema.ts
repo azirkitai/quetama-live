@@ -23,6 +23,8 @@ export const windows = pgTable("windows", {
   name: text("name").notNull(),
   isActive: boolean("is_active").notNull().default(true),
   currentPatientId: varchar("current_patient_id"),
+  // Account isolation
+  userId: varchar("user_id").notNull(),
 });
 
 // Patients/Queue table
@@ -38,14 +40,18 @@ export const patients = pgTable("patients", {
   completedAt: timestamp("completed_at"),
   requeueReason: text("requeue_reason"), // Reason for requeue: NEBULISER, AMBIL UBATAN, MENUNGGU KEPUTUSAN UJIAN, MGTT
   trackingHistory: text("tracking_history").array().default(sql`'{}'::text[]`), // Array of status changes
+  // Account isolation
+  userId: varchar("user_id").notNull(),
 });
 
 // Settings table
 export const settings = pgTable("settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  key: text("key").notNull().unique(),
+  key: text("key").notNull(),
   value: text("value").notNull(),
   category: text("category").notNull(), // 'display', 'sound', 'general'
+  // Account isolation - unique key per user
+  userId: varchar("user_id").notNull(),
 });
 
 // Media files table
@@ -59,13 +65,15 @@ export const media = pgTable("media", {
   size: integer("size").notNull(), // File size in bytes
   uploadedAt: timestamp("uploaded_at").notNull().default(sql`now()`),
   isActive: boolean("is_active").notNull().default(true),
+  // Account isolation
+  userId: varchar("user_id").notNull(),
 });
 
 
 // Text Groups table for organizing text elements
 export const textGroups = pgTable("text_groups", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  groupName: text("group_name").notNull().unique(), // e.g., 'clinic_name', 'location_display', etc
+  groupName: text("group_name").notNull(), // e.g., 'clinic_name', 'location_display', etc
   displayName: text("display_name").notNull(), // Human readable name
   description: text("description"), // Optional description
   color: text("color").notNull().default("#ffffff"), // Text color
@@ -77,6 +85,8 @@ export const textGroups = pgTable("text_groups", {
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
   updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
+  // Account isolation - unique groupName per user
+  userId: varchar("user_id").notNull(),
 });
 
 // Theme colors table
@@ -102,6 +112,8 @@ export const themes = pgTable("themes", {
   accentColor: text("accent_color").notNull().default("#f3f4f6"),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
   updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
+  // Account isolation
+  userId: varchar("user_id").notNull(),
 });
 
 // Insert schemas
@@ -115,17 +127,20 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export const insertWindowSchema = createInsertSchema(windows).pick({
   name: true,
+  userId: true,
 });
 
 export const insertPatientSchema = createInsertSchema(patients).pick({
   name: true,
   number: true,
+  userId: true,
 });
 
 export const insertSettingSchema = createInsertSchema(settings).pick({
   key: true,
   value: true,
   category: true,
+  userId: true,
 });
 
 export const insertMediaSchema = createInsertSchema(media).pick({
@@ -135,6 +150,7 @@ export const insertMediaSchema = createInsertSchema(media).pick({
   type: true,
   mimeType: true,
   size: true,
+  userId: true,
 });
 
 export const insertTextGroupSchema = createInsertSchema(textGroups).pick({
@@ -147,6 +163,7 @@ export const insertTextGroupSchema = createInsertSchema(textGroups).pick({
   fontWeight: true,
   textAlign: true,
   gradient: true,
+  userId: true,
 });
 
 export const insertThemeSchema = createInsertSchema(themes).pick({
@@ -163,6 +180,7 @@ export const insertThemeSchema = createInsertSchema(themes).pick({
   clinicNameGradient: true,
   backgroundColor: true,
   accentColor: true,
+  userId: true,
 });
 
 
