@@ -235,8 +235,11 @@ export function TVDisplay({
         <div className="bg-gray-100 overflow-hidden flex items-center justify-center w-full h-full relative" style={{ aspectRatio: '16/9' }}>
           {currentMedia ? (
             <div 
-              className="w-full h-full transition-opacity duration-500 ease-in-out"
-              style={{ opacity: isMediaVisible ? 1 : 0 }}
+              className="absolute inset-0 w-full h-full transition-opacity ease-in-out"
+              style={{ 
+                opacity: isMediaVisible ? 1 : 0,
+                transitionDuration: '500ms'
+              }}
             >
               {isYouTubeUrl(currentMedia.url) ? (
                 <iframe
