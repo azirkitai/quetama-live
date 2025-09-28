@@ -317,10 +317,16 @@ export default function Settings() {
     setCurrentSettings(prev => ({ ...prev, [key]: value }));
     trackChange(key);
     
-    // Auto-save for critical settings like dashboardMediaType
+    // Auto-save for critical settings like dashboardMediaType and youtubeUrl
     if (key === 'dashboardMediaType') {
       const autoSaveSettings = [
         { key: 'dashboardMediaType', value: value, category: 'display' }
+      ];
+      saveSettingsMutation.mutate(autoSaveSettings);
+    } else if (key === 'youtubeUrl') {
+      // Auto-save YouTube URL immediately when changed
+      const autoSaveSettings = [
+        { key: 'youtubeUrl', value: value, category: 'display' }
       ];
       saveSettingsMutation.mutate(autoSaveSettings);
     }
