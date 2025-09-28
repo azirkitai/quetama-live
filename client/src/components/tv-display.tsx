@@ -566,7 +566,7 @@ export function TVDisplay({
               </div>
             ) : location ? (
               <div className="text-yellow-300 text-lg mb-4">
-                📍 {locationError ? "Kuala Lumpur, Malaysia" : "Kawasan Tempatan"}
+                📍 {locationError ? "Kuala Lumpur, Malaysia" : prayerTimesData?.location ? `${prayerTimesData.location.city}, ${prayerTimesData.location.country}` : "Kuala Lumpur, Malaysia"}
               </div>
             ) : null}
             
@@ -649,7 +649,7 @@ export function TVDisplay({
                 
                 {/* Location Info - improved labeling */}
                 <div className="text-blue-300 text-lg">
-                  📍 {locationError ? "Kuala Lumpur, Malaysia" : "Kawasan Tempatan"}
+                  📍 {locationError ? "Kuala Lumpur, Malaysia" : `${weatherData.location.city}, ${weatherData.location.country}`}
                 </div>
               </div>
             ) : (
