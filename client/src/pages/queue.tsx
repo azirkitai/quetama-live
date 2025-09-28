@@ -95,7 +95,7 @@ export default function Queue() {
     },
   });
 
-  // Extract audio settings
+  // Extract audio settings with all required fields
   const audioSettings = useMemo(() => {
     const settingsObj = settings.reduce((acc: Record<string, string>, setting) => {
       acc[setting.key] = setting.value;
@@ -107,7 +107,11 @@ export default function Queue() {
       soundType: settingsObj.soundType || "beep",
       enableTTS: settingsObj.enableTTS === "true",
       ttsLanguage: settingsObj.ttsLanguage || "ms",
-      volume: parseInt(settingsObj.volume || "70")
+      volume: parseInt(settingsObj.volume || "70"),
+      // Enhanced audio system fields
+      soundMode: (settingsObj.soundMode as 'synth' | 'preset' | 'file') || 'synth',
+      presetKey: settingsObj.presetKey || undefined,
+      customAudioId: settingsObj.customAudioId || undefined
     };
   }, [settings]);
 

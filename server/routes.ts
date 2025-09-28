@@ -717,10 +717,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const TTS_RATE_LIMIT = 10; // Max 10 requests per minute per IP
   const TTS_RATE_WINDOW = 60 * 1000; // 1 minute
 
-  // ElevenLabs TTS API endpoint
-  app.get("/api/tts", async (req, res) => {
+  // ElevenLabs TTS API endpoint (support both GET and POST)
+  const handleTTSRequest = async (req: any, res: any) => {
     try {
-      const text = (req.query.text || '').toString().trim();
+      // Support both GET (query param) and POST (body) methods
+      const text = (req.query.text || req.body?.text || '').toString().trim();
       if (!text) {
         return res.status(400).json({ error: 'text parameter is required' });
       }
@@ -834,7 +835,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fallback: true
       });
     }
-  });
+  };
+
+  // Register both GET and POST handlers for TTS endpoint
+  app.get("/api/tts", handleTTSRequest);
+  app.post("/api/tts", handleTTSRequest);
 
   // Display routes (for TV display management)
   

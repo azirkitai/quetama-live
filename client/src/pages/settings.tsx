@@ -349,8 +349,32 @@ export default function Settings() {
   };
 
   const updateSoundSetting = (key: keyof SettingsState, value: any) => {
-    setCurrentSettings(prev => ({ ...prev, [key]: value }));
+    const updatedSettings = { ...currentSettings, [key]: value };
+    
+    // Auto-update soundType based on soundMode to ensure compatibility
+    if (key === 'soundMode') {
+      if (value === 'preset') {
+        updatedSettings.soundType = 'announcement'; // Set appropriate soundType for preset mode
+        if (!updatedSettings.presetKey) {
+          updatedSettings.presetKey = 'announcement1'; // Default preset
+        }
+      } else if (value === 'file') {
+        updatedSettings.soundType = 'custom'; // Set appropriate soundType for file mode
+      } else if (value === 'synth') {
+        updatedSettings.soundType = 'beep'; // Default for synth mode
+      }
+    }
+    
+    setCurrentSettings(updatedSettings);
     trackChange(key);
+    
+    // Track additional changes if we auto-updated other fields
+    if (key === 'soundMode') {
+      trackChange('soundType');
+      if (value === 'preset' && !currentSettings.presetKey) {
+        trackChange('presetKey');
+      }
+    }
   };
 
   const handleSaveDisplay = () => {
