@@ -718,8 +718,14 @@ export function TVDisplay({
       {/* Second Row Right - Patient Queue */}
       <div className={`bg-blue-700 text-white ${isFullscreen ? 'p-4' : 'p-4'} flex flex-col w-full h-full`}>
         <div className="grid grid-cols-2 gap-1 text-center mb-2">
-          <div className="font-bold text-yellow-400" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)' }}>NAME</div>
-          <div className="font-bold text-yellow-400" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)' }}>ROOM</div>
+          <div className="font-bold text-yellow-400" style={{ 
+            fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
+            ...getTextGroupStyles('Token Label')
+          }}>NAME</div>
+          <div className="font-bold text-yellow-400" style={{ 
+            fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
+            ...getTextGroupStyles('Token Label')
+          }}>ROOM</div>
         </div>
         <div className="space-y-1 overflow-y-auto flex-1" data-testid="queue-list">
           {queueHistory.length > 0 ? (
