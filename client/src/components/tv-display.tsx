@@ -18,13 +18,18 @@ interface PrayerTime {
   time: string;
 }
 
+interface MediaItem {
+  url: string;
+  type: "image" | "video" | "youtube";
+  name?: string;
+}
+
 interface TVDisplayProps {
   currentPatient?: QueueItem;
   queueHistory?: QueueItem[];
   clinicName?: string;
   clinicLogo?: string;
-  mediaContent?: string;
-  mediaType?: "image" | "video";
+  mediaItems?: MediaItem[];
   prayerTimes?: PrayerTime[];
   isFullscreen?: boolean;
 }
@@ -34,8 +39,7 @@ export function TVDisplay({
   queueHistory = [],
   clinicName = "KLINIK UTAMA 24 JAM",
   clinicLogo,
-  mediaContent,
-  mediaType = "image",
+  mediaItems = [],
   prayerTimes = [
     { name: "SUBUH", time: "05:46 AM" },
     { name: "ZOHOR", time: "13:05 PM" },
@@ -56,9 +60,16 @@ export function TVDisplay({
   const [blinkVisible, setBlinkVisible] = useState(true);
   const [prevPatientId, setPrevPatientId] = useState<string | undefined>(undefined);
   
+  // Media slideshow states
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const [isMediaVisible, setIsMediaVisible] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  
   // Timer refs for cleanup
   const highlightTimerRef = useRef<NodeJS.Timeout | null>(null);
   const blinkTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const mediaTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const fadeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -114,6 +125,32 @@ export function TVDisplay({
     }
   }, [currentPatient?.id]); // Only depend on patient ID change
 
+  // Media slideshow management 
+  useEffect(() => {
+    if (mediaItems.length > 1) {
+      mediaTimerRef.current = setInterval(() => {
+        // Start fade out
+        setIsMediaVisible(false);
+        
+        // After fade out completes, switch media and fade in
+        fadeTimerRef.current = setTimeout(() => {
+          setCurrentMediaIndex((prev) => (prev + 1) % mediaItems.length);
+          setIsMediaVisible(true);
+        }, 500); // 500ms fade out duration
+        
+      }, 5000); // Change media every 5 seconds
+      
+      return () => {
+        if (mediaTimerRef.current) {
+          clearInterval(mediaTimerRef.current);
+        }
+        if (fadeTimerRef.current) {
+          clearTimeout(fadeTimerRef.current);
+        }
+      };
+    }
+  }, [mediaItems.length]);
+
   // Cleanup timers on unmount
   useEffect(() => {
     return () => {
@@ -122,6 +159,12 @@ export function TVDisplay({
       }
       if (blinkTimerRef.current) {
         clearInterval(blinkTimerRef.current);
+      }
+      if (mediaTimerRef.current) {
+        clearInterval(mediaTimerRef.current);
+      }
+      if (fadeTimerRef.current) {
+        clearTimeout(fadeTimerRef.current);
       }
     };
   }, []);
@@ -145,6 +188,25 @@ export function TVDisplay({
   };
 
   const dateInfo = formatDate(currentTime);
+
+  // YouTube video helper functions
+  const isYouTubeUrl = (url: string): boolean => {
+    return url.includes('youtube.com/watch') || url.includes('youtu.be/');
+  };
+
+  const getYouTubeEmbedUrl = (url: string): string => {
+    if (url.includes('youtube.com/watch')) {
+      const videoId = url.split('v=')[1]?.split('&')[0];
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}`;
+    } else if (url.includes('youtu.be/')) {
+      const videoId = url.split('youtu.be/')[1]?.split('?')[0];
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}`;
+    }
+    return url;
+  };
+
+  // Get current media item
+  const currentMedia = mediaItems.length > 0 ? mediaItems[currentMediaIndex] : null;
 
   const containerStyle = isFullscreen ? {
     gridTemplateRows: `36.5625vw 1fr`,
@@ -170,25 +232,39 @@ export function TVDisplay({
          data-testid="tv-display">
       {/* Top Row - Advertisement Area with 16:9 ratio */}
       <div className={`${isFullscreen ? 'm-0 p-0 w-full h-full' : 'p-4 w-full'}`}>
-        <div className="bg-gray-100 overflow-hidden flex items-center justify-center w-full h-full" style={{ aspectRatio: '16/9' }}>
-          {mediaContent ? (
-            mediaType === "image" ? (
-              <img 
-                src={mediaContent} 
-                alt="Media Content" 
-                className="w-full h-full object-cover"
-                data-testid="media-content"
-              />
-            ) : (
-              <video 
-                src={mediaContent} 
-                className="w-full h-full object-cover"
-                autoPlay
-                muted
-                loop
-                data-testid="media-content"
-              />
-            )
+        <div className="bg-gray-100 overflow-hidden flex items-center justify-center w-full h-full relative" style={{ aspectRatio: '16/9' }}>
+          {currentMedia ? (
+            <div 
+              className="w-full h-full transition-opacity duration-500 ease-in-out"
+              style={{ opacity: isMediaVisible ? 1 : 0 }}
+            >
+              {isYouTubeUrl(currentMedia.url) ? (
+                <iframe
+                  src={getYouTubeEmbedUrl(currentMedia.url)}
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  data-testid="youtube-content"
+                />
+              ) : currentMedia.type === "image" ? (
+                <img 
+                  src={currentMedia.url} 
+                  alt="Media Content" 
+                  className="w-full h-full object-cover"
+                  data-testid="media-content"
+                />
+              ) : (
+                <video 
+                  src={currentMedia.url} 
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  data-testid="media-content"
+                />
+              )}
+            </div>
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center text-gray-500">
@@ -197,6 +273,21 @@ export function TVDisplay({
                 </div>
                 <p className="text-lg">Tiada media dimuatnaik</p>
               </div>
+            </div>
+          )}
+          
+          {/* Media indicator dots */}
+          {mediaItems.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+              {mediaItems.map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    index === currentMediaIndex ? 'bg-white shadow-lg' : 'bg-white/50'
+                  }`}
+                  data-testid={`media-indicator-${index}`}
+                />
+              ))}
             </div>
           )}
         </div>

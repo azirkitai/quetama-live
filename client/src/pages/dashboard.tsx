@@ -87,8 +87,11 @@ export default function Dashboard() {
           queueHistory={history.map(convertToQueueItem)}
           clinicName="KLINIK UTAMA 24 JAM"
           clinicLogo={undefined}
-          mediaContent={activeMedia.length > 0 ? activeMedia[0].url : undefined}
-          mediaType={activeMedia.length > 0 ? activeMedia[0].type : "image"}
+          mediaItems={activeMedia.map(media => ({
+            url: media.url,
+            type: media.url.includes('youtube') || media.url.includes('youtu.be') ? 'youtube' : media.type,
+            name: media.name
+          }))}
           isFullscreen={true}
         />
         {/* Floating Exit Button - Always visible with high z-index */}
@@ -201,8 +204,11 @@ export default function Dashboard() {
                 queueHistory={history.slice(0, 4).map(convertToQueueItem)}
                 clinicName="KLINIK UTAMA 24 JAM"
                 clinicLogo={undefined}
-                mediaContent={activeMedia.length > 0 ? activeMedia[0].url : undefined}
-                mediaType={activeMedia.length > 0 ? activeMedia[0].type : "image"}
+                mediaItems={activeMedia.map(media => ({
+                  url: media.url,
+                  type: media.url.includes('youtube') || media.url.includes('youtu.be') ? 'youtube' : media.type,
+                  name: media.name
+                }))}
               />
             </div>
           </div>
