@@ -556,21 +556,19 @@ export function TVDisplay({
         {showPrayerTimes && (
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
-              <span className="text-yellow-400 text-3xl">🏠</span>
+              <span className="text-yellow-400 text-3xl">🕌</span>
               <span className="font-bold text-3xl text-yellow-400">PRAYER TIME</span>
             </div>
             
-            {prayerTimesLoading && (
+            {prayerTimesLoading ? (
               <div className="text-white text-xl">
                 Loading prayer times...
               </div>
-            )}
-            
-            {locationError && !prayerTimesLoading && (
-              <div className="text-yellow-300 text-lg mb-2">
-                Using default location (Kuala Lumpur)
+            ) : location ? (
+              <div className="text-yellow-300 text-lg mb-4">
+                📍 {locationError ? "Kuala Lumpur, Malaysia" : "Kawasan Tempatan"}
               </div>
-            )}
+            ) : null}
             
             {!prayerTimesLoading && displayPrayerTimes.length > 0 && (
               <div className="grid grid-cols-5 gap-4">
@@ -651,9 +649,7 @@ export function TVDisplay({
                 
                 {/* Location Info - improved labeling */}
                 <div className="text-blue-300 text-lg">
-                  {location?.lat === 3.1516964 && location?.lon === 101.6942371 
-                    ? "Kuala Lumpur, Malaysia" 
-                    : "Local weather"}
+                  📍 {locationError ? "Kuala Lumpur, Malaysia" : "Kawasan Tempatan"}
                 </div>
               </div>
             ) : (
