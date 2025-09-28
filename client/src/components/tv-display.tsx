@@ -546,7 +546,10 @@ export function TVDisplay({
                  ...createGradientStyle(theme?.callingGradient, theme?.callingColor || '#1e40af'),
                  color: theme?.callingGradient ? '#ffffff' : '#ffffff'
                }}>
-            <h2 className="font-bold" style={{ fontSize: 'clamp(1.75rem, 2.5vw, 2.5rem)' }}>CALLING</h2>
+            <h2 className="font-bold" style={{ 
+              fontSize: 'clamp(1.75rem, 2.5vw, 2.5rem)',
+              ...getTextGroupStyles('title')
+            }}>CALLING</h2>
           </div>
         </div>
 
