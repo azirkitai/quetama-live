@@ -2,7 +2,7 @@ import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPatientSchema, insertUserSchema, insertThemeSchema } from "@shared/schema";
+import { insertPatientSchema, insertUserSchema, insertTextGroupSchema, insertThemeSchema } from "@shared/schema";
 import multer from "multer";
 import fs from "fs/promises";
 import path from "path";
@@ -797,6 +797,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Theme management routes
+  
+  // Text Groups routes
+  
+  // Get all text groups
+  app.get("/api/text-groups", async (req, res) => {
+    try {
+      const textGroups = await storage.getTextGroups();
+      res.json(textGroups);
+    } catch (error) {
+      console.error("Error fetching text groups:", error);
+      res.status(500).json({ error: "Failed to fetch text groups" });
+    }
+  });
+
+  // Get active text groups
+  app.get("/api/text-groups/active", async (req, res) => {
+    try {
+      const activeTextGroups = await storage.getActiveTextGroups();
+      res.json(activeTextGroups);
+    } catch (error) {
+      console.error("Error fetching active text groups:", error);
+      res.status(500).json({ error: "Failed to fetch active text groups" });
+    }
+  });
+
+  // Get text group by name
+  app.get("/api/text-groups/name/:groupName", async (req, res) => {
+    try {
+      const { groupName } = req.params;
+      const textGroup = await storage.getTextGroupByName(groupName);
+      
+      if (!textGroup) {
+        return res.status(404).json({ error: "Text group not found" });
+      }
+      
+      res.json(textGroup);
+    } catch (error) {
+      console.error("Error fetching text group by name:", error);
+      res.status(500).json({ error: "Failed to fetch text group" });
+    }
+  });
+
+  // Get text group by ID
+  app.get("/api/text-groups/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const textGroup = await storage.getTextGroupById(id);
+      
+      if (!textGroup) {
+        return res.status(404).json({ error: "Text group not found" });
+      }
+      
+      res.json(textGroup);
+    } catch (error) {
+      console.error("Error fetching text group:", error);
+      res.status(500).json({ error: "Failed to fetch text group" });
+    }
+  });
+
+  // Create new text group
+  app.post("/api/text-groups", async (req, res) => {
+    try {
+      const textGroupData = insertTextGroupSchema.parse(req.body);
+      const textGroup = await storage.createTextGroup(textGroupData);
+      res.status(201).json(textGroup);
+    } catch (error) {
+      console.error("Error creating text group:", error);
+      res.status(400).json({ error: "Invalid text group data" });
+    }
+  });
+
+  // Update text group
+  app.put("/api/text-groups/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      const textGroup = await storage.updateTextGroup(id, updates);
+      if (!textGroup) {
+        return res.status(404).json({ error: "Text group not found" });
+      }
+      
+      res.json(textGroup);
+    } catch (error) {
+      console.error("Error updating text group:", error);
+      res.status(500).json({ error: "Failed to update text group" });
+    }
+  });
+
+  // Toggle text group status
+  app.patch("/api/text-groups/:id/status", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const textGroup = await storage.toggleTextGroupStatus(id);
+      if (!textGroup) {
+        return res.status(404).json({ error: "Text group not found" });
+      }
+      
+      res.json(textGroup);
+    } catch (error) {
+      console.error("Error toggling text group status:", error);
+      res.status(500).json({ error: "Failed to toggle text group status" });
+    }
+  });
+
+  // Delete text group
+  app.delete("/api/text-groups/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteTextGroup(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Text group not found" });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting text group:", error);
+      res.status(500).json({ error: "Failed to delete text group" });
+    }
+  });
+
+  // Theme routes
   
   // Get all themes
   app.get("/api/themes", async (req, res) => {

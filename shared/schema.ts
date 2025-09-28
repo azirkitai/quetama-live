@@ -57,6 +57,23 @@ export const media = pgTable("media", {
 });
 
 
+// Text Groups table for organizing text elements
+export const textGroups = pgTable("text_groups", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupName: text("group_name").notNull().unique(), // e.g., 'clinic_name', 'location_display', etc
+  displayName: text("display_name").notNull(), // Human readable name
+  description: text("description"), // Optional description
+  color: text("color").notNull().default("#ffffff"), // Text color
+  backgroundColor: text("background_color"), // Optional background color
+  fontSize: text("font_size"), // Optional custom font size
+  fontWeight: text("font_weight"), // Optional font weight
+  textAlign: text("text_align"), // Optional text alignment
+  gradient: text("gradient"), // Optional gradient definition
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+  updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
+});
+
 // Theme colors table
 export const themes = pgTable("themes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -113,6 +130,18 @@ export const insertMediaSchema = createInsertSchema(media).pick({
   size: true,
 });
 
+export const insertTextGroupSchema = createInsertSchema(textGroups).pick({
+  groupName: true,
+  displayName: true,
+  description: true,
+  color: true,
+  backgroundColor: true,
+  fontSize: true,
+  fontWeight: true,
+  textAlign: true,
+  gradient: true,
+});
+
 export const insertThemeSchema = createInsertSchema(themes).pick({
   name: true,
   primaryColor: true,
@@ -160,6 +189,7 @@ export type InsertWindow = z.infer<typeof insertWindowSchema>;
 export type InsertPatient = z.infer<typeof insertPatientSchema>;
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
 export type InsertMedia = z.infer<typeof insertMediaSchema>;
+export type InsertTextGroup = z.infer<typeof insertTextGroupSchema>;
 export type InsertTheme = z.infer<typeof insertThemeSchema>;
 
 // Select types
@@ -168,4 +198,5 @@ export type Window = typeof windows.$inferSelect;
 export type Patient = typeof patients.$inferSelect;
 export type Setting = typeof settings.$inferSelect;
 export type Media = typeof media.$inferSelect;
+export type TextGroup = typeof textGroups.$inferSelect;
 export type Theme = typeof themes.$inferSelect;

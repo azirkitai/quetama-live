@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting, type Media, type InsertMedia, type Theme, type InsertTheme } from "@shared/schema";
+import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting, type Media, type InsertMedia, type TextGroup, type InsertTextGroup, type Theme, type InsertTheme } from "@shared/schema";
 
 interface Window {
   id: string;
@@ -73,6 +73,16 @@ export interface IStorage {
   deleteTheme(id: string): Promise<boolean>;
   setActiveTheme(id: string): Promise<Theme | undefined>;
   
+  // Text Group methods
+  getTextGroups(): Promise<TextGroup[]>;
+  getActiveTextGroups(): Promise<TextGroup[]>;
+  getTextGroupByName(groupName: string): Promise<TextGroup | undefined>;
+  getTextGroupById(id: string): Promise<TextGroup | undefined>;
+  createTextGroup(textGroup: InsertTextGroup): Promise<TextGroup>;
+  updateTextGroup(id: string, updates: Partial<TextGroup>): Promise<TextGroup | undefined>;
+  deleteTextGroup(id: string): Promise<boolean>;
+  toggleTextGroupStatus(id: string): Promise<TextGroup | undefined>;
+  
 }
 
 export class MemStorage implements IStorage {
@@ -82,6 +92,7 @@ export class MemStorage implements IStorage {
   private settings: Map<string, Setting>;
   private media: Map<string, Media>;
   private themes: Map<string, Theme>;
+  private textGroups: Map<string, TextGroup>;
 
   constructor() {
     this.users = new Map();
@@ -90,10 +101,12 @@ export class MemStorage implements IStorage {
     this.settings = new Map();
     this.media = new Map();
     this.themes = new Map();
+    this.textGroups = new Map();
     
-    // Initialize default settings and theme
+    // Initialize default settings, theme, and text groups
     this.initializeDefaultSettings();
     this.initializeDefaultTheme();
+    this.initializeDefaultTextGroups();
   }
   
   private async initializeDefaultSettings() {
@@ -140,6 +153,30 @@ export class MemStorage implements IStorage {
       updatedAt: new Date(),
     };
     this.themes.set(defaultTheme.id, defaultTheme);
+  }
+  
+  private async initializeDefaultTextGroups() {
+    const defaultTextGroups: TextGroup[] = [
+      {
+        id: randomUUID(),
+        groupName: "clinic_name",
+        displayName: "Clinic Name",
+        description: "Main clinic name display text",
+        color: "#1f2937",
+        backgroundColor: null,
+        fontSize: "clamp(2rem, 3.5vw, 3.5rem)",
+        fontWeight: "bold",
+        textAlign: "center",
+        gradient: null,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    ];
+    
+    for (const textGroup of defaultTextGroups) {
+      this.textGroups.set(textGroup.id, textGroup);
+    }
   }
 
 
@@ -594,6 +631,75 @@ export class MemStorage implements IStorage {
 
     // Activate the selected theme
     return await this.updateTheme(id, { isActive: true });
+  }
+
+  // Text Group methods implementation
+  async getTextGroups(): Promise<TextGroup[]> {
+    return Array.from(this.textGroups.values());
+  }
+
+  async getActiveTextGroups(): Promise<TextGroup[]> {
+    return Array.from(this.textGroups.values()).filter(group => group.isActive);
+  }
+
+  async getTextGroupByName(groupName: string): Promise<TextGroup | undefined> {
+    return Array.from(this.textGroups.values()).find(group => group.groupName === groupName);
+  }
+
+  async getTextGroupById(id: string): Promise<TextGroup | undefined> {
+    return this.textGroups.get(id);
+  }
+
+  async createTextGroup(insertTextGroup: InsertTextGroup): Promise<TextGroup> {
+    const id = randomUUID();
+    const textGroup: TextGroup = {
+      id,
+      groupName: insertTextGroup.groupName,
+      displayName: insertTextGroup.displayName,
+      description: insertTextGroup.description || null,
+      color: insertTextGroup.color || "#ffffff",
+      backgroundColor: insertTextGroup.backgroundColor || null,
+      fontSize: insertTextGroup.fontSize || null,
+      fontWeight: insertTextGroup.fontWeight || null,
+      textAlign: insertTextGroup.textAlign || null,
+      gradient: insertTextGroup.gradient || null,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.textGroups.set(id, textGroup);
+    return textGroup;
+  }
+
+  async updateTextGroup(id: string, updates: Partial<TextGroup>): Promise<TextGroup | undefined> {
+    const textGroup = this.textGroups.get(id);
+    if (!textGroup) return undefined;
+
+    const updatedTextGroup = { 
+      ...textGroup, 
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.textGroups.set(id, updatedTextGroup);
+    return updatedTextGroup;
+  }
+
+  async deleteTextGroup(id: string): Promise<boolean> {
+    return this.textGroups.delete(id);
+  }
+
+  async toggleTextGroupStatus(id: string): Promise<TextGroup | undefined> {
+    const textGroup = this.textGroups.get(id);
+    if (!textGroup) return undefined;
+
+    const updatedTextGroup = {
+      ...textGroup,
+      isActive: !textGroup.isActive,
+      updatedAt: new Date(),
+    };
+
+    this.textGroups.set(id, updatedTextGroup);
+    return updatedTextGroup;
   }
 
 }

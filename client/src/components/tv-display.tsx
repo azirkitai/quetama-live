@@ -89,6 +89,35 @@ export function TVDisplay({
   // Fetch active theme
   const { data: theme } = useActiveTheme();
 
+  // Fetch text groups for styling
+  const { data: textGroups = [] } = useQuery({
+    queryKey: ['/api/text-groups/active'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Helper function to get text group styles
+  const getTextGroupStyles = (groupName: string) => {
+    const group = textGroups.find((g: any) => g.groupName === groupName);
+    if (!group) return {};
+
+    const styles: any = {};
+    if (group.color) styles.color = group.color;
+    if (group.backgroundColor) styles.backgroundColor = group.backgroundColor;
+    if (group.fontSize) styles.fontSize = group.fontSize;
+    if (group.fontWeight) styles.fontWeight = group.fontWeight;
+    if (group.textAlign) styles.textAlign = group.textAlign;
+    
+    // Handle gradient (takes precedence over color)
+    if (group.gradient) {
+      styles.background = group.gradient;
+      styles.WebkitBackgroundClip = 'text';
+      styles.WebkitTextFillColor = 'transparent';
+      styles.backgroundClip = 'text';
+    }
+
+    return styles;
+  };
+
   // Location state for prayer times
   const [location, setLocation] = useState<{lat: number; lon: number} | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -197,15 +226,7 @@ export function TVDisplay({
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
     
-    console.log('🕌 Highlighting debug:', {
-      currentTime: `${Math.floor(currentTime/60)}:${(currentTime%60).toString().padStart(2,'0')}`,
-      prayers: prayerTimesData.prayerTimes.map(p => ({
-        name: p.name,
-        time: p.time,
-        cleanTime: p.time.replace(/[^\d:]/g, ''),
-        key: p.key
-      }))
-    });
+    // Removed excessive debug logging
     
     // Find next upcoming prayer (for highlighting purpose)
     let nextUpcomingPrayer = null;
@@ -221,8 +242,6 @@ export function TVDisplay({
       const prayerTime = hours * 60 + minutes;
       const timeDiff = prayerTime - currentTime;
       
-      console.log(`🕌 Prayer ${prayer.name}: time=${cleanTime}, diff=${timeDiff >= 0 ? `${timeDiff}mins until` : `${Math.abs(timeDiff)}mins ago`}`);
-      
       // If prayer is upcoming today and closer than current minimum
       if (timeDiff > 0 && timeDiff < minTimeUntilNext) {
         nextUpcomingPrayer = prayer;
@@ -233,11 +252,9 @@ export function TVDisplay({
     // If no prayer left today, highlight first prayer of next day (SUBUH)
     if (!nextUpcomingPrayer && prayerTimesData.prayerTimes.length > 0) {
       nextUpcomingPrayer = prayerTimesData.prayerTimes[0]; // First prayer (usually SUBUH)
-      console.log(`🕌 No more prayers today, highlighting tomorrow's ${nextUpcomingPrayer.name}`);
     }
     
     if (nextUpcomingPrayer) {
-      console.log(`🕌 HIGHLIGHTING NEXT PRAYER: ${nextUpcomingPrayer.name}`);
       return { nextPrayer: nextUpcomingPrayer.key, shouldHighlight: true };
     }
     
@@ -512,7 +529,8 @@ export function TVDisplay({
           <h1 className="font-bold text-[30px]" 
               style={{ 
                 fontSize: 'clamp(2rem, 3.5vw, 3.5rem)',
-                ...createTextGradientStyle(theme?.clinicNameGradient, theme?.clinicNameColor || '#facc15')
+                ...createTextGradientStyle(theme?.clinicNameGradient, theme?.clinicNameColor || '#facc15'),
+                ...getTextGroupStyles('clinic_name')
               }} 
               data-testid="clinic-name">
             {clinicName}
