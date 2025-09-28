@@ -196,7 +196,11 @@ export class MemStorage implements IStorage {
       ...insertUser, 
       id, 
       role: insertUser.role || "user",
-      isActive: true 
+      isActive: true,
+      clinicName: insertUser.clinicName || "Klinik Utama 24 Jam",
+      clinicLocation: insertUser.clinicLocation || "Tropicana Aman",
+      createdAt: new Date(),
+      lastLogin: null
     };
     this.users.set(id, user);
     return user;
