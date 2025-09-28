@@ -197,7 +197,20 @@ export function TVDisplay({
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
     
-    // Find prayer that should be highlighted (within 5 minutes after start)
+    console.log('🕌 Highlighting debug:', {
+      currentTime: `${Math.floor(currentTime/60)}:${(currentTime%60).toString().padStart(2,'0')}`,
+      prayers: prayerTimesData.prayerTimes.map(p => ({
+        name: p.name,
+        time: p.time,
+        cleanTime: p.time.replace(/[^\d:]/g, ''),
+        key: p.key
+      }))
+    });
+    
+    // Find next upcoming prayer (for highlighting purpose)
+    let nextUpcomingPrayer = null;
+    let minTimeUntilNext = Infinity;
+    
     for (const prayer of prayerTimesData.prayerTimes) {
       // Clean time string - remove timezone info like "(MYT)"
       const cleanTime = prayer.time.replace(/[^\d:]/g, '');
@@ -206,12 +219,26 @@ export function TVDisplay({
       if (isNaN(hours) || isNaN(minutes)) continue; // Skip invalid times
       
       const prayerTime = hours * 60 + minutes;
+      const timeDiff = prayerTime - currentTime;
       
-      // Check if we're within 5 minutes AFTER prayer time started
-      const timeDiffAfterPrayer = currentTime - prayerTime;
-      if (timeDiffAfterPrayer >= 0 && timeDiffAfterPrayer <= 5) {
-        return { nextPrayer: prayer.key, shouldHighlight: true };
+      console.log(`🕌 Prayer ${prayer.name}: time=${cleanTime}, diff=${timeDiff >= 0 ? `${timeDiff}mins until` : `${Math.abs(timeDiff)}mins ago`}`);
+      
+      // If prayer is upcoming today and closer than current minimum
+      if (timeDiff > 0 && timeDiff < minTimeUntilNext) {
+        nextUpcomingPrayer = prayer;
+        minTimeUntilNext = timeDiff;
       }
+    }
+    
+    // If no prayer left today, highlight first prayer of next day (SUBUH)
+    if (!nextUpcomingPrayer && prayerTimesData.prayerTimes.length > 0) {
+      nextUpcomingPrayer = prayerTimesData.prayerTimes[0]; // First prayer (usually SUBUH)
+      console.log(`🕌 No more prayers today, highlighting tomorrow's ${nextUpcomingPrayer.name}`);
+    }
+    
+    if (nextUpcomingPrayer) {
+      console.log(`🕌 HIGHLIGHTING NEXT PRAYER: ${nextUpcomingPrayer.name}`);
+      return { nextPrayer: nextUpcomingPrayer.key, shouldHighlight: true };
     }
     
     return { nextPrayer: null, shouldHighlight: false };
