@@ -668,160 +668,6 @@ export default function Settings() {
             </CardContent>
           </Card>
 
-          {/* THEME CARD */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="h-5 w-5" />
-                Theme & Color Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Main Theme */}
-              <div className="space-y-2">
-                <Label className="text-base font-semibold">Tema Utama:</Label>
-                <Select 
-                  value={currentSettings.theme} 
-                  onValueChange={(value) => updateDisplaySetting('theme', value)}
-                >
-                  <SelectTrigger data-testid="select-theme">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="blue">Biru (Default)</SelectItem>
-                    <SelectItem value="green">Hijau</SelectItem>
-                    <SelectItem value="purple">Ungu</SelectItem>
-                    <SelectItem value="red">Merah</SelectItem>
-                    <SelectItem value="custom">Custom Gradient</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Custom Color Settings */}
-              <div className="space-y-4">
-                <Label className="text-base font-semibold">Kustomisasi Warna Element:</Label>
-                
-                {/* CALLING Color */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Warna "CALLING":</Label>
-                  <div className="flex space-x-2">
-                    <Input
-                      type="color"
-                      value="#3b82f6"
-                      className="w-12 h-8 p-1 border rounded"
-                      data-testid="color-calling"
-                    />
-                    <Input
-                      type="text"
-                      placeholder="#3b82f6 atau gradient"
-                      className="flex-1"
-                      value={themeColors.callingColor}
-                      onChange={(e) => handleThemeColorChange('callingColor', e.target.value)}
-                      data-testid="input-calling-color"
-                    />
-                    <Button variant="outline" size="sm" data-testid="button-gradient-calling">
-                      Gradient
-                    </Button>
-                  </div>
-                </div>
-
-                {/* HIGHLIGHT BOX Color */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Warna "HIGHLIGHT BOX":</Label>
-                  <div className="flex space-x-2">
-                    <Input
-                      type="color"
-                      value="#ef4444"
-                      className="w-12 h-8 p-1 border rounded"
-                      data-testid="color-highlight"
-                    />
-                    <Input
-                      type="text"
-                      placeholder="#ef4444 atau gradient"
-                      className="flex-1"
-                      value={themeColors.highlightBoxColor}
-                      onChange={(e) => handleThemeColorChange('highlightBoxColor', e.target.value)}
-                      data-testid="input-highlight-color"
-                    />
-                    <Button variant="outline" size="sm" data-testid="button-gradient-highlight">
-                      Gradient
-                    </Button>
-                  </div>
-                </div>
-
-                {/* HISTORY NAME Color */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Warna "HISTORY NAME":</Label>
-                  <div className="flex space-x-2">
-                    <Input
-                      type="color"
-                      value="#6b7280"
-                      className="w-12 h-8 p-1 border rounded"
-                      data-testid="color-history"
-                    />
-                    <Input
-                      type="text"
-                      placeholder="#6b7280 atau gradient"
-                      className="flex-1"
-                      value={themeColors.historyNameColor}
-                      onChange={(e) => handleThemeColorChange('historyNameColor', e.target.value)}
-                      data-testid="input-history-color"
-                    />
-                    <Button variant="outline" size="sm" data-testid="button-gradient-history">
-                      Gradient
-                    </Button>
-                  </div>
-                </div>
-
-                {/* NAMA KLINIK Color */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Warna "NAMA KLINIK":</Label>
-                  <div className="flex space-x-2">
-                    <Input
-                      type="color"
-                      value="#1f2937"
-                      className="w-12 h-8 p-1 border rounded"
-                      data-testid="color-clinic-name"
-                    />
-                    <Input
-                      type="text"
-                      placeholder="#1f2937 atau gradient"
-                      className="flex-1"
-                      value={themeColors.clinicNameColor}
-                      onChange={(e) => handleThemeColorChange('clinicNameColor', e.target.value)}
-                      data-testid="input-clinic-name-color"
-                    />
-                    <Button variant="outline" size="sm" data-testid="button-gradient-clinic-name">
-                      Gradient
-                    </Button>
-                  </div>
-                </div>
-
-                <p className="text-xs text-muted-foreground mt-4">
-                  Tip: Untuk gradient, masukkan format seperti "linear-gradient(45deg, #ff0000, #00ff00)"<br/>
-                  Atau gunakan butang "Gradient" untuk pilihan mudah
-                </p>
-
-                {/* Save Theme Button */}
-                <div className="pt-6 border-t">
-                  <Button 
-                    onClick={handleSaveTheme}
-                    className="w-full"
-                    disabled={updateThemeMutation.isPending}
-                    data-testid="button-save-theme"
-                  >
-                    {updateThemeMutation.isPending ? (
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Save className="h-4 w-4 mr-2" />
-                    )}
-                    Simpan Tetapan Tema
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Media Gallery Section */}
           <Card>
             <CardHeader>
@@ -974,6 +820,164 @@ export default function Settings() {
                   </div>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* THEME CARD */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Theme & Color Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Main Theme */}
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">Tema Utama:</Label>
+                <Select 
+                  value={currentSettings.theme} 
+                  onValueChange={(value) => updateDisplaySetting('theme', value)}
+                >
+                  <SelectTrigger data-testid="select-theme">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="blue">Biru (Default)</SelectItem>
+                    <SelectItem value="green">Hijau</SelectItem>
+                    <SelectItem value="purple">Ungu</SelectItem>
+                    <SelectItem value="red">Merah</SelectItem>
+                    <SelectItem value="custom">Custom Gradient</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Custom Color Settings */}
+              <div className="space-y-4">
+                <Label className="text-base font-semibold">Kustomisasi Warna Element:</Label>
+                
+                {/* CALLING Color */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Warna "CALLING":</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      type="color"
+                      value={themeColors.callingColor || "#3b82f6"}
+                      onChange={(e) => handleThemeColorChange('callingColor', e.target.value)}
+                      className="w-12 h-8 p-1 border rounded"
+                      data-testid="color-calling"
+                    />
+                    <Input
+                      type="text"
+                      placeholder="#3b82f6 atau gradient"
+                      className="flex-1"
+                      value={themeColors.callingColor}
+                      onChange={(e) => handleThemeColorChange('callingColor', e.target.value)}
+                      data-testid="input-calling-color"
+                    />
+                    <Button variant="outline" size="sm" data-testid="button-gradient-calling">
+                      Gradient
+                    </Button>
+                  </div>
+                </div>
+
+                {/* HIGHLIGHT BOX Color */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Warna "HIGHLIGHT BOX":</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      type="color"
+                      value={themeColors.highlightBoxColor || "#ef4444"}
+                      onChange={(e) => handleThemeColorChange('highlightBoxColor', e.target.value)}
+                      className="w-12 h-8 p-1 border rounded"
+                      data-testid="color-highlight"
+                    />
+                    <Input
+                      type="text"
+                      placeholder="#ef4444 atau gradient"
+                      className="flex-1"
+                      value={themeColors.highlightBoxColor}
+                      onChange={(e) => handleThemeColorChange('highlightBoxColor', e.target.value)}
+                      data-testid="input-highlight-color"
+                    />
+                    <Button variant="outline" size="sm" data-testid="button-gradient-highlight">
+                      Gradient
+                    </Button>
+                  </div>
+                </div>
+
+                {/* HISTORY NAME Color */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Warna "HISTORY NAME":</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      type="color"
+                      value={themeColors.historyNameColor || "#6b7280"}
+                      onChange={(e) => handleThemeColorChange('historyNameColor', e.target.value)}
+                      className="w-12 h-8 p-1 border rounded"
+                      data-testid="color-history"
+                    />
+                    <Input
+                      type="text"
+                      placeholder="#6b7280 atau gradient"
+                      className="flex-1"
+                      value={themeColors.historyNameColor}
+                      onChange={(e) => handleThemeColorChange('historyNameColor', e.target.value)}
+                      data-testid="input-history-color"
+                    />
+                    <Button variant="outline" size="sm" data-testid="button-gradient-history">
+                      Gradient
+                    </Button>
+                  </div>
+                </div>
+
+                {/* NAMA KLINIK Color */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Warna "NAMA KLINIK":</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      type="color"
+                      value={themeColors.clinicNameColor || "#1f2937"}
+                      onChange={(e) => handleThemeColorChange('clinicNameColor', e.target.value)}
+                      className="w-12 h-8 p-1 border rounded"
+                      data-testid="color-clinic-name"
+                    />
+                    <Input
+                      type="text"
+                      placeholder="#1f2937 atau gradient"
+                      className="flex-1"
+                      value={themeColors.clinicNameColor}
+                      onChange={(e) => handleThemeColorChange('clinicNameColor', e.target.value)}
+                      data-testid="input-clinic-name-color"
+                    />
+                    <Button variant="outline" size="sm" data-testid="button-gradient-clinic-name">
+                      Gradient
+                    </Button>
+                  </div>
+                </div>
+
+                <p className="text-xs text-muted-foreground mt-4">
+                  Tip: Untuk gradient, masukkan format seperti "linear-gradient(45deg, #ff0000, #00ff00)"<br/>
+                  Atau gunakan butang "Gradient" untuk pilihan mudah
+                </p>
+
+                {/* Save Theme Button */}
+                <div className="pt-6 border-t">
+                  <Button 
+                    onClick={handleSaveTheme}
+                    className="w-full"
+                    disabled={updateThemeMutation.isPending}
+                    data-testid="button-save-theme"
+                  >
+                    {updateThemeMutation.isPending ? (
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-2" />
+                    )}
+                    Simpan Tetapan Tema
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
