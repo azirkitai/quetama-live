@@ -75,7 +75,7 @@ export default function Settings() {
     presetKey: undefined,
     customAudioId: undefined,
     // Separate voice models for better quality
-    elevenVoiceIdBM: "21m00Tcm4TlvDq8ikWAM", // Default ElevenLabs voice for BM
+    elevenVoiceIdBM: "EXAVITQu4vr4xnSDxMaL", // DIANA voice for Bahasa Malaysia
     elevenVoiceIdEN: "21m00Tcm4TlvDq8ikWAM"  // Default ElevenLabs voice for EN
   });
 
@@ -173,7 +173,7 @@ export default function Settings() {
         presetKey: settingsObj.presetKey || undefined,
         customAudioId: settingsObj.customAudioId || undefined,
         // Separate voice models for better quality
-        elevenVoiceIdBM: settingsObj.elevenVoiceIdBM || "21m00Tcm4TlvDq8ikWAM",
+        elevenVoiceIdBM: settingsObj.elevenVoiceIdBM || "EXAVITQu4vr4xnSDxMaL", // DIANA voice for BM
         elevenVoiceIdEN: settingsObj.elevenVoiceIdEN || "21m00Tcm4TlvDq8ikWAM"
       };
       
@@ -1663,11 +1663,11 @@ export default function Settings() {
                                   setCurrentSettings(prev => ({ ...prev, elevenVoiceIdBM: e.target.value }));
                                   setUnsavedChanges(prev => [...prev.filter(key => key !== 'elevenVoiceIdBM'), 'elevenVoiceIdBM']);
                                 }}
-                                placeholder="21m00Tcm4TlvDq8ikWAM"
+                                placeholder="EXAVITQu4vr4xnSDxMaL"
                                 className="font-mono text-sm"
                               />
                               <div className="text-xs text-muted-foreground">
-                                Voice ID khusus untuk panggilan Bahasa Malaysia
+                                Voice ID khusus untuk panggilan Bahasa Malaysia (Default: DIANA)
                               </div>
                             </div>
 
