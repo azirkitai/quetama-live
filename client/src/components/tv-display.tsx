@@ -36,6 +36,25 @@ interface PrayerTimesResponse {
   };
 }
 
+interface WeatherResponse {
+  location: {
+    city: string;
+    country: string;
+  };
+  current: {
+    temperature: number;
+    humidity: number;
+    windSpeed: number;
+    description: string;
+    icon: string;
+  };
+  units: {
+    temperature: string;
+    windSpeed: string;
+    humidity: string;
+  };
+}
+
 interface MediaItem {
   url: string;
   type: "image" | "video" | "youtube";
@@ -76,12 +95,21 @@ export function TVDisplay({
 
   // Get user location on component mount
   useEffect(() => {
-    if (!showPrayerTimes) return;
+    if (!showPrayerTimes && !showWeather) return;
 
     const getLocation = () => {
       if (navigator.geolocation) {
+        // Add timeout to prevent hanging indefinitely
+        const timeoutId = setTimeout(() => {
+          console.warn('Geolocation timeout, using fallback location');
+          setLocationError('Location timeout');
+          // Fallback to Kuala Lumpur
+          setLocation({ lat: 3.139, lon: 101.6869 });
+        }, 5000); // 5 second timeout
+
         navigator.geolocation.getCurrentPosition(
           (position) => {
+            clearTimeout(timeoutId);
             setLocation({
               lat: position.coords.latitude,
               lon: position.coords.longitude
@@ -89,10 +117,15 @@ export function TVDisplay({
             setLocationError(null);
           },
           (error) => {
+            clearTimeout(timeoutId);
             console.warn('Geolocation failed, using fallback location:', error.message);
             setLocationError(error.message);
             // Fallback to Kuala Lumpur
             setLocation({ lat: 3.139, lon: 101.6869 });
+          },
+          {
+            timeout: 4000, // 4 second timeout for getCurrentPosition
+            enableHighAccuracy: false
           }
         );
       } else {
@@ -104,7 +137,7 @@ export function TVDisplay({
     };
 
     getLocation();
-  }, [showPrayerTimes]);
+  }, [showPrayerTimes, showWeather]);
 
   // Fetch real prayer times from API when showPrayerTimes is enabled and location is available
   const { data: prayerTimesData, isLoading: prayerTimesLoading } = useQuery<PrayerTimesResponse>({
@@ -124,6 +157,29 @@ export function TVDisplay({
     enabled: showPrayerTimes && !!location,
     staleTime: 1000 * 60 * 60, // 1 hour - prayer times don't change frequently
     refetchInterval: 1000 * 60 * 30, // Refetch every 30 minutes
+  });
+
+  // Fetch real weather data from API when showWeather is enabled and location is available
+  const { data: weatherData, isLoading: weatherLoading } = useQuery<WeatherResponse>({
+    queryKey: ['/api/weather', location?.lat, location?.lon],
+    queryFn: async () => {
+      if (!location) throw new Error('Location not available');
+      
+      const params = new URLSearchParams({
+        latitude: location.lat.toString(),
+        longitude: location.lon.toString()
+      });
+      
+      console.log('🌤️ Fetching weather for location:', location);
+      const response = await fetch(`/api/weather?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch weather data');
+      const data = await response.json();
+      console.log('🌤️ Weather API response:', data);
+      return data;
+    },
+    enabled: showWeather && !!location,
+    staleTime: 1000 * 60 * 15, // 15 minutes - weather changes more frequently
+    refetchInterval: 1000 * 60 * 10, // Refetch every 10 minutes
   });
 
   // Use real prayer times if available, otherwise fall back to props
@@ -543,16 +599,68 @@ export function TVDisplay({
           </div>
         )}
 
-        {/* Weather Section - Placeholder for future implementation */}
+        {/* Weather Section - Real Location-Based Weather */}
         {showWeather && (
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
               <span className="text-blue-400 text-3xl">🌤️</span>
               <span className="font-bold text-3xl text-blue-400">WEATHER</span>
             </div>
-            <div className="text-white text-xl">
-              Weather implementation coming soon...
-            </div>
+            
+            {/* Fix rendering race condition - better conditional logic */}
+            {!location ? (
+              <div className="text-white text-xl">
+                Detecting location...
+              </div>
+            ) : weatherLoading ? (
+              <div className="text-white text-xl">
+                Loading weather data...
+              </div>
+            ) : weatherData ? (
+              <div className="space-y-4">
+                {locationError && (
+                  <div className="text-yellow-300 text-lg mb-2">
+                    Using default location
+                  </div>
+                )}
+                
+                {/* Temperature and Icon */}
+                <div className="flex items-center justify-center space-x-6">
+                  <span className="text-6xl">{weatherData.current.icon}</span>
+                  <div className="text-center">
+                    <div className="text-5xl font-bold text-white">
+                      {weatherData.current.temperature}{weatherData.units.temperature}
+                    </div>
+                    <div className="text-xl text-blue-200">
+                      {weatherData.current.description}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Weather Details */}
+                <div className="grid grid-cols-2 gap-6 text-white">
+                  <div className="text-center">
+                    <div className="text-lg font-semibold text-blue-200">Humidity</div>
+                    <div className="text-2xl">{weatherData.current.humidity}{weatherData.units.humidity}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-semibold text-blue-200">Wind Speed</div>
+                    <div className="text-2xl">{weatherData.current.windSpeed} {weatherData.units.windSpeed}</div>
+                  </div>
+                </div>
+                
+                {/* Location Info - improved labeling */}
+                <div className="text-blue-300 text-lg">
+                  {location?.lat === 3.1516964 && location?.lon === 101.6942371 
+                    ? "Kuala Lumpur, Malaysia" 
+                    : "Local weather"}
+                </div>
+              </div>
+            ) : (
+              <div className="text-white text-xl">
+                Weather data unavailable, retrying...
+              </div>
+            )}
           </div>
         )}
       </div>

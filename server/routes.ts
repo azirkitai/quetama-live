@@ -1007,6 +1007,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get current weather based on location
+  app.get("/api/weather", async (req, res) => {
+    try {
+      const { city = 'Kuala Lumpur', country = 'Malaysia', latitude, longitude } = req.query;
+      
+      let weatherUrl = 'https://api.openweathermap.org/data/2.5/weather?';
+      let params: Record<string, string> = {
+        units: 'metric', // Celsius
+        lang: 'en'
+      };
+
+      // Use coordinates if provided, otherwise use city/country
+      if (latitude && longitude) {
+        params.lat = latitude as string;
+        params.lon = longitude as string;
+      } else {
+        params.q = `${city},${country}`;
+      }
+
+      // Note: OpenWeatherMap requires API key for most endpoints
+      // Using a free alternative: Open-Meteo API (no key required)
+      if (latitude && longitude) {
+        const lat = parseFloat(latitude as string);
+        const lon = parseFloat(longitude as string);
+        
+        const openMeteoUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto`;
+        const response = await fetch(openMeteoUrl);
+        
+        if (!response.ok) {
+          throw new Error(`Weather API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Map Open-Meteo weather codes to descriptions
+        const getWeatherDescription = (code: number) => {
+          const weatherCodes: Record<number, { description: string; icon: string }> = {
+            0: { description: 'Clear sky', icon: '☀️' },
+            1: { description: 'Mainly clear', icon: '🌤️' },
+            2: { description: 'Partly cloudy', icon: '⛅' },
+            3: { description: 'Overcast', icon: '☁️' },
+            45: { description: 'Foggy', icon: '🌫️' },
+            48: { description: 'Depositing rime fog', icon: '🌫️' },
+            51: { description: 'Light drizzle', icon: '🌦️' },
+            53: { description: 'Moderate drizzle', icon: '🌦️' },
+            55: { description: 'Dense drizzle', icon: '🌧️' },
+            61: { description: 'Slight rain', icon: '🌦️' },
+            63: { description: 'Moderate rain', icon: '🌧️' },
+            65: { description: 'Heavy rain', icon: '🌧️' },
+            80: { description: 'Slight rain showers', icon: '🌦️' },
+            81: { description: 'Moderate rain showers', icon: '🌧️' },
+            82: { description: 'Violent rain showers', icon: '⛈️' },
+            95: { description: 'Thunderstorm', icon: '⛈️' },
+            96: { description: 'Thunderstorm with hail', icon: '⛈️' },
+            99: { description: 'Thunderstorm with heavy hail', icon: '⛈️' }
+          };
+          return weatherCodes[code] || { description: 'Unknown', icon: '🌤️' };
+        };
+
+        const current = data.current;
+        const weather = getWeatherDescription(current.weather_code);
+        
+        res.json({
+          location: {
+            city: city || 'Unknown',
+            country: country || 'Unknown'
+          },
+          current: {
+            temperature: Math.round(current.temperature_2m),
+            humidity: current.relative_humidity_2m,
+            windSpeed: current.wind_speed_10m,
+            description: weather.description,
+            icon: weather.icon
+          },
+          units: {
+            temperature: '°C',
+            windSpeed: 'km/h',
+            humidity: '%'
+          }
+        });
+        
+      } else {
+        // Fallback: Return default weather for KL if no coordinates
+        res.json({
+          location: {
+            city: city || 'Kuala Lumpur',
+            country: country || 'Malaysia'
+          },
+          current: {
+            temperature: 30,
+            humidity: 75,
+            windSpeed: 10,
+            description: 'Partly cloudy',
+            icon: '⛅'
+          },
+          units: {
+            temperature: '°C',
+            windSpeed: 'km/h',
+            humidity: '%'
+          }
+        });
+      }
+
+    } catch (error) {
+      console.error("Error fetching weather:", error);
+      res.status(500).json({ error: "Failed to fetch weather data" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

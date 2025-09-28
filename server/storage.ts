@@ -97,19 +97,26 @@ export class MemStorage implements IStorage {
   }
   
   private async initializeDefaultSettings() {
-    // Display settings
-    await this.setSetting("mediaType", "image", "display");
-    await this.setSetting("theme", "blue", "display");
-    await this.setSetting("showPrayerTimes", "true", "display");
-    await this.setSetting("showWeather", "false", "display");
-    await this.setSetting("marqueeText", "Selamat datang ke Klinik Kesihatan", "display");
-    await this.setSetting("marqueeColor", "#ffffff", "display");
-    
-    // Sound settings - preset-only system
-    await this.setSetting("enableSound", "true", "sound");
-    await this.setSetting("volume", "70", "sound");
-    await this.setSetting("soundMode", "preset", "sound");
-    await this.setSetting("presetKey", "airport_call", "sound");
+    // Only create default settings if they don't already exist
+    const defaultSettings = [
+      { key: "mediaType", value: "image", category: "display" },
+      { key: "theme", value: "blue", category: "display" },
+      { key: "showPrayerTimes", value: "true", category: "display" },
+      { key: "showWeather", value: "false", category: "display" },
+      { key: "marqueeText", value: "Selamat datang ke Klinik Kesihatan", category: "display" },
+      { key: "marqueeColor", value: "#ffffff", category: "display" },
+      { key: "enableSound", value: "true", category: "sound" },
+      { key: "volume", value: "70", category: "sound" },
+      { key: "soundMode", value: "preset", category: "sound" },
+      { key: "presetKey", value: "airport_call", category: "sound" }
+    ];
+
+    for (const setting of defaultSettings) {
+      // Only set if the setting doesn't already exist
+      if (!this.settings.has(setting.key)) {
+        await this.setSetting(setting.key, setting.value, setting.category);
+      }
+    }
   }
   
   private async initializeDefaultTheme() {
