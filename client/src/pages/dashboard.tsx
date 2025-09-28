@@ -48,6 +48,12 @@ export default function Dashboard() {
     queryKey: ['/api/windows'],
   });
 
+  // Fetch active media for display
+  const { data: activeMedia = [] } = useQuery<any[]>({
+    queryKey: ['/api/display'],
+    refetchInterval: 10000, // Refresh every 10 seconds to get updated media
+  });
+
   // Convert Patient to QueueItem for TV display
   const convertToQueueItem = (patient: Patient): QueueItem => {
     // Map windowId to window name
@@ -195,8 +201,8 @@ export default function Dashboard() {
                 queueHistory={history.slice(0, 4).map(convertToQueueItem)}
                 clinicName="KLINIK UTAMA 24 JAM"
                 clinicLogo={undefined}
-                mediaContent={undefined}
-                mediaType="image"
+                mediaContent={activeMedia.length > 0 ? activeMedia[0].url : undefined}
+                mediaType={activeMedia.length > 0 ? activeMedia[0].type : "image"}
               />
             </div>
           </div>
