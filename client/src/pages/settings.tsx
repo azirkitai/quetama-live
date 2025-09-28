@@ -75,7 +75,7 @@ export default function Settings() {
     presetKey: undefined,
     customAudioId: undefined,
     // Separate voice models for better quality
-    elevenVoiceIdBM: "21m00Tcm4TlvDq8ikWAM", // Default ElevenLabs voice for BM (Rachel)
+    elevenVoiceIdBM: "15Y62ZlO8it2f5wduybx", // Voice untuk Bahasa Malaysia
     elevenVoiceIdEN: "21m00Tcm4TlvDq8ikWAM"  // Default ElevenLabs voice for EN (Rachel)
   });
 
@@ -173,7 +173,7 @@ export default function Settings() {
         presetKey: settingsObj.presetKey || undefined,
         customAudioId: settingsObj.customAudioId || undefined,
         // Separate voice models for better quality
-        elevenVoiceIdBM: settingsObj.elevenVoiceIdBM || "21m00Tcm4TlvDq8ikWAM", // Default voice for BM
+        elevenVoiceIdBM: settingsObj.elevenVoiceIdBM || "15Y62ZlO8it2f5wduybx", // Voice untuk Bahasa Malaysia
         elevenVoiceIdEN: settingsObj.elevenVoiceIdEN || "21m00Tcm4TlvDq8ikWAM"
       };
       
@@ -1666,7 +1666,7 @@ export default function Settings() {
                                   setCurrentSettings(prev => ({ ...prev, elevenVoiceIdBM: e.target.value }));
                                   setUnsavedChanges(prev => [...prev.filter(key => key !== 'elevenVoiceIdBM'), 'elevenVoiceIdBM']);
                                 }}
-                                placeholder="21m00Tcm4TlvDq8ikWAM"
+                                placeholder="15Y62ZlO8it2f5wduybx"
                                 className="font-mono text-sm"
                               />
                               <div className="text-xs text-muted-foreground">
