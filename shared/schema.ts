@@ -49,11 +49,22 @@ export const media = pgTable("media", {
   name: text("name").notNull(),
   filename: text("filename").notNull(), // Original filename
   url: text("url").notNull(), // Storage URL/path
-  type: text("type").notNull(), // 'image' or 'video'
-  mimeType: text("mime_type").notNull(), // e.g., 'image/jpeg', 'video/mp4'
+  type: text("type").notNull(), // 'image', 'video', or 'audio'
+  mimeType: text("mime_type").notNull(), // e.g., 'image/jpeg', 'video/mp4', 'audio/mpeg'
   size: integer("size").notNull(), // File size in bytes
   uploadedAt: timestamp("uploaded_at").notNull().default(sql`now()`),
   isActive: boolean("is_active").notNull().default(true),
+});
+
+// Audio presets table for professional announcement sounds
+export const audioPresets = pgTable("audio_presets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: text("key").notNull().unique(), // e.g., 'announcement1', 'announcement2'
+  name: text("name").notNull(), // Display name e.g., 'Professional Announcement 1'
+  description: text("description"), // Optional description
+  url: text("url").notNull(), // Audio file URL
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
 // Theme colors table
@@ -128,6 +139,32 @@ export const insertThemeSchema = createInsertSchema(themes).pick({
   accentColor: true,
 });
 
+export const insertAudioPresetSchema = createInsertSchema(audioPresets).pick({
+  key: true,
+  name: true,
+  description: true,
+  url: true,
+});
+
+// Sound mode enum for type safety
+export const SoundMode = z.enum(["synth", "preset", "file"]);
+export type SoundModeType = z.infer<typeof SoundMode>;
+
+// Audio settings schema for enhanced sound system
+export const AudioSettingsSchema = z.object({
+  enableSound: z.boolean().default(true),
+  enableTTS: z.boolean().default(false),
+  volume: z.number().min(0).max(100).default(50),
+  ttsLanguage: z.enum(["en-US", "ms-MY"]).default("ms-MY"),
+  // Enhanced sound system fields
+  soundMode: SoundMode.default("synth"),
+  soundType: z.string().default("beep"), // For synth mode
+  presetKey: z.string().optional(), // For preset mode
+  customAudioId: z.string().optional(), // For file mode
+});
+
+export type AudioSettings = z.infer<typeof AudioSettingsSchema>;
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertWindow = z.infer<typeof insertWindowSchema>;
@@ -135,6 +172,7 @@ export type InsertPatient = z.infer<typeof insertPatientSchema>;
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
 export type InsertMedia = z.infer<typeof insertMediaSchema>;
 export type InsertTheme = z.infer<typeof insertThemeSchema>;
+export type InsertAudioPreset = z.infer<typeof insertAudioPresetSchema>;
 
 // Select types
 export type User = typeof users.$inferSelect;
@@ -143,3 +181,4 @@ export type Patient = typeof patients.$inferSelect;
 export type Setting = typeof settings.$inferSelect;
 export type Media = typeof media.$inferSelect;
 export type Theme = typeof themes.$inferSelect;
+export type AudioPreset = typeof audioPresets.$inferSelect;
