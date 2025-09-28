@@ -1273,7 +1273,13 @@ export default function Settings() {
                   </div>
                   <Switch
                     checked={currentSettings.showPrayerTimes}
-                    onCheckedChange={(checked) => updateDisplaySetting('showPrayerTimes', checked)}
+                    onCheckedChange={(checked) => {
+                      updateDisplaySetting('showPrayerTimes', checked);
+                      if (checked) {
+                        // Turn off weather when prayer times is turned on
+                        updateDisplaySetting('showWeather', false);
+                      }
+                    }}
                     data-testid="switch-prayer-times"
                   />
                 </div>
@@ -1286,7 +1292,13 @@ export default function Settings() {
                   </div>
                   <Switch
                     checked={currentSettings.showWeather}
-                    onCheckedChange={(checked) => updateDisplaySetting('showWeather', checked)}
+                    onCheckedChange={(checked) => {
+                      updateDisplaySetting('showWeather', checked);
+                      if (checked) {
+                        // Turn off prayer times when weather is turned on
+                        updateDisplaySetting('showPrayerTimes', false);
+                      }
+                    }}
                     data-testid="switch-weather"
                   />
                 </div>
