@@ -62,6 +62,56 @@ export default function Settings() {
     volume: 70
   });
 
+  // YouTube preview states
+  const [youtubeThumbnail, setYoutubeThumbnail] = useState<string>("");
+  const [youtubeTitle, setYoutubeTitle] = useState<string>("");
+  const [youtubeValidated, setYoutubeValidated] = useState<boolean>(false);
+
+  // YouTube helper functions
+  const extractYouTubeVideoId = (url: string): string | null => {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
+      /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+      /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) {
+        return match[1];
+      }
+    }
+    return null;
+  };
+
+  const generateYouTubeThumbnail = (videoId: string): string => {
+    return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+  };
+
+  const validateAndPreviewYouTube = async (url: string) => {
+    const videoId = extractYouTubeVideoId(url);
+    if (!videoId) {
+      setYoutubeValidated(false);
+      setYoutubeThumbnail("");
+      setYoutubeTitle("");
+      return false;
+    }
+
+    try {
+      const thumbnailUrl = generateYouTubeThumbnail(videoId);
+      setYoutubeThumbnail(thumbnailUrl);
+      setYoutubeTitle(`YouTube Video (${videoId})`);
+      setYoutubeValidated(true);
+      return true;
+    } catch (error) {
+      console.error('Error validating YouTube URL:', error);
+      setYoutubeValidated(false);
+      setYoutubeThumbnail("");
+      setYoutubeTitle("");
+      return false;
+    }
+  };
+
   // Fetch media files from API
   const { data: mediaFiles = [], isLoading: mediaLoading, refetch: refetchMedia } = useQuery<Media[]>({
     queryKey: ['/api/media'],
@@ -104,6 +154,11 @@ export default function Settings() {
       
       setCurrentSettings(newSettings);
       setUnsavedChanges([]); // Clear unsaved changes when loading fresh data
+      
+      // Auto-validate YouTube URL if it exists
+      if (newSettings.youtubeUrl && newSettings.dashboardMediaType === "youtube") {
+        validateAndPreviewYouTube(newSettings.youtubeUrl);
+      }
     }
   }, [settings, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.enableSound, settingsObj.soundType, settingsObj.enableTTS, settingsObj.volume]);
 
@@ -261,6 +316,14 @@ export default function Settings() {
   const updateDisplaySetting = (key: keyof SettingsState, value: any) => {
     setCurrentSettings(prev => ({ ...prev, [key]: value }));
     trackChange(key);
+    
+    // Auto-save for critical settings like dashboardMediaType
+    if (key === 'dashboardMediaType') {
+      const autoSaveSettings = [
+        { key: 'dashboardMediaType', value: value, category: 'display' }
+      ];
+      saveSettingsMutation.mutate(autoSaveSettings);
+    }
   };
 
   const updateSoundSetting = (key: keyof SettingsState, value: any) => {
@@ -617,7 +680,13 @@ export default function Settings() {
                       type="url"
                       placeholder="https://www.youtube.com/watch?v=..."
                       value={currentSettings.youtubeUrl}
-                      onChange={(e) => updateDisplaySetting('youtubeUrl', e.target.value)}
+                      onChange={(e) => {
+                        updateDisplaySetting('youtubeUrl', e.target.value);
+                        // Clear previous validation when URL changes
+                        setYoutubeValidated(false);
+                        setYoutubeThumbnail("");
+                        setYoutubeTitle("");
+                      }}
                       className="w-full"
                       data-testid="input-youtube-url"
                     />
@@ -625,14 +694,13 @@ export default function Settings() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
+                        onClick={async () => {
                           if (currentSettings.youtubeUrl) {
-                            // Simple YouTube URL validation
-                            const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
-                            if (youtubeRegex.test(currentSettings.youtubeUrl)) {
+                            const isValid = await validateAndPreviewYouTube(currentSettings.youtubeUrl);
+                            if (isValid) {
                               toast({
                                 title: "URL YouTube Sah",
-                                description: "URL YouTube telah disahkan dan boleh digunakan.",
+                                description: "URL YouTube telah disahkan dan preview dipaparkan.",
                               });
                             } else {
                               toast({
@@ -649,6 +717,42 @@ export default function Settings() {
                         Sahkan URL
                       </Button>
                     </div>
+                    
+                    {/* YouTube Preview */}
+                    {youtubeValidated && youtubeThumbnail && (
+                      <div className="mt-4 p-4 border-2 border-green-200 rounded-lg bg-green-50">
+                        <div className="flex items-start space-x-4">
+                          <div className="flex-shrink-0">
+                            <img
+                              src={youtubeThumbnail}
+                              alt="YouTube Thumbnail"
+                              className="w-32 h-24 object-cover rounded-lg border"
+                              onError={(e) => {
+                                // Fallback if maxresdefault doesn't exist
+                                const target = e.target as HTMLImageElement;
+                                const videoId = extractYouTubeVideoId(currentSettings.youtubeUrl);
+                                if (videoId) {
+                                  target.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                                }
+                              }}
+                              data-testid="youtube-thumbnail"
+                            />
+                          </div>
+                          <div className="flex-grow">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <CheckCircle className="h-5 w-5 text-green-600" />
+                              <span className="font-semibold text-green-800">URL YouTube Sah</span>
+                            </div>
+                            <p className="text-sm text-green-700">
+                              {youtubeTitle}
+                            </p>
+                            <p className="text-xs text-green-600 mt-1">
+                              Video ini akan dipaparkan di paparan TV
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       Masukkan URL YouTube video yang akan dipaparkan di paparan TV
                     </p>
