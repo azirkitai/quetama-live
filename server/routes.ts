@@ -712,6 +712,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rate limiting map for TTS endpoint (simple in-memory store)
+  const ttsRateLimit = new Map<string, { count: number, resetTime: number }>();
+  const TTS_RATE_LIMIT = 10; // Max 10 requests per minute per IP
+  const TTS_RATE_WINDOW = 60 * 1000; // 1 minute
+
+  // ElevenLabs TTS API endpoint
+  app.get("/api/tts", async (req, res) => {
+    try {
+      const text = (req.query.text || '').toString().trim();
+      if (!text) {
+        return res.status(400).json({ error: 'text parameter is required' });
+      }
+
+      // Simple rate limiting by IP
+      const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
+      const now = Date.now();
+      const clientLimit = ttsRateLimit.get(clientIp);
+      
+      if (clientLimit) {
+        if (now < clientLimit.resetTime) {
+          if (clientLimit.count >= TTS_RATE_LIMIT) {
+            return res.status(429).json({ 
+              error: 'Rate limit exceeded', 
+              retryAfter: Math.ceil((clientLimit.resetTime - now) / 1000)
+            });
+          }
+          clientLimit.count++;
+        } else {
+          // Reset window
+          ttsRateLimit.set(clientIp, { count: 1, resetTime: now + TTS_RATE_WINDOW });
+        }
+      } else {
+        ttsRateLimit.set(clientIp, { count: 1, resetTime: now + TTS_RATE_WINDOW });
+      }
+
+      // Basic validation - limit text length to prevent abuse
+      if (text.length > 500) {
+        return res.status(400).json({ error: 'Text too long (max 500 characters)' });
+      }
+
+      // Check if ElevenLabs API key is available
+      const ELEVEN_API_KEY = process.env.ELEVEN_API_KEY;
+      if (!ELEVEN_API_KEY) {
+        console.warn('ElevenLabs API key not found, falling back to browser TTS');
+        return res.status(503).json({ 
+          error: 'TTS service not configured',
+          fallback: true,
+          message: 'ElevenLabs API key not found. Configure ELEVEN_API_KEY in secrets.'
+        });
+      }
+
+      // Default voice ID (can be customized via settings)
+      const DEFAULT_VOICE_ID = process.env.ELEVEN_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
+      const voiceId = req.query.voice || DEFAULT_VOICE_ID;
+
+      const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream?` +
+                  `optimize_streaming_latency=3&output_format=mp3_44100_128`;
+
+      const body = {
+        text,
+        // Model multilingual untuk BM+English support
+        model_id: 'eleven_multilingual_v2',
+        voice_settings: {
+          stability: 0.4,
+          similarity_boost: 0.8,
+          style: 0.3,
+          use_speaker_boost: true
+        }
+      };
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'xi-api-key': ELEVEN_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '');
+        console.error('ElevenLabs API error:', response.status, errorText);
+        return res.status(500).json({ 
+          error: 'TTS API failed',
+          detail: errorText,
+          fallback: true
+        });
+      }
+
+      // Set headers for audio streaming
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      
+      // Stream audio directly to client for low latency
+      if (response.body) {
+        const reader = response.body.getReader();
+        const stream = async () => {
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              res.write(value);
+            }
+            res.end();
+          } catch (error) {
+            console.error('Streaming error:', error);
+            res.end();
+          }
+        };
+        await stream();
+      } else {
+        throw new Error('No response body from ElevenLabs API');
+      }
+
+    } catch (error) {
+      console.error('TTS endpoint error:', error);
+      res.status(500).json({ 
+        error: 'Server error',
+        detail: String(error),
+        fallback: true
+      });
+    }
+  });
+
   // Display routes (for TV display management)
   
   // Add test media (for development/testing)

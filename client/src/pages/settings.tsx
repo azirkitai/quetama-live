@@ -1575,15 +1575,39 @@ export default function Settings() {
 
                         {/* TTS Templates Preview */}
                         <div className="space-y-2">
-                          <Label>Template Preview</Label>
+                          <Label>Template Preview (ElevenLabs Enhanced)</Label>
                           <div className="p-3 bg-muted rounded-lg text-sm">
-                            {currentSettings.ttsLanguage === "en" ? (
-                              <><strong>English:</strong> "[Name] PROCEED TO [Window]"<br />
-                              <span className="text-muted-foreground">Example: "Ahmad Bin Ali PROCEED TO Counter 1"</span></>
-                            ) : (
-                              <><strong>Malay:</strong> "[Name] SILA KE [Window]"<br />
-                              <span className="text-muted-foreground">Example: "Ahmad Bin Ali SILA KE Kaunter 1"</span></>
-                            )}
+                            <div className="mb-2">
+                              <strong>Natural Format:</strong><br />
+                              <span className="text-green-600">English: "Calling for [Name]. Please proceed to [Window]."</span><br />
+                              <span className="text-green-600">Malay: "Panggilan untuk [Name]. Sila ke [Window]."</span>
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Menggunakan suara natural ElevenLabs dengan punctuation untuk jeda yang lebih alami<br />
+                              Auto-fallback ke browser TTS jika ElevenLabs tidak tersedia
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* ElevenLabs Configuration Notice */}
+                        <div className="space-y-2">
+                          <Label>ElevenLabs TTS Configuration</Label>
+                          <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                            <div className="text-sm space-y-2">
+                              <div className="font-medium text-blue-900 dark:text-blue-100">
+                                High-Quality Natural Voice
+                              </div>
+                              <div className="text-blue-700 dark:text-blue-300">
+                                Sistem ini telah disediakan untuk ElevenLabs TTS yang memberikan suara natural berkualiti tinggi untuk BM & English.
+                              </div>
+                              <div className="mt-3 text-xs text-blue-600 dark:text-blue-400 space-y-1">
+                                <div><strong>Setup Required:</strong></div>
+                                <div>1. Dapatkan ElevenLabs API key dari elevenlabs.io</div>
+                                <div>2. Di Replit Secrets, tambah: <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">ELEVEN_API_KEY</code></div>
+                                <div>3. (Opsional) Tambah: <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">ELEVEN_VOICE_ID</code> untuk suara pilihan</div>
+                                <div className="mt-2 font-medium">Jika tidak dikonfigurasi, akan auto-fallback ke browser TTS.</div>
+                              </div>
+                            </div>
                           </div>
                         </div>
 

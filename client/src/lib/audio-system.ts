@@ -200,8 +200,68 @@ export class AudioSystem {
     return this.generateSound(soundType, volume);
   }
 
-  // Text-to-Speech functionality
+  // ElevenLabs TTS functionality
   public async playTTS(callInfo: CallInfo, language: string, volume: number): Promise<void> {
+    // Build the TTS message with proper punctuation for natural pauses
+    const patientName = callInfo.patientName || (language === "en" ? `Number ${callInfo.patientNumber}` : `Nombor ${callInfo.patientNumber}`);
+    const windowName = callInfo.windowName;
+    
+    const textToSpeak = language === "en" 
+      ? `Calling for ${patientName}. Please proceed to ${windowName}.`
+      : `Panggilan untuk ${patientName}. Sila ke ${windowName}.`;
+
+    try {
+      // Try ElevenLabs TTS first
+      const ttsUrl = `/api/tts?text=${encodeURIComponent(textToSpeak)}`;
+      const response = await fetch(ttsUrl);
+      
+      if (response.ok && response.headers.get('content-type')?.includes('audio/mpeg')) {
+        // Success - play ElevenLabs audio
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        
+        // Set volume
+        audio.volume = volume / 100;
+        
+        return new Promise((resolve, reject) => {
+          audio.onended = () => {
+            URL.revokeObjectURL(audioUrl);
+            resolve();
+          };
+          audio.onerror = () => {
+            console.warn('Audio playback error, falling back to browser TTS');
+            URL.revokeObjectURL(audioUrl);
+            // Fallback to browser TTS when audio playback fails
+            this.playBrowserTTS(callInfo, language, volume).then(resolve).catch(reject);
+          };
+          
+          // Play audio with user gesture handling
+          audio.play().catch(error => {
+            console.warn('Audio autoplay blocked, falling back to browser TTS:', error);
+            URL.revokeObjectURL(audioUrl);
+            // Fallback to browser TTS when autoplay is blocked
+            this.playBrowserTTS(callInfo, language, volume).then(resolve).catch(reject);
+          });
+        });
+      } else {
+        // ElevenLabs not available or failed, fall back to browser TTS
+        const responseData = await response.json().catch(() => ({}));
+        if (responseData.fallback) {
+          console.warn('Falling back to browser TTS:', responseData.message);
+          return this.playBrowserTTS(callInfo, language, volume);
+        } else {
+          throw new Error('TTS service unavailable');
+        }
+      }
+    } catch (error) {
+      console.warn('ElevenLabs TTS failed, falling back to browser TTS:', error);
+      return this.playBrowserTTS(callInfo, language, volume);
+    }
+  }
+
+  // Fallback browser TTS (original implementation)
+  private async playBrowserTTS(callInfo: CallInfo, language: string, volume: number): Promise<void> {
     if (!('speechSynthesis' in window)) {
       throw new Error('Text-to-Speech not supported in this browser');
     }
@@ -211,13 +271,13 @@ export class AudioSystem {
     // Stop any ongoing speech
     synth.cancel();
 
-    // Build the TTS message
-    const patientName = callInfo.patientName || `Nombor ${callInfo.patientNumber}`;
+    // Build the TTS message with consistent bilingual format
+    const patientName = callInfo.patientName || (language === "en" ? `Number ${callInfo.patientNumber}` : `Nombor ${callInfo.patientNumber}`);
     const windowName = callInfo.windowName;
     
     const textToSpeak = language === "en" 
-      ? `${patientName} PROCEED TO ${windowName}`
-      : `${patientName} SILA KE ${windowName}`;
+      ? `Calling for ${patientName}. Please proceed to ${windowName}.`
+      : `Panggilan untuk ${patientName}. Sila ke ${windowName}.`;
 
     return new Promise((resolve, reject) => {
       const utterance = new SpeechSynthesisUtterance(textToSpeak);
