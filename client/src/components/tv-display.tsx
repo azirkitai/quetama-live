@@ -535,7 +535,10 @@ export function TVDisplay({
               data-testid="clinic-name">
             {clinicName}
           </h1>
-          <p className="text-yellow-400" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)' }}>
+          <p className="text-yellow-400" style={{ 
+            fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
+            ...getTextGroupStyles('clinic_name')
+          }}>
             TROPICANA AMAN
           </p>
           <div className="px-4 py-2 rounded-lg mt-2"
