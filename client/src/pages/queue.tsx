@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { ClipboardList, Users, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { type Patient } from "@shared/schema";
+import { type Patient, type Setting } from "@shared/schema";
+import { audioSystem } from "@/lib/audio-system";
 
 interface Window {
   id: string;
@@ -17,11 +18,9 @@ interface Window {
   currentPatientId?: string;
 }
 
-interface QueuePatient extends Omit<Patient, 'status' | 'windowId' | 'trackingHistory'> {
+interface QueuePatient extends Omit<Patient, 'status' | 'trackingHistory'> {
   status: "waiting" | "called" | "in-progress" | "completed" | "requeue";
-  windowId?: string;
   windowName?: string;
-  lastWindowId?: string;
   lastWindowName?: string;
   trackingHistory?: string[];
 }
@@ -38,6 +37,11 @@ export default function Queue() {
   // Fetch windows
   const { data: windows = [], isLoading: windowsLoading, refetch: refetchWindows } = useQuery<Window[]>({
     queryKey: ['/api/windows'],
+  });
+
+  // Fetch audio settings
+  const { data: settings = [] } = useQuery<Setting[]>({
+    queryKey: ['/api/settings'],
   });
 
   // Update patient status mutation
@@ -91,20 +95,34 @@ export default function Queue() {
     },
   });
 
+  // Extract audio settings
+  const audioSettings = useMemo(() => {
+    const settingsObj = settings.reduce((acc: Record<string, string>, setting) => {
+      acc[setting.key] = setting.value;
+      return acc;
+    }, {});
+
+    return {
+      enableSound: settingsObj.enableSound === "true",
+      soundType: settingsObj.soundType || "beep",
+      enableTTS: settingsObj.enableTTS === "true",
+      ttsLanguage: settingsObj.ttsLanguage || "ms",
+      volume: parseInt(settingsObj.volume || "70")
+    };
+  }, [settings]);
+
   // Enhanced patients with window names
   const enhancedPatients = useMemo((): QueuePatient[] => {
     return patients.map(patient => ({
       ...patient,
       status: patient.status as "waiting" | "called" | "in-progress" | "completed" | "requeue",
-      windowId: patient.windowId || undefined,
       windowName: patient.windowId ? windows.find(w => w.id === patient.windowId)?.name : undefined,
-      lastWindowId: patient.lastWindowId || undefined,
       lastWindowName: patient.lastWindowId ? windows.find(w => w.id === patient.lastWindowId)?.name : undefined,
       trackingHistory: patient.trackingHistory || undefined
     }));
   }, [patients, windows]);
 
-  const handleCallPatient = (patientId: string) => {
+  const handleCallPatient = async (patientId: string) => {
     if (!selectedWindow) {
       toast({
         title: "Ralat",
@@ -129,23 +147,73 @@ export default function Queue() {
       return;
     }
 
+    // Get patient information for audio
+    const patient = enhancedPatients.find(p => p.id === patientId);
+    if (!patient) return;
+
+    // Update patient status first (non-blocking)
     updatePatientStatusMutation.mutate({
       patientId,
       status: "called",
       windowId: selectedWindow
     });
+
+    // Play audio concurrently (non-blocking)
+    if (audioSettings.enableSound || audioSettings.enableTTS) {
+      const callInfo = {
+        patientName: patient.name || undefined,
+        patientNumber: patient.number,
+        windowName: window.name
+      };
+
+      // Fire audio without blocking the UI/TV updates
+      audioSystem.playCallingSequence(callInfo, audioSettings)
+        .catch(error => {
+          console.error('Error playing calling sequence:', error);
+          toast({
+            title: "Audio Warning",
+            description: "Failed to play calling sound",
+            variant: "default"
+          });
+        });
+    }
   };
 
   const handleCallAgain = (patientId: string) => {
-    // For call again, we don't need to change status or window
-    // Just trigger a notification/sound (this could be enhanced later)
+    const patient = enhancedPatients.find(p => p.id === patientId);
+    if (!patient || !patient.windowId) return;
+
+    const window = windows.find(w => w.id === patient.windowId);
+    if (!window) return;
+
+    // Show toast immediately for responsive UI feedback
     toast({
       title: "Panggil Lagi",
       description: "Pesakit telah dipanggil semula",
     });
+
+    // Play audio concurrently (non-blocking)
+    if (audioSettings.enableSound || audioSettings.enableTTS) {
+      const callInfo = {
+        patientName: patient.name || undefined,
+        patientNumber: patient.number,
+        windowName: window.name
+      };
+
+      // Fire audio without blocking the UI
+      audioSystem.playCallingSequence(callInfo, audioSettings)
+        .catch(error => {
+          console.error('Error playing call again sequence:', error);
+          toast({
+            title: "Audio Warning",
+            description: "Failed to play call again sound",
+            variant: "default"
+          });
+        });
+    }
   };
 
-  const handleRecall = (patientId: string) => {
+  const handleRecall = async (patientId: string) => {
     if (!selectedWindow) {
       toast({
         title: "Ralat",
@@ -170,11 +238,36 @@ export default function Queue() {
       return;
     }
 
+    // Get patient information for audio
+    const patient = enhancedPatients.find(p => p.id === patientId);
+    if (!patient) return;
+
+    // Update patient status first
     updatePatientStatusMutation.mutate({
       patientId,
       status: "called",
       windowId: selectedWindow
     });
+
+    // Play audio concurrently (non-blocking)
+    if (audioSettings.enableSound || audioSettings.enableTTS) {
+      const callInfo = {
+        patientName: patient.name || undefined,
+        patientNumber: patient.number,
+        windowName: window.name
+      };
+
+      // Fire audio without blocking the UI/TV updates
+      audioSystem.playCallingSequence(callInfo, audioSettings)
+        .catch(error => {
+          console.error('Error playing recall sequence:', error);
+          toast({
+            title: "Audio Warning",
+            description: "Failed to play recall sound",
+            variant: "default"
+          });
+        });
+    }
   };
 
   const handleDeletePatient = (patientId: string) => {

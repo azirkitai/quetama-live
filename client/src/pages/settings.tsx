@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Setting, Media, Theme } from "@shared/schema";
+import { audioSystem } from "@/lib/audio-system";
 
 interface SettingsState {
   mediaType: string;
@@ -25,6 +26,7 @@ interface SettingsState {
   enableSound: boolean;
   soundType: string;
   enableTTS: boolean;
+  ttsLanguage: string; // "ms" for Malay, "en" for English
   volume: number;
 }
 
@@ -59,6 +61,7 @@ export default function Settings() {
     enableSound: true,
     soundType: "beep",
     enableTTS: false,
+    ttsLanguage: "ms",
     volume: 70
   });
 
@@ -149,6 +152,7 @@ export default function Settings() {
         enableSound: settingsObj.enableSound === "true",
         soundType: settingsObj.soundType || "beep",
         enableTTS: settingsObj.enableTTS === "true",
+        ttsLanguage: settingsObj.ttsLanguage || "ms",
         volume: parseInt(settingsObj.volume || "70")
       };
       
@@ -160,7 +164,7 @@ export default function Settings() {
         validateAndPreviewYouTube(newSettings.youtubeUrl);
       }
     }
-  }, [settings, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.enableSound, settingsObj.soundType, settingsObj.enableTTS, settingsObj.volume]);
+  }, [settings, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.enableSound, settingsObj.soundType, settingsObj.enableTTS, settingsObj.ttsLanguage, settingsObj.volume]);
 
   // Update theme colors when active theme is loaded
   useEffect(() => {
@@ -356,6 +360,7 @@ export default function Settings() {
       { key: 'enableSound', value: currentSettings.enableSound.toString(), category: 'sound' },
       { key: 'soundType', value: currentSettings.soundType, category: 'sound' },
       { key: 'enableTTS', value: currentSettings.enableTTS.toString(), category: 'sound' },
+      { key: 'ttsLanguage', value: currentSettings.ttsLanguage, category: 'sound' },
       { key: 'volume', value: currentSettings.volume.toString(), category: 'sound' }
     ];
     saveSettingsMutation.mutate(soundSettingsToSave);
@@ -367,6 +372,83 @@ export default function Settings() {
       title: "Tetapan Dimuat Semula",
       description: "Tetapan terkini telah diambil dari pangkalan data"
     });
+  };
+
+  // Volume preview debouncing
+  const volumePreviewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounced volume preview function
+  const debouncedVolumePreview = useCallback((volume: number) => {
+    // Clear existing timeout
+    if (volumePreviewTimeoutRef.current) {
+      clearTimeout(volumePreviewTimeoutRef.current);
+    }
+
+    // Set new timeout for volume preview
+    volumePreviewTimeoutRef.current = setTimeout(() => {
+      playTestSound(volume);
+    }, 300); // 300ms debounce
+  }, [currentSettings.soundType]);
+
+  // Audio testing functions using the new audio system
+  const playTestSound = async (volume?: number) => {
+    const testVolume = volume !== undefined ? volume : currentSettings.volume;
+    
+    try {
+      await audioSystem.playNotificationSound(currentSettings.soundType, testVolume);
+    } catch (error) {
+      console.error('Error playing test sound:', error);
+      toast({
+        title: "Audio Error",
+        description: error instanceof Error ? error.message : "Failed to play test sound",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const playTestTTS = async () => {
+    try {
+      const testCallInfo = {
+        patientName: "Ahmad Bin Ali",
+        patientNumber: 123,
+        windowName: "Kaunter 1"
+      };
+
+      await audioSystem.playTTS(testCallInfo, currentSettings.ttsLanguage, currentSettings.volume);
+    } catch (error) {
+      console.error('Error playing test TTS:', error);
+      toast({
+        title: "TTS Error",
+        description: error instanceof Error ? error.message : "Failed to play text-to-speech",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const playTestSequence = async () => {
+    try {
+      const audioSettings = {
+        enableSound: currentSettings.enableSound,
+        soundType: currentSettings.soundType,
+        enableTTS: currentSettings.enableTTS,
+        ttsLanguage: currentSettings.ttsLanguage,
+        volume: currentSettings.volume
+      };
+
+      await audioSystem.playTestSequence(audioSettings);
+      
+      toast({
+        title: "Test Complete",
+        description: "Audio sequence played successfully",
+      });
+    } catch (error) {
+      console.error('Error playing test sequence:', error);
+      toast({
+        title: "Test Error",
+        description: error instanceof Error ? error.message : "Failed to play test sequence",
+        variant: "destructive"
+      });
+    }
   };
 
   // File upload state
@@ -1296,42 +1378,128 @@ export default function Settings() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="beep">Beep</SelectItem>
-                        <SelectItem value="chime">Chime</SelectItem>
-                        <SelectItem value="bell">Bell</SelectItem>
+                        <SelectItem value="beep">Beep (Standard)</SelectItem>
+                        <SelectItem value="chime">Chime (Gentle)</SelectItem>
+                        <SelectItem value="bell">Bell (Classic)</SelectItem>
+                        <SelectItem value="notification">Notification (Modern)</SelectItem>
+                        <SelectItem value="ding">Ding (Sharp)</SelectItem>
+                        <SelectItem value="tone">Tone (Professional)</SelectItem>
+                        <SelectItem value="buzzer">Buzzer (Attention)</SelectItem>
+                        <SelectItem value="whistle">Whistle (Alert)</SelectItem>
                         <SelectItem value="custom">Custom Audio</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {/* Volume */}
+                  {/* Volume with Preview */}
                   <div className="space-y-2">
-                    <Label>Volume ({currentSettings.volume}%)</Label>
+                    <div className="flex items-center justify-between">
+                      <Label>Volume ({currentSettings.volume}%)</Label>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => playTestSound()}
+                        data-testid="button-test-sound"
+                      >
+                        <Volume2 className="h-4 w-4 mr-2" />
+                        Test Sound
+                      </Button>
+                    </div>
                     <input
                       type="range"
                       min="0"
                       max="100"
                       value={currentSettings.volume}
-                      onChange={(e) => updateSoundSetting('volume', parseInt(e.target.value))}
-                      onInput={(e) => updateSoundSetting('volume', parseInt((e.target as HTMLInputElement).value))}
+                      onChange={(e) => {
+                        const newVolume = parseInt(e.target.value);
+                        updateSoundSetting('volume', newVolume);
+                      }}
+                      onInput={(e) => {
+                        const newVolume = parseInt((e.target as HTMLInputElement).value);
+                        updateSoundSetting('volume', newVolume);
+                        // Debounced real-time preview
+                        debouncedVolumePreview(newVolume);
+                      }}
                       className="w-full"
                       data-testid="slider-volume"
                     />
                   </div>
 
                   {/* Text-to-Speech */}
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Text-to-Speech</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Sebut nama/nombor pesakit
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Text-to-Speech</Label>
+                        <div className="text-sm text-muted-foreground">
+                          Sebut nama/nombor pesakit
+                        </div>
                       </div>
+                      <Switch
+                        checked={currentSettings.enableTTS}
+                        onCheckedChange={(checked) => updateSoundSetting('enableTTS', checked)}
+                        data-testid="switch-enable-tts"
+                      />
                     </div>
-                    <Switch
-                      checked={currentSettings.enableTTS}
-                      onCheckedChange={(checked) => updateSoundSetting('enableTTS', checked)}
-                      data-testid="switch-enable-tts"
-                    />
+
+                    {currentSettings.enableTTS && (
+                      <>
+                        {/* TTS Language Selection */}
+                        <div className="space-y-2">
+                          <Label>Bahasa TTS</Label>
+                          <Select 
+                            value={currentSettings.ttsLanguage || "ms"} 
+                            onValueChange={(value) => updateSoundSetting('ttsLanguage', value)}
+                          >
+                            <SelectTrigger data-testid="select-tts-language">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="ms">Bahasa Melayu</SelectItem>
+                              <SelectItem value="en">English</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* TTS Templates Preview */}
+                        <div className="space-y-2">
+                          <Label>Template Preview</Label>
+                          <div className="p-3 bg-muted rounded-lg text-sm">
+                            {currentSettings.ttsLanguage === "en" ? (
+                              <><strong>English:</strong> "[Name] PROCEED TO [Window]"<br />
+                              <span className="text-muted-foreground">Example: "Ahmad Bin Ali PROCEED TO Counter 1"</span></>
+                            ) : (
+                              <><strong>Malay:</strong> "[Name] SILA KE [Window]"<br />
+                              <span className="text-muted-foreground">Example: "Ahmad Bin Ali SILA KE Kaunter 1"</span></>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* TTS Test Buttons */}
+                        <div className="space-y-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => playTestTTS()}
+                            className="w-full"
+                            data-testid="button-test-tts"
+                          >
+                            <Volume2 className="h-4 w-4 mr-2" />
+                            Test Text-to-Speech Only
+                          </Button>
+                          
+                          {currentSettings.enableSound && (
+                            <Button
+                              variant="default"
+                              onClick={() => playTestSequence()}
+                              className="w-full"
+                              data-testid="button-test-full-sequence"
+                            >
+                              <Volume2 className="h-4 w-4 mr-2" />
+                              Test Complete Calling Sequence
+                            </Button>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* Custom Audio Upload */}
