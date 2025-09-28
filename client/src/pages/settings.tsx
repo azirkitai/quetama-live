@@ -200,6 +200,49 @@ export default function Settings() {
     }));
   };
 
+  // Gradient presets for different elements
+  const gradientPresets = {
+    calling: [
+      "linear-gradient(45deg, #3b82f6, #1d4ed8)",
+      "linear-gradient(90deg, #06b6d4, #0891b2)",
+      "linear-gradient(135deg, #8b5cf6, #7c3aed)",
+      "linear-gradient(180deg, #10b981, #059669)"
+    ],
+    highlight: [
+      "linear-gradient(45deg, #ef4444, #dc2626)",
+      "linear-gradient(90deg, #f59e0b, #d97706)",
+      "linear-gradient(135deg, #ec4899, #db2777)",
+      "linear-gradient(180deg, #f97316, #ea580c)"
+    ],
+    history: [
+      "linear-gradient(45deg, #6b7280, #4b5563)",
+      "linear-gradient(90deg, #64748b, #475569)",
+      "linear-gradient(135deg, #78716c, #57534e)",
+      "linear-gradient(180deg, #71717a, #52525b)"
+    ],
+    clinic: [
+      "linear-gradient(45deg, #1f2937, #111827)",
+      "linear-gradient(90deg, #374151, #1f2937)",
+      "linear-gradient(135deg, #4b5563, #374151)",
+      "linear-gradient(180deg, #6b7280, #4b5563)"
+    ]
+  };
+
+  // Handle gradient button clicks
+  const handleGradientClick = (element: 'calling' | 'highlight' | 'history' | 'clinic') => {
+    const presets = gradientPresets[element];
+    const randomGradient = presets[Math.floor(Math.random() * presets.length)];
+    
+    const gradientFieldMap = {
+      calling: 'callingGradient',
+      highlight: 'highlightBoxGradient', 
+      history: 'historyNameGradient',
+      clinic: 'clinicNameGradient'
+    } as const;
+    
+    handleThemeColorChange(gradientFieldMap[element], randomGradient);
+  };
+
   // Save theme colors
   const handleSaveTheme = () => {
     const themeData = {
@@ -875,7 +918,12 @@ export default function Settings() {
                       onChange={(e) => handleThemeColorChange('callingColor', e.target.value)}
                       data-testid="input-calling-color"
                     />
-                    <Button variant="outline" size="sm" data-testid="button-gradient-calling">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleGradientClick('calling')}
+                      data-testid="button-gradient-calling"
+                    >
                       Gradient
                     </Button>
                   </div>
@@ -900,7 +948,12 @@ export default function Settings() {
                       onChange={(e) => handleThemeColorChange('highlightBoxColor', e.target.value)}
                       data-testid="input-highlight-color"
                     />
-                    <Button variant="outline" size="sm" data-testid="button-gradient-highlight">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleGradientClick('highlight')}
+                      data-testid="button-gradient-highlight"
+                    >
                       Gradient
                     </Button>
                   </div>
@@ -925,7 +978,12 @@ export default function Settings() {
                       onChange={(e) => handleThemeColorChange('historyNameColor', e.target.value)}
                       data-testid="input-history-color"
                     />
-                    <Button variant="outline" size="sm" data-testid="button-gradient-history">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleGradientClick('history')}
+                      data-testid="button-gradient-history"
+                    >
                       Gradient
                     </Button>
                   </div>
@@ -950,7 +1008,12 @@ export default function Settings() {
                       onChange={(e) => handleThemeColorChange('clinicNameColor', e.target.value)}
                       data-testid="input-clinic-name-color"
                     />
-                    <Button variant="outline" size="sm" data-testid="button-gradient-clinic-name">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleGradientClick('clinic')}
+                      data-testid="button-gradient-clinic-name"
+                    >
                       Gradient
                     </Button>
                   </div>
