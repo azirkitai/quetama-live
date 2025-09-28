@@ -183,7 +183,10 @@ export function TVDisplay({
   });
 
   // Use real prayer times if available, otherwise fall back to props
-  const displayPrayerTimes = showPrayerTimes && prayerTimesData?.prayerTimes ? prayerTimesData.prayerTimes : prayerTimes;
+  const displayPrayerTimes = showPrayerTimes && prayerTimesData?.prayerTimes && prayerTimesData.prayerTimes.length > 0 
+    ? prayerTimesData.prayerTimes 
+    : (prayerTimes || []);
+  
   
   // Client-side highlight computation using browser timezone (more accurate)
   const computeHighlighting = () => {
@@ -577,10 +580,10 @@ export function TVDisplay({
                   
                   return (
                     <div key={prayer.key || index} className="text-center">
-                      <div className={`font-bold text-2xl ${isCurrentPrayer ? 'text-red-400 animate-pulse' : 'text-yellow-400'}`}>
+                      <div className={`font-bold text-2xl ${isCurrentPrayer ? 'text-yellow-400 animate-pulse' : 'text-white'}`}>
                         {prayer.name}
                       </div>
-                      <div className={`text-2xl ${isCurrentPrayer ? 'text-red-300 font-bold' : 'text-white'}`}>
+                      <div className={`text-2xl ${isCurrentPrayer ? 'text-yellow-300 font-bold' : 'text-white'}`}>
                         {prayer.time}
                       </div>
                     </div>
