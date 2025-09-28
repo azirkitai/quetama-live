@@ -662,6 +662,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Audio preset routes
+  
+  // Get available audio presets
+  app.get("/api/audio/presets", async (req, res) => {
+    try {
+      const presets = await storage.getAudioPresets();
+      res.json(presets);
+    } catch (error) {
+      console.error("Error fetching audio presets:", error);
+      res.status(500).json({ error: "Failed to fetch audio presets" });
+    }
+  });
+
+  // Get specific audio preset
+  app.get("/api/audio/presets/:key", async (req, res) => {
+    try {
+      const { key } = req.params;
+      const preset = await storage.getAudioPresetByKey(key);
+      
+      if (!preset) {
+        return res.status(404).json({ error: "Audio preset not found" });
+      }
+      
+      res.json(preset);
+    } catch (error) {
+      console.error("Error fetching audio preset:", error);
+      res.status(500).json({ error: "Failed to fetch audio preset" });
+    }
+  });
+
+  // Serve preset audio files
+  app.get("/api/audio/presets/:key.mp3", async (req, res) => {
+    try {
+      const { key } = req.params;
+      
+      // For now, return a placeholder response for preset audio files
+      // In production, this would serve actual audio files from object storage
+      console.warn(`Audio preset ${key} requested but no actual audio file available`);
+      
+      // Return a 404 for now until actual audio files are uploaded
+      res.status(404).json({ 
+        error: "Audio preset file not found",
+        message: "Preset audio files need to be uploaded to object storage"
+      });
+    } catch (error) {
+      console.error("Error serving audio preset:", error);
+      res.status(500).json({ error: "Failed to serve audio preset" });
+    }
+  });
+
   // Display routes (for TV display management)
   
   // Add test media (for development/testing)

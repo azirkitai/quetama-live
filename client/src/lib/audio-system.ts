@@ -1,12 +1,18 @@
 // Audio System Utility for Clinic Calling System
 // Handles both sound effects and Text-to-Speech functionality
 
+import type { SoundModeType } from "@shared/schema";
+
 export interface AudioSettings {
   enableSound: boolean;
-  soundType: string;
   enableTTS: boolean;
-  ttsLanguage: string;
   volume: number;
+  ttsLanguage: string;
+  // Enhanced sound system fields
+  soundMode: SoundModeType;
+  soundType: string; // For synth mode
+  presetKey?: string; // For preset mode
+  customAudioId?: string; // For file mode
 }
 
 export interface CallInfo {
@@ -18,14 +24,87 @@ export interface CallInfo {
 export class AudioSystem {
   private static instance: AudioSystem;
   private audioContext: AudioContext | null = null;
+  private audioBufferCache: Map<string, AudioBuffer> = new Map();
+  private presetSounds: Map<string, string> = new Map();
 
-  private constructor() {}
+  private constructor() {
+    this.initializePresetSounds();
+  }
 
   public static getInstance(): AudioSystem {
     if (!AudioSystem.instance) {
       AudioSystem.instance = new AudioSystem();
     }
     return AudioSystem.instance;
+  }
+
+  private initializePresetSounds() {
+    // Professional announcement preset sounds (URLs will be set when backend provides them)
+    this.presetSounds.set('announcement1', '/api/audio/presets/announcement1.mp3');
+    this.presetSounds.set('announcement2', '/api/audio/presets/announcement2.mp3');
+    this.presetSounds.set('announcement3', '/api/audio/presets/announcement3.mp3');
+    this.presetSounds.set('hospital_chime', '/api/audio/presets/hospital_chime.mp3');
+    this.presetSounds.set('professional_ding', '/api/audio/presets/professional_ding.mp3');
+  }
+
+  private getAudioContext(): AudioContext {
+    if (!this.audioContext) {
+      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    return this.audioContext;
+  }
+
+  // Load and cache audio file
+  private async loadAudioFile(url: string): Promise<AudioBuffer> {
+    // Check cache first
+    if (this.audioBufferCache.has(url)) {
+      return this.audioBufferCache.get(url)!;
+    }
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch audio file: ${response.status}`);
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const audioContext = this.getAudioContext();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      
+      // Cache the buffer for future use
+      this.audioBufferCache.set(url, audioBuffer);
+      return audioBuffer;
+    } catch (error) {
+      console.error('Error loading audio file:', error);
+      throw error;
+    }
+  }
+
+  // Play audio file from buffer
+  private async playAudioFile(url: string, volume: number): Promise<void> {
+    try {
+      const audioBuffer = await this.loadAudioFile(url);
+      const audioContext = this.getAudioContext();
+      
+      const source = audioContext.createBufferSource();
+      const gainNode = audioContext.createGain();
+      
+      source.buffer = audioBuffer;
+      source.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Set volume
+      gainNode.gain.value = volume / 100;
+      
+      return new Promise((resolve, reject) => {
+        source.onended = () => resolve();
+        source.onerror = () => reject(new Error('Audio playback failed'));
+        source.start();
+      });
+    } catch (error) {
+      console.error('Error playing audio file:', error);
+      throw error;
+    }
   }
 
   // Generate different types of notification sounds
@@ -79,15 +158,45 @@ export class AudioSystem {
     });
   }
 
-  // Play notification sound
-  public async playNotificationSound(soundType: string, volume: number): Promise<void> {
-    if (soundType === 'custom') {
-      // For now, fall back to a default sound when custom is selected
-      // This prevents errors while custom audio upload feature is being developed
-      console.warn('Custom audio selected but not yet uploaded. Using default beep sound.');
-      return this.generateSound('beep', volume);
+  // Play notification sound based on settings mode
+  public async playNotificationSound(settings: AudioSettings): Promise<void> {
+    try {
+      switch (settings.soundMode) {
+        case 'synth':
+          return await this.generateSound(settings.soundType, settings.volume);
+          
+        case 'preset':
+          if (settings.presetKey && this.presetSounds.has(settings.presetKey)) {
+            const presetUrl = this.presetSounds.get(settings.presetKey)!;
+            return await this.playAudioFile(presetUrl, settings.volume);
+          } else {
+            console.warn('Preset not found, falling back to beep');
+            return await this.generateSound('beep', settings.volume);
+          }
+          
+        case 'file':
+          if (settings.customAudioId) {
+            // Custom audio file URL would come from media API
+            const customUrl = `/api/media/${settings.customAudioId}/file`;
+            return await this.playAudioFile(customUrl, settings.volume);
+          } else {
+            console.warn('Custom audio not specified, falling back to beep');
+            return await this.generateSound('beep', settings.volume);
+          }
+          
+        default:
+          console.warn('Unknown sound mode, falling back to beep');
+          return await this.generateSound('beep', settings.volume);
+      }
+    } catch (error) {
+      console.error('Error playing notification sound:', error);
+      // Always fall back to basic beep on error
+      return await this.generateSound('beep', settings.volume);
     }
-    
+  }
+
+  // Legacy method for backward compatibility
+  public async playNotificationSoundLegacy(soundType: string, volume: number): Promise<void> {
     return this.generateSound(soundType, volume);
   }
 
@@ -143,9 +252,9 @@ export class AudioSystem {
   // Complete calling sequence - plays both sound and TTS
   public async playCallingSequence(callInfo: CallInfo, settings: AudioSettings): Promise<void> {
     try {
-      // Step 1: Play notification sound if enabled (includes custom with fallback)
+      // Step 1: Play notification sound if enabled (supports all modes: synth/preset/file)
       if (settings.enableSound) {
-        await this.playNotificationSound(settings.soundType, settings.volume);
+        await this.playNotificationSound(settings);
         
         // Small delay between sound and speech
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -162,6 +271,33 @@ export class AudioSystem {
     }
   }
 
+  // Get available preset sounds
+  public getAvailablePresets(): Array<{key: string, name: string}> {
+    return [
+      { key: 'announcement1', name: 'Professional Announcement 1' },
+      { key: 'announcement2', name: 'Professional Announcement 2' },
+      { key: 'announcement3', name: 'Professional Announcement 3' },
+      { key: 'hospital_chime', name: 'Hospital Chime' },
+      { key: 'professional_ding', name: 'Professional Ding' },
+    ];
+  }
+
+  // Preload preset sounds for better performance
+  public async preloadPresets(): Promise<void> {
+    try {
+      const preloadPromises = Array.from(this.presetSounds.values()).map(url => 
+        this.loadAudioFile(url).catch(error => {
+          console.warn(`Failed to preload preset sound ${url}:`, error);
+        })
+      );
+      
+      await Promise.allSettled(preloadPromises);
+      console.log('Preset sounds preloading completed');
+    } catch (error) {
+      console.error('Error preloading preset sounds:', error);
+    }
+  }
+
   // Test function for settings preview
   public async playTestSequence(settings: AudioSettings): Promise<void> {
     const testCallInfo: CallInfo = {
@@ -171,6 +307,11 @@ export class AudioSystem {
     };
 
     return this.playCallingSequence(testCallInfo, settings);
+  }
+
+  // Test individual sound modes for settings UI
+  public async playTestSound(settings: AudioSettings): Promise<void> {
+    return this.playNotificationSound(settings);
   }
 }
 

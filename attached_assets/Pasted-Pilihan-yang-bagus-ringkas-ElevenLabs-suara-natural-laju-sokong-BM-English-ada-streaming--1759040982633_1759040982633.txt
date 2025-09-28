@@ -1,0 +1,203 @@
+Pilihan yang bagus (ringkas)
+
+ElevenLabs — suara natural, laju, sokong BM & English, ada streaming.
+
+Azure Speech (Neural TTS) — enterprise, banyak kawalan (SSML), kualiti tinggi.
+(Kedua-dua bukan “Google voice” dan bukan Web Speech API browser.)
+
+Cara Integrasi (disyorkan): ElevenLabs + Replit
+
+Konsep: Frontend panggil API kecil (Node/Express) di Replit → API tu call ElevenLabs → pulangkan audio MP3 untuk dimainkan. (Jangan panggil ElevenLabs terus dari browser — kunci API boleh bocor.)
+
+Langkah 0 — Buat Repl API kecil (Node.js)
+
+Di Replit: Create App → Web app → Node.js (bukan Agents).
+
+Nama contoh: quetama-tts-api.
+
+Langkah 1 — Masukkan key
+
+Dapatkan API Key ElevenLabs (akaun percuma pun cukup untuk test).
+
+Di Replit, pergi Secrets (ikon kunci) → tambah:
+
+Key: ELEVEN_API_KEY
+
+Value: xxxxxxxxxxxxxxxx (API key anda)
+
+(Opsyen) Tambah ELEVEN_VOICE_ID kalau dah pilih suara kegemaran.
+
+Langkah 2 — Kod server (paste terus)
+
+package.json
+
+{
+  "name": "quetama-tts-api",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "node-fetch": "^3.3.2",
+    "cors": "^2.8.5"
+  },
+  "scripts": { "start": "node server.js" }
+}
+
+
+server.js
+
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import fetch from 'node-fetch';
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const ELEVEN_API_KEY = process.env.ELEVEN_API_KEY;
+const DEFAULT_VOICE_ID = process.env.ELEVEN_VOICE_ID || '21m00Tcm4TlvDq8ikWAM'; // contoh voice umum
+
+// Endpoint TTS: GET /api/tts?text=...
+app.get('/api/tts', async (req, res) => {
+  try {
+    const text = (req.query.text || '').toString().trim();
+    if (!text) return res.status(400).json({ error: 'text is required' });
+
+    const voiceId = DEFAULT_VOICE_ID;
+    const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream?` +
+                `optimize_streaming_latency=3&output_format=mp3_44100_128`;
+
+    const body = {
+      text,
+      // Model multilingual bagus untuk BM+EN campur:
+      model_id: 'eleven_multilingual_v2',
+      voice_settings: {
+        stability: 0.4,
+        similarity_boost: 0.8,
+        style: 0.3,
+        use_speaker_boost: true
+      }
+    };
+
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'xi-api-key': ELEVEN_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!r.ok) {
+      const errText = await r.text().catch(() => '');
+      return res.status(500).json({ error: 'TTS failed', detail: errText });
+    }
+
+    res.setHeader('Content-Type', 'audio/mpeg');
+    // Stream terus ke client (rendah latency)
+    r.body.pipe(res);
+  } catch (e) {
+    res.status(500).json({ error: 'server error', detail: String(e) });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log('TTS API on :' + PORT));
+
+
+Klik Run → salin Public URL repl ni (contoh: https://quetama-tts-api.youruser.repl.co).
+
+Langkah 3 — Guna dalam dashboard (frontend)
+
+Dalam projek dashboard (HTML/CSS/JS) anda, tambah fungsi ini (misalnya di script.js):
+
+const TTS_API = 'https://YOUR-REPL-URL.repl.co/api/tts'; // ganti dengan URL sebenar
+
+async function speak(text) {
+  // TIP: tambah titik atau koma untuk buat jeda semula jadi
+  const url = TTS_API + '?text=' + encodeURIComponent(text);
+  const res = await fetch(url);
+  if (!res.ok) { console.error('TTS error'); return; }
+  const blob = await res.blob();
+  const audioURL = URL.createObjectURL(blob);
+  const audio = new Audio(audioURL);
+  // Autoplay policy: pastikan pengguna pernah klik apa-apa butang dulu
+  await audio.play().catch(err => console.warn('Play blocked', err));
+}
+
+// Contoh dalam sistem queue:
+function callPatient(name, counter) {
+  const line = `Panggilan untuk ${name}. Sila ke ${counter}.`;
+  speak(line);
+}
+// contoh: callPatient('Farish Asyra', 'Kaunter Ubat');
+
+
+Tip natural: Teks seperti
+“Panggilan untuk Farish Asyra. Sila ke kaunter ubat.”
+
+tanda baca → jeda pendek & kedengaran lebih manusiawi.
+
+Langkah 4 — Jimat kos & laju
+
+Cache audio di browser untuk frasa berulang:
+
+const ttsCache = new Map();
+async function speakCached(text) {
+  if (ttsCache.has(text)) return (await ttsCache.get(text)).play();
+  const res = await fetch(TTS_API + '?text=' + encodeURIComponent(text));
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = new Audio(url);
+  ttsCache.set(text, a);
+  return a.play();
+}
+
+
+Pre-generate audio untuk frasa tetap (“Sila ke kaunter…”, “Mohon tunggu…”) dan hanya TTS-kan nama jika benar-benar perlu.
+
+Untuk deployment murah, host API ini dengan autoscale min=0 (cold start sikit tapi jimat), atau biar “Run” bila perlu sahaja.
+
+Alternatif: Azure Speech (Neural TTS)
+
+Kalau anda prefer Microsoft (lebih banyak kawalan SSML):
+
+Buat Azure Speech resource → ambil Key & Region.
+
+Dalam Replit Node API, ganti endpoint ke Azure:
+
+URL: https://<region>.tts.speech.microsoft.com/cognitiveservices/v1
+
+Headers:
+Ocp-Apim-Subscription-Key: <key>
+Content-Type: application/ssml+xml
+X-Microsoft-OutputFormat: audio-24khz-160kbitrate-mono-mp3
+
+Body SSML contoh:
+
+<speak version="1.0" xml:lang="ms-MY">
+  <voice name="ms-MY-<PILIH_VOICE>">
+    Panggilan untuk <break time="200ms"/> Farish Asyra. 
+    <break time="300ms"/> Sila ke kaunter ubat.
+  </voice>
+</speak>
+
+
+Sama konsep: stream MP3 ke client dan new Audio(url).play().
+
+Elak “suara Google / browser”
+
+Jangan guna speechSynthesis.speak() (Web Speech API) — itu guna suara browser (sering Google).
+
+Sentiasa panggil API sendiri (Node/Express) → provider TTS (ElevenLabs/Azure) → mainkan audio.
+
+Isu biasa & cara settle
+
+Autoplay blocked: minta user klik 1 kali “Enable sound” masa mula load TV/dashboard (lepas tu boleh auto-play).
+
+Kunci API terbocor: pastikan key hanya di server (Replit Secrets), bukan di JS frontend.
+
+Latency: guna endpoint stream (saya dah set) dan caching.
+
+Sebutan nama unik: tambah tanda baca/jeda atau eja fonetik ringan (cth “Aisyah” → “Ai-syah”) bila perlu.

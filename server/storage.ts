@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting, type Media, type InsertMedia, type Theme, type InsertTheme } from "@shared/schema";
+import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting, type Media, type InsertMedia, type Theme, type InsertTheme, type AudioPreset, type InsertAudioPreset } from "@shared/schema";
 
 interface Window {
   id: string;
@@ -72,6 +72,13 @@ export interface IStorage {
   updateTheme(id: string, updates: Partial<Theme>): Promise<Theme | undefined>;
   deleteTheme(id: string): Promise<boolean>;
   setActiveTheme(id: string): Promise<Theme | undefined>;
+  
+  // Audio preset methods
+  getAudioPresets(): Promise<AudioPreset[]>;
+  getAudioPresetByKey(key: string): Promise<AudioPreset | undefined>;
+  createAudioPreset(preset: InsertAudioPreset): Promise<AudioPreset>;
+  updateAudioPreset(id: string, updates: Partial<AudioPreset>): Promise<AudioPreset | undefined>;
+  deleteAudioPreset(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -81,6 +88,7 @@ export class MemStorage implements IStorage {
   private settings: Map<string, Setting>;
   private media: Map<string, Media>;
   private themes: Map<string, Theme>;
+  private audioPresets: Map<string, AudioPreset>;
 
   constructor() {
     this.users = new Map();
@@ -89,6 +97,7 @@ export class MemStorage implements IStorage {
     this.settings = new Map();
     this.media = new Map();
     this.themes = new Map();
+    this.audioPresets = new Map();
     
     // Initialize default settings and theme
     this.initializeDefaultSettings();
@@ -586,6 +595,46 @@ export class MemStorage implements IStorage {
 
     // Activate the selected theme
     return await this.updateTheme(id, { isActive: true });
+  }
+
+  // Audio preset methods
+  async getAudioPresets(): Promise<AudioPreset[]> {
+    return Array.from(this.audioPresets.values());
+  }
+
+  async getAudioPresetByKey(key: string): Promise<AudioPreset | undefined> {
+    return Array.from(this.audioPresets.values()).find(preset => preset.key === key);
+  }
+
+  async createAudioPreset(insertPreset: InsertAudioPreset): Promise<AudioPreset> {
+    const id = randomUUID();
+    const preset: AudioPreset = {
+      id,
+      key: insertPreset.key,
+      name: insertPreset.name,
+      description: insertPreset.description || null,
+      url: insertPreset.url,
+      isActive: true,
+      createdAt: new Date(),
+    };
+    this.audioPresets.set(id, preset);
+    return preset;
+  }
+
+  async updateAudioPreset(id: string, updates: Partial<AudioPreset>): Promise<AudioPreset | undefined> {
+    const preset = this.audioPresets.get(id);
+    if (!preset) return undefined;
+
+    const updatedPreset = { 
+      ...preset, 
+      ...updates 
+    };
+    this.audioPresets.set(id, updatedPreset);
+    return updatedPreset;
+  }
+
+  async deleteAudioPreset(id: string): Promise<boolean> {
+    return this.audioPresets.delete(id);
   }
 }
 

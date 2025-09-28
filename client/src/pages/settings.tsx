@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Monitor, Volume2, Palette, Upload, Save, RefreshCw, CheckCircle, Plus, ChevronLeft, ChevronRight, Eye, Trash2, Edit } from "lucide-react";
+import { Monitor, Volume2, Palette, Upload, Save, RefreshCw, CheckCircle, Plus, ChevronLeft, ChevronRight, Eye, Trash2, Edit, Star, Upload as UploadIcon } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +28,10 @@ interface SettingsState {
   enableTTS: boolean;
   ttsLanguage: string; // "ms" for Malay, "en" for English
   volume: number;
+  // Enhanced audio system
+  soundMode: 'synth' | 'preset' | 'file';
+  presetKey?: string;
+  customAudioId?: string;
 }
 
 // Using Media type from shared schema instead of local interface
@@ -62,7 +66,11 @@ export default function Settings() {
     soundType: "beep",
     enableTTS: false,
     ttsLanguage: "ms",
-    volume: 70
+    volume: 70,
+    // Enhanced audio system defaults
+    soundMode: 'synth',
+    presetKey: undefined,
+    customAudioId: undefined
   });
 
   // YouTube preview states
@@ -153,7 +161,11 @@ export default function Settings() {
         soundType: settingsObj.soundType || "beep",
         enableTTS: settingsObj.enableTTS === "true",
         ttsLanguage: settingsObj.ttsLanguage || "ms",
-        volume: parseInt(settingsObj.volume || "70")
+        volume: parseInt(settingsObj.volume || "70"),
+        // Enhanced audio system fields
+        soundMode: (settingsObj.soundMode as 'synth' | 'preset' | 'file') || 'synth',
+        presetKey: settingsObj.presetKey || undefined,
+        customAudioId: settingsObj.customAudioId || undefined
       };
       
       setCurrentSettings(newSettings);
@@ -164,7 +176,7 @@ export default function Settings() {
         validateAndPreviewYouTube(newSettings.youtubeUrl);
       }
     }
-  }, [settings, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.enableSound, settingsObj.soundType, settingsObj.enableTTS, settingsObj.ttsLanguage, settingsObj.volume]);
+  }, [settings, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.enableSound, settingsObj.soundType, settingsObj.enableTTS, settingsObj.ttsLanguage, settingsObj.volume, settingsObj.soundMode, settingsObj.presetKey, settingsObj.customAudioId]);
 
   // Update theme colors when active theme is loaded
   useEffect(() => {
@@ -361,7 +373,11 @@ export default function Settings() {
       { key: 'soundType', value: currentSettings.soundType, category: 'sound' },
       { key: 'enableTTS', value: currentSettings.enableTTS.toString(), category: 'sound' },
       { key: 'ttsLanguage', value: currentSettings.ttsLanguage, category: 'sound' },
-      { key: 'volume', value: currentSettings.volume.toString(), category: 'sound' }
+      { key: 'volume', value: currentSettings.volume.toString(), category: 'sound' },
+      // Enhanced audio system fields
+      { key: 'soundMode', value: currentSettings.soundMode, category: 'sound' },
+      { key: 'presetKey', value: currentSettings.presetKey || '', category: 'sound' },
+      { key: 'customAudioId', value: currentSettings.customAudioId || '', category: 'sound' }
     ];
     saveSettingsMutation.mutate(soundSettingsToSave);
   };
@@ -395,7 +411,19 @@ export default function Settings() {
     const testVolume = volume !== undefined ? volume : currentSettings.volume;
     
     try {
-      await audioSystem.playNotificationSound(currentSettings.soundType, testVolume);
+      // Create AudioSettings object for the new API
+      const audioSettings = {
+        enableSound: true,
+        enableTTS: false,
+        volume: testVolume,
+        ttsLanguage: currentSettings.ttsLanguage,
+        soundMode: currentSettings.soundMode,
+        soundType: currentSettings.soundType,
+        presetKey: currentSettings.presetKey,
+        customAudioId: currentSettings.customAudioId
+      };
+      
+      await audioSystem.playTestSound(audioSettings);
     } catch (error) {
       console.error('Error playing test sound:', error);
       toast({
@@ -1367,29 +1395,114 @@ export default function Settings() {
 
               {currentSettings.enableSound && (
                 <>
-                  {/* Sound Type */}
-                  <div className="space-y-2">
-                    <Label>Jenis Bunyi</Label>
-                    <Select 
-                      value={currentSettings.soundType} 
-                      onValueChange={(value) => updateSoundSetting('soundType', value)}
-                    >
-                      <SelectTrigger data-testid="select-sound-type">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="beep">Beep (Standard)</SelectItem>
-                        <SelectItem value="chime">Chime (Gentle)</SelectItem>
-                        <SelectItem value="bell">Bell (Classic)</SelectItem>
-                        <SelectItem value="notification">Notification (Modern)</SelectItem>
-                        <SelectItem value="ding">Ding (Sharp)</SelectItem>
-                        <SelectItem value="tone">Tone (Professional)</SelectItem>
-                        <SelectItem value="buzzer">Buzzer (Attention)</SelectItem>
-                        <SelectItem value="whistle">Whistle (Alert)</SelectItem>
-                        <SelectItem value="custom">Custom Audio</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  {/* Sound Mode Selection */}
+                  <div className="space-y-4">
+                    <Label>Mode Bunyi</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button
+                        variant={currentSettings.soundMode === 'synth' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => updateSoundSetting('soundMode', 'synth')}
+                        data-testid="button-mode-synth"
+                        className="flex flex-col p-4 h-auto"
+                      >
+                        <Volume2 className="h-5 w-5 mb-1" />
+                        <span className="text-xs">Simple Tones</span>
+                      </Button>
+                      <Button
+                        variant={currentSettings.soundMode === 'preset' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => updateSoundSetting('soundMode', 'preset')}
+                        data-testid="button-mode-preset"
+                        className="flex flex-col p-4 h-auto"
+                      >
+                        <Star className="h-5 w-5 mb-1" />
+                        <span className="text-xs">Announcement</span>
+                      </Button>
+                      <Button
+                        variant={currentSettings.soundMode === 'file' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => updateSoundSetting('soundMode', 'file')}
+                        data-testid="button-mode-file"
+                        className="flex flex-col p-4 h-auto"
+                      >
+                        <UploadIcon className="h-5 w-5 mb-1" />
+                        <span className="text-xs">Custom File</span>
+                      </Button>
+                    </div>
                   </div>
+
+                  {/* Mode-specific Controls */}
+                  {currentSettings.soundMode === 'synth' && (
+                    <div className="space-y-2">
+                      <Label>Jenis Bunyi</Label>
+                      <Select 
+                        value={currentSettings.soundType} 
+                        onValueChange={(value) => updateSoundSetting('soundType', value)}
+                      >
+                        <SelectTrigger data-testid="select-sound-type">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="beep">Beep (Standard)</SelectItem>
+                          <SelectItem value="chime">Chime (Gentle)</SelectItem>
+                          <SelectItem value="bell">Bell (Classic)</SelectItem>
+                          <SelectItem value="notification">Notification (Modern)</SelectItem>
+                          <SelectItem value="ding">Ding (Sharp)</SelectItem>
+                          <SelectItem value="tone">Tone (Professional)</SelectItem>
+                          <SelectItem value="buzzer">Buzzer (Attention)</SelectItem>
+                          <SelectItem value="whistle">Whistle (Alert)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {currentSettings.soundMode === 'preset' && (
+                    <div className="space-y-2">
+                      <Label>Professional Announcement Sounds</Label>
+                      <Select 
+                        value={currentSettings.presetKey || ''} 
+                        onValueChange={(value) => updateSoundSetting('presetKey', value)}
+                      >
+                        <SelectTrigger data-testid="select-preset-sound">
+                          <SelectValue placeholder="Pilih bunyi announcement" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="announcement1">Professional Announcement 1</SelectItem>
+                          <SelectItem value="announcement2">Professional Announcement 2</SelectItem>
+                          <SelectItem value="announcement3">Professional Announcement 3</SelectItem>
+                          <SelectItem value="hospital_chime">Hospital Chime</SelectItem>
+                          <SelectItem value="professional_ding">Professional Ding</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <div className="text-sm text-muted-foreground">
+                        Bunyi announcement berkualiti tinggi yang sesuai untuk klinik
+                      </div>
+                    </div>
+                  )}
+
+                  {currentSettings.soundMode === 'file' && (
+                    <div className="space-y-2">
+                      <Label>Custom Audio File</Label>
+                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+                        <UploadIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Upload your custom announcement sound
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Supported formats: MP3, WAV (Max 5MB)
+                        </p>
+                        <Button variant="outline" size="sm" className="mt-2" disabled>
+                          Choose File (Coming Soon)
+                        </Button>
+                      </div>
+                      {currentSettings.customAudioId && (
+                        <div className="text-sm text-green-600">
+                          ✓ Custom audio file uploaded successfully
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Volume with Preview */}
                   <div className="space-y-2">
