@@ -14,6 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import type { Setting, Media, Theme } from "@shared/schema";
 import { audioSystem } from "@/lib/audio-system";
 
+import type { PresetSoundKeyType } from "@shared/schema";
+
 interface SettingsState {
   mediaType: string;
   dashboardMediaType: string; // "own" or "youtube"
@@ -24,17 +26,10 @@ interface SettingsState {
   marqueeText: string;
   marqueeColor: string;
   enableSound: boolean;
-  soundType: string;
-  enableTTS: boolean;
-  ttsLanguage: string; // "ms" for Malay, "en" for English
   volume: number;
-  // Enhanced audio system
-  soundMode: 'synth' | 'preset' | 'file';
-  presetKey?: string;
-  customAudioId?: string;
-  // Separate voice models for better quality
-  elevenVoiceIdBM: string; // Voice ID for Bahasa Malaysia
-  elevenVoiceIdEN: string; // Voice ID for English
+  // Simplified audio system - preset only
+  soundMode: 'preset';
+  presetKey: PresetSoundKeyType;
 }
 
 // Using Media type from shared schema instead of local interface
@@ -66,17 +61,10 @@ export default function Settings() {
     marqueeText: "Selamat datang ke Klinik Kesihatan",
     marqueeColor: "#ffffff",
     enableSound: true,
-    soundType: "beep",
-    enableTTS: false,
-    ttsLanguage: "ms",
     volume: 70,
-    // Enhanced audio system defaults
-    soundMode: 'synth',
-    presetKey: undefined,
-    customAudioId: undefined,
-    // Separate voice models for better quality
-    elevenVoiceIdBM: "15Y62ZlO8it2f5wduybx", // Voice untuk Bahasa Malaysia
-    elevenVoiceIdEN: "21m00Tcm4TlvDq8ikWAM"  // Default ElevenLabs voice for EN (Rachel)
+    // Simplified audio system - preset only
+    soundMode: 'preset',
+    presetKey: 'airport_call' // Default preset
   });
 
   // YouTube preview states
@@ -164,17 +152,10 @@ export default function Settings() {
         marqueeText: settingsObj.marqueeText || "Selamat datang ke Klinik Kesihatan",
         marqueeColor: settingsObj.marqueeColor || "#ffffff",
         enableSound: settingsObj.enableSound === "true",
-        soundType: settingsObj.soundType || "beep",
-        enableTTS: settingsObj.enableTTS === "true",
-        ttsLanguage: settingsObj.ttsLanguage || "ms",
         volume: parseInt(settingsObj.volume || "70"),
-        // Enhanced audio system fields
-        soundMode: (settingsObj.soundMode as 'synth' | 'preset' | 'file') || 'synth',
-        presetKey: settingsObj.presetKey || undefined,
-        customAudioId: settingsObj.customAudioId || undefined,
-        // Separate voice models for better quality
-        elevenVoiceIdBM: settingsObj.elevenVoiceIdBM || "15Y62ZlO8it2f5wduybx", // Voice untuk Bahasa Malaysia
-        elevenVoiceIdEN: settingsObj.elevenVoiceIdEN || "21m00Tcm4TlvDq8ikWAM"
+        // Simplified audio system - preset only
+        soundMode: 'preset' as const,
+        presetKey: (settingsObj.presetKey as PresetSoundKeyType) || 'airport_call'
       };
       
       setCurrentSettings(newSettings);
@@ -185,7 +166,7 @@ export default function Settings() {
         validateAndPreviewYouTube(newSettings.youtubeUrl);
       }
     }
-  }, [settings, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.enableSound, settingsObj.soundType, settingsObj.enableTTS, settingsObj.ttsLanguage, settingsObj.volume, settingsObj.soundMode, settingsObj.presetKey, settingsObj.customAudioId, settingsObj.elevenVoiceIdBM, settingsObj.elevenVoiceIdEN]);
+  }, [settings, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.enableSound, settingsObj.volume, settingsObj.presetKey]);
 
   // Update theme colors when active theme is loaded
   useEffect(() => {
@@ -358,32 +339,8 @@ export default function Settings() {
   };
 
   const updateSoundSetting = (key: keyof SettingsState, value: any) => {
-    const updatedSettings = { ...currentSettings, [key]: value };
-    
-    // Auto-update soundType based on soundMode to ensure compatibility
-    if (key === 'soundMode') {
-      if (value === 'preset') {
-        updatedSettings.soundType = 'announcement'; // Set appropriate soundType for preset mode
-        if (!updatedSettings.presetKey) {
-          updatedSettings.presetKey = 'announcement1'; // Default preset
-        }
-      } else if (value === 'file') {
-        updatedSettings.soundType = 'custom'; // Set appropriate soundType for file mode
-      } else if (value === 'synth') {
-        updatedSettings.soundType = 'beep'; // Default for synth mode
-      }
-    }
-    
-    setCurrentSettings(updatedSettings);
+    setCurrentSettings(prev => ({ ...prev, [key]: value }));
     trackChange(key);
-    
-    // Track additional changes if we auto-updated other fields
-    if (key === 'soundMode') {
-      trackChange('soundType');
-      if (value === 'preset' && !currentSettings.presetKey) {
-        trackChange('presetKey');
-      }
-    }
   };
 
   const handleSaveDisplay = () => {
@@ -403,17 +360,9 @@ export default function Settings() {
   const handleSaveSound = () => {
     const soundSettingsToSave = [
       { key: 'enableSound', value: currentSettings.enableSound.toString(), category: 'sound' },
-      { key: 'soundType', value: currentSettings.soundType, category: 'sound' },
-      { key: 'enableTTS', value: currentSettings.enableTTS.toString(), category: 'sound' },
-      { key: 'ttsLanguage', value: currentSettings.ttsLanguage, category: 'sound' },
       { key: 'volume', value: currentSettings.volume.toString(), category: 'sound' },
-      // Enhanced audio system fields
       { key: 'soundMode', value: currentSettings.soundMode, category: 'sound' },
-      { key: 'presetKey', value: currentSettings.presetKey || '', category: 'sound' },
-      { key: 'customAudioId', value: currentSettings.customAudioId || '', category: 'sound' },
-      // Separate voice models for better quality
-      { key: 'elevenVoiceIdBM', value: currentSettings.elevenVoiceIdBM, category: 'sound' },
-      { key: 'elevenVoiceIdEN', value: currentSettings.elevenVoiceIdEN, category: 'sound' }
+      { key: 'presetKey', value: currentSettings.presetKey, category: 'sound' }
     ];
     saveSettingsMutation.mutate(soundSettingsToSave);
   };
@@ -440,23 +389,19 @@ export default function Settings() {
     volumePreviewTimeoutRef.current = setTimeout(() => {
       playTestSound(volume);
     }, 300); // 300ms debounce
-  }, [currentSettings.soundType]);
+  }, [currentSettings.presetKey]);
 
-  // Audio testing functions using the new audio system
+  // Audio testing functions using the simplified audio system
   const playTestSound = async (volume?: number) => {
     const testVolume = volume !== undefined ? volume : currentSettings.volume;
     
     try {
-      // Create AudioSettings object for the new API
+      // Create AudioSettings object for the new simplified API
       const audioSettings = {
         enableSound: true,
-        enableTTS: false,
         volume: testVolume,
-        ttsLanguage: currentSettings.ttsLanguage,
         soundMode: currentSettings.soundMode,
-        soundType: currentSettings.soundType,
-        presetKey: currentSettings.presetKey,
-        customAudioId: currentSettings.customAudioId
+        presetKey: currentSettings.presetKey
       };
       
       await audioSystem.playTestSound(audioSettings);
@@ -470,43 +415,20 @@ export default function Settings() {
     }
   };
 
-  const playTestTTS = async () => {
-    try {
-      const testCallInfo = {
-        patientName: "Ahmad Bin Ali",
-        patientNumber: 123,
-        windowName: "Kaunter 1"
-      };
-
-      await audioSystem.playTTS(testCallInfo, currentSettings.ttsLanguage, currentSettings.volume);
-    } catch (error) {
-      console.error('Error playing test TTS:', error);
-      toast({
-        title: "TTS Error",
-        description: error instanceof Error ? error.message : "Failed to play text-to-speech",
-        variant: "destructive"
-      });
-    }
-  };
-
   const playTestSequence = async () => {
     try {
       const audioSettings = {
         enableSound: currentSettings.enableSound,
-        soundType: currentSettings.soundType,
-        enableTTS: currentSettings.enableTTS,
-        ttsLanguage: currentSettings.ttsLanguage,
         volume: currentSettings.volume,
         soundMode: currentSettings.soundMode,
-        presetKey: currentSettings.presetKey,
-        customAudioId: currentSettings.customAudioId
+        presetKey: currentSettings.presetKey
       };
 
       await audioSystem.playTestSequence(audioSettings);
       
       toast({
         title: "Test Complete",
-        description: "Audio sequence played successfully",
+        description: "Audio preset played successfully",
       });
     } catch (error) {
       console.error('Error playing test sequence:', error);
@@ -1433,130 +1355,30 @@ export default function Settings() {
               </div>
 
               {currentSettings.enableSound && (
-                <>
-                  {/* Sound Mode Selection */}
+                <div className="space-y-4">
+                  {/* Preset Sound Selection */}
                   <div className="space-y-4">
-                    <Label>Mode Bunyi</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <Button
-                        variant={currentSettings.soundMode === 'synth' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => updateSoundSetting('soundMode', 'synth')}
-                        data-testid="button-mode-synth"
-                        className="flex flex-col p-4 h-auto"
-                      >
-                        <Volume2 className="h-5 w-5 mb-1" />
-                        <span className="text-xs">Simple Tones</span>
-                      </Button>
-                      <Button
-                        variant={currentSettings.soundMode === 'preset' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => updateSoundSetting('soundMode', 'preset')}
-                        data-testid="button-mode-preset"
-                        className="flex flex-col p-4 h-auto"
-                      >
-                        <Star className="h-5 w-5 mb-1" />
-                        <span className="text-xs">Announcement</span>
-                      </Button>
-                      <Button
-                        variant={currentSettings.soundMode === 'file' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => updateSoundSetting('soundMode', 'file')}
-                        data-testid="button-mode-file"
-                        className="flex flex-col p-4 h-auto"
-                      >
-                        <UploadIcon className="h-5 w-5 mb-1" />
-                        <span className="text-xs">Custom File</span>
-                      </Button>
-                    </div>
+                    <Label>Audio Preset Selection</Label>
+                    <Select
+                      value={currentSettings.presetKey}
+                      onValueChange={(value) => updateSoundSetting('presetKey', value)}
+                    >
+                      <SelectTrigger data-testid="select-preset-sound">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="notification_sound">Notification Sound</SelectItem>
+                        <SelectItem value="subway_chime">Subway Station Chime</SelectItem>
+                        <SelectItem value="header_tone">Header Tone</SelectItem>
+                        <SelectItem value="airport_chime">Airport Announcement Chime</SelectItem>
+                        <SelectItem value="airport_call">Airport Call</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  {/* Mode-specific Controls */}
-                  {currentSettings.soundMode === 'synth' && (
-                    <div className="space-y-2">
-                      <Label>Jenis Bunyi</Label>
-                      <Select 
-                        value={currentSettings.soundType} 
-                        onValueChange={(value) => updateSoundSetting('soundType', value)}
-                      >
-                        <SelectTrigger data-testid="select-sound-type">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="beep">Beep (Standard)</SelectItem>
-                          <SelectItem value="chime">Chime (Gentle)</SelectItem>
-                          <SelectItem value="bell">Bell (Classic)</SelectItem>
-                          <SelectItem value="notification">Notification (Modern)</SelectItem>
-                          <SelectItem value="ding">Ding (Sharp)</SelectItem>
-                          <SelectItem value="tone">Tone (Professional)</SelectItem>
-                          <SelectItem value="buzzer">Buzzer (Attention)</SelectItem>
-                          <SelectItem value="whistle">Whistle (Alert)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {currentSettings.soundMode === 'preset' && (
-                    <div className="space-y-2">
-                      <Label>Professional Announcement Sounds</Label>
-                      <Select 
-                        value={currentSettings.presetKey || ''} 
-                        onValueChange={(value) => updateSoundSetting('presetKey', value)}
-                      >
-                        <SelectTrigger data-testid="select-preset-sound">
-                          <SelectValue placeholder="Pilih bunyi announcement" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="announcement1">Professional Announcement 1</SelectItem>
-                          <SelectItem value="announcement2">Professional Announcement 2</SelectItem>
-                          <SelectItem value="announcement3">Professional Announcement 3</SelectItem>
-                          <SelectItem value="hospital_chime">Hospital Chime</SelectItem>
-                          <SelectItem value="professional_ding">Professional Ding</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <div className="text-sm text-muted-foreground">
-                        Bunyi announcement berkualiti tinggi yang sesuai untuk klinik
-                      </div>
-                    </div>
-                  )}
-
-                  {currentSettings.soundMode === 'file' && (
-                    <div className="space-y-2">
-                      <Label>Custom Audio File</Label>
-                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                        <UploadIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Upload your custom announcement sound
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Supported formats: MP3, WAV (Max 5MB)
-                        </p>
-                        <Button variant="outline" size="sm" className="mt-2" disabled>
-                          Choose File (Coming Soon)
-                        </Button>
-                      </div>
-                      {currentSettings.customAudioId && (
-                        <div className="text-sm text-green-600">
-                          ✓ Custom audio file uploaded successfully
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Volume with Preview */}
+                  {/* Volume Control */}
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label>Volume ({currentSettings.volume}%)</Label>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => playTestSound()}
-                        data-testid="button-test-sound"
-                      >
-                        <Volume2 className="h-4 w-4 mr-2" />
-                        Test Sound
-                      </Button>
-                    </div>
+                    <Label>Volume: {currentSettings.volume}%</Label>
                     <input
                       type="range"
                       min="0"
@@ -1569,7 +1391,6 @@ export default function Settings() {
                       onInput={(e) => {
                         const newVolume = parseInt((e.target as HTMLInputElement).value);
                         updateSoundSetting('volume', newVolume);
-                        // Debounced real-time preview
                         debouncedVolumePreview(newVolume);
                       }}
                       className="w-full"
@@ -1577,177 +1398,19 @@ export default function Settings() {
                     />
                   </div>
 
-                  {/* Text-to-Speech */}
+                  {/* Test Audio Button */}
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Text-to-Speech</Label>
-                        <div className="text-sm text-muted-foreground">
-                          Sebut nama/nombor pesakit
-                        </div>
-                      </div>
-                      <Switch
-                        checked={currentSettings.enableTTS}
-                        onCheckedChange={(checked) => updateSoundSetting('enableTTS', checked)}
-                        data-testid="switch-enable-tts"
-                      />
-                    </div>
-
-                    {currentSettings.enableTTS && (
-                      <>
-                        {/* TTS Language Selection */}
-                        <div className="space-y-2">
-                          <Label>Bahasa TTS</Label>
-                          <Select 
-                            value={currentSettings.ttsLanguage || "ms"} 
-                            onValueChange={(value) => updateSoundSetting('ttsLanguage', value)}
-                          >
-                            <SelectTrigger data-testid="select-tts-language">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="ms">Bahasa Melayu</SelectItem>
-                              <SelectItem value="en">English</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        {/* TTS Templates Preview */}
-                        <div className="space-y-2">
-                          <Label>Template Preview (ElevenLabs Enhanced)</Label>
-                          <div className="p-3 bg-muted rounded-lg text-sm">
-                            <div className="mb-2">
-                              <strong>Natural Format:</strong><br />
-                              <span className="text-green-600">English: "Calling for [Name]. Please proceed to [Window]."</span><br />
-                              <span className="text-green-600">Malay: "Panggilan untuk [Name]. Sila ke [Window]."</span>
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              Menggunakan suara natural ElevenLabs dengan punctuation untuk jeda yang lebih alami<br />
-                              Auto-fallback ke browser TTS jika ElevenLabs tidak tersedia
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* ElevenLabs Configuration Notice */}
-                        <div className="space-y-2">
-                          <Label>ElevenLabs TTS Configuration</Label>
-                          <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-                            <div className="text-sm space-y-2">
-                              <div className="font-medium text-blue-900 dark:text-blue-100">
-                                Separate Language Models for Better Quality
-                              </div>
-                              <div className="text-blue-700 dark:text-blue-300">
-                                Menggunakan model berlainan untuk Bahasa Malaysia dan English untuk kualiti suara yang lebih baik.
-                              </div>
-                              <div className="mt-3 text-xs text-blue-600 dark:text-blue-400 space-y-1">
-                                <div><strong>Setup Required:</strong></div>
-                                <div>1. Dapatkan ElevenLabs API key dari elevenlabs.io</div>
-                                <div>2. Di Replit Secrets, tambah: <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">ELEVEN_API_KEY</code></div>
-                                <div>3. (Opsional) Tambah voice IDs khusus untuk setiap bahasa di bawah</div>
-                                <div className="mt-2 font-medium">Jika tidak dikonfigurasi, akan auto-fallback ke browser TTS.</div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Separate Voice Models Configuration */}
-                        <div className="space-y-4">
-                          <Label>Voice Models untuk Setiap Bahasa</Label>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Bahasa Malaysia Voice ID */}
-                            <div className="space-y-2">
-                              <Label htmlFor="elevenVoiceIdBM">Voice ID - Bahasa Malaysia</Label>
-                              <Input
-                                id="elevenVoiceIdBM"
-                                data-testid="input-eleven-voice-bm"
-                                value={currentSettings.elevenVoiceIdBM}
-                                onChange={(e) => {
-                                  setCurrentSettings(prev => ({ ...prev, elevenVoiceIdBM: e.target.value }));
-                                  setUnsavedChanges(prev => [...prev.filter(key => key !== 'elevenVoiceIdBM'), 'elevenVoiceIdBM']);
-                                }}
-                                placeholder="15Y62ZlO8it2f5wduybx"
-                                className="font-mono text-sm"
-                              />
-                              <div className="text-xs text-muted-foreground">
-                                Voice ID khusus untuk panggilan Bahasa Malaysia. Dapatkan ID dari elevenlabs.io/voice-library
-                              </div>
-                            </div>
-
-                            {/* English Voice ID */}
-                            <div className="space-y-2">
-                              <Label htmlFor="elevenVoiceIdEN">Voice ID - English</Label>
-                              <Input
-                                id="elevenVoiceIdEN"
-                                data-testid="input-eleven-voice-en"
-                                value={currentSettings.elevenVoiceIdEN}
-                                onChange={(e) => {
-                                  setCurrentSettings(prev => ({ ...prev, elevenVoiceIdEN: e.target.value }));
-                                  setUnsavedChanges(prev => [...prev.filter(key => key !== 'elevenVoiceIdEN'), 'elevenVoiceIdEN']);
-                                }}
-                                placeholder="21m00Tcm4TlvDq8ikWAM"
-                                className="font-mono text-sm"
-                              />
-                              <div className="text-xs text-muted-foreground">
-                                Voice ID khusus untuk panggilan English
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="p-3 border rounded-lg bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
-                            <div className="text-sm text-amber-700 dark:text-amber-300">
-                              <div className="font-medium mb-1">💡 Tips untuk Voice Quality:</div>
-                              <div>• Guna voice ID berlainan untuk setiap bahasa untuk hasil terbaik</div>
-                              <div>• Test voice samples di ElevenLabs sebelum configure</div>
-                              <div>• Voice models yang sama akan digunakan untuk kedua-dua bahasa jika dibiarkan kosong</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* TTS Test Buttons */}
-                        <div className="space-y-2">
-                          <Button
-                            variant="outline"
-                            onClick={() => playTestTTS()}
-                            className="w-full"
-                            data-testid="button-test-tts"
-                          >
-                            <Volume2 className="h-4 w-4 mr-2" />
-                            Test Text-to-Speech Only
-                          </Button>
-                          
-                          {currentSettings.enableSound && (
-                            <Button
-                              variant="default"
-                              onClick={() => playTestSequence()}
-                              className="w-full"
-                              data-testid="button-test-full-sequence"
-                            >
-                              <Volume2 className="h-4 w-4 mr-2" />
-                              Test Complete Calling Sequence
-                            </Button>
-                          )}
-                        </div>
-                      </>
-                    )}
+                    <Button
+                      variant="outline"
+                      onClick={() => playTestSequence()}
+                      className="w-full"
+                      data-testid="button-test-audio"
+                    >
+                      <Volume2 className="h-4 w-4 mr-2" />
+                      Test Audio Preset
+                    </Button>
                   </div>
-
-                  {/* Custom Audio Upload */}
-                  {currentSettings.soundType === "custom" && (
-                    <div className="space-y-2">
-                      <Label>Custom Audio File</Label>
-                      <Button
-                        variant="outline"
-                        onClick={() => console.log("Upload custom audio")}
-                        className="w-full"
-                        data-testid="button-upload-audio"
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload Audio File
-                      </Button>
-                    </div>
-                  )}
-                </>
+                </div>
               )}
 
               <Button 
