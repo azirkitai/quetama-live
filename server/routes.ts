@@ -722,8 +722,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get active media for display
   app.get("/api/display", async (req, res) => {
     try {
-      const activeMedia = await storage.getActiveMedia();
-      res.json(activeMedia);
+      // Get current settings to determine media type
+      const settings = await storage.getSettings();
+      const settingsObj = settings.reduce((acc: Record<string, string>, setting) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {});
+
+      const dashboardMediaType = settingsObj.dashboardMediaType || "own";
+      const youtubeUrl = settingsObj.youtubeUrl || "";
+
+      // If YouTube is selected and URL is provided, return YouTube media
+      if (dashboardMediaType === "youtube" && youtubeUrl) {
+        const youtubeMedia = [{
+          id: "youtube-video",
+          name: "YouTube Video",
+          filename: "youtube-video",
+          url: youtubeUrl,
+          type: "youtube" as const,
+          mimeType: "video/youtube",
+          size: 0,
+          isActive: true,
+          uploadedAt: new Date()
+        }];
+        res.json(youtubeMedia);
+      } else {
+        // Otherwise return regular uploaded media
+        const activeMedia = await storage.getActiveMedia();
+        res.json(activeMedia);
+      }
     } catch (error) {
       console.error("Error fetching display media:", error);
       res.status(500).json({ error: "Failed to fetch display media" });
