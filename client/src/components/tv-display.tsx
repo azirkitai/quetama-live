@@ -724,7 +724,7 @@ export function TVDisplay({
           }}>NAME</div>
           <div className="font-bold text-yellow-400" style={{ 
             fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
-            ...getTextGroupStyles('Token Label')
+            ...getTextGroupStyles('Window Label')
           }}>ROOM</div>
         </div>
         <div className="space-y-1 overflow-y-auto flex-1" data-testid="queue-list">
