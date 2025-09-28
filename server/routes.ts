@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertPatientSchema, insertUserSchema, insertThemeSchema } from "@shared/schema";
@@ -23,6 +24,28 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup static file serving for uploaded media
+  const PUBLIC_OBJECT_SEARCH_PATHS = process.env.PUBLIC_OBJECT_SEARCH_PATHS;
+  if (PUBLIC_OBJECT_SEARCH_PATHS) {
+    try {
+      let publicPath = 'uploads/public';
+      try {
+        const paths = JSON.parse(PUBLIC_OBJECT_SEARCH_PATHS);
+        if (Array.isArray(paths) && paths.length > 0) {
+          publicPath = paths[0].startsWith('/') ? paths[0].substring(1) : paths[0];
+        }
+      } catch (e) {
+        publicPath = PUBLIC_OBJECT_SEARCH_PATHS.startsWith('/') ? PUBLIC_OBJECT_SEARCH_PATHS.substring(1) : PUBLIC_OBJECT_SEARCH_PATHS;
+      }
+      
+      // Serve static files from the object storage path
+      app.use(`/${publicPath}`, express.static(publicPath));
+      console.log(`Static file serving enabled for: /${publicPath} -> ${publicPath}`);
+    } catch (error) {
+      console.error("Error setting up static file serving:", error);
+    }
+  }
+  
   // Patient registration routes
   
   // Create new patient
