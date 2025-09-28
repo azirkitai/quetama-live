@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting, type Media, type InsertMedia } from "@shared/schema";
+import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting, type Media, type InsertMedia, type Theme, type InsertTheme } from "@shared/schema";
 
 interface Window {
   id: string;
@@ -63,6 +63,15 @@ export interface IStorage {
   updateMedia(id: string, updates: Partial<Media>): Promise<Media | undefined>;
   deleteMedia(id: string): Promise<boolean>;
   getActiveMedia(): Promise<Media[]>;
+  
+  // Theme methods
+  getThemes(): Promise<Theme[]>;
+  getActiveTheme(): Promise<Theme | undefined>;
+  getThemeById(id: string): Promise<Theme | undefined>;
+  createTheme(theme: InsertTheme): Promise<Theme>;
+  updateTheme(id: string, updates: Partial<Theme>): Promise<Theme | undefined>;
+  deleteTheme(id: string): Promise<boolean>;
+  setActiveTheme(id: string): Promise<Theme | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -71,6 +80,7 @@ export class MemStorage implements IStorage {
   private windows: Map<string, Window>;
   private settings: Map<string, Setting>;
   private media: Map<string, Media>;
+  private themes: Map<string, Theme>;
 
   constructor() {
     this.users = new Map();
@@ -78,9 +88,11 @@ export class MemStorage implements IStorage {
     this.windows = new Map();
     this.settings = new Map();
     this.media = new Map();
+    this.themes = new Map();
     
-    // Initialize default settings
+    // Initialize default settings and theme
     this.initializeDefaultSettings();
+    this.initializeDefaultTheme();
   }
   
   private async initializeDefaultSettings() {
@@ -97,6 +109,29 @@ export class MemStorage implements IStorage {
     await this.setSetting("soundType", "beep", "sound");
     await this.setSetting("enableTTS", "false", "sound");
     await this.setSetting("volume", "70", "sound");
+  }
+  
+  private async initializeDefaultTheme() {
+    const defaultTheme: Theme = {
+      id: randomUUID(),
+      name: "Default Theme",
+      isActive: true,
+      primaryColor: "#3b82f6",
+      secondaryColor: "#6b7280",
+      callingColor: "#3b82f6",
+      highlightBoxColor: "#ef4444",
+      historyNameColor: "#6b7280",
+      clinicNameColor: "#1f2937",
+      callingGradient: null,
+      highlightBoxGradient: null,
+      historyNameGradient: null,
+      clinicNameGradient: null,
+      backgroundColor: "#ffffff",
+      accentColor: "#f3f4f6",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.themes.set(defaultTheme.id, defaultTheme);
   }
 
 
@@ -473,6 +508,84 @@ export class MemStorage implements IStorage {
 
   async getActiveMedia(): Promise<Media[]> {
     return Array.from(this.media.values()).filter(media => media.isActive);
+  }
+  
+  // Theme methods implementation
+  async getThemes(): Promise<Theme[]> {
+    return Array.from(this.themes.values());
+  }
+
+  async getActiveTheme(): Promise<Theme | undefined> {
+    return Array.from(this.themes.values()).find(theme => theme.isActive);
+  }
+
+  async getThemeById(id: string): Promise<Theme | undefined> {
+    return this.themes.get(id);
+  }
+
+  async createTheme(insertTheme: InsertTheme): Promise<Theme> {
+    const id = randomUUID();
+    const theme: Theme = {
+      name: "New Theme",
+      primaryColor: "#3b82f6",
+      secondaryColor: "#6b7280",
+      callingColor: "#3b82f6",
+      highlightBoxColor: "#ef4444",
+      historyNameColor: "#6b7280",
+      clinicNameColor: "#1f2937",
+      callingGradient: null,
+      highlightBoxGradient: null,
+      historyNameGradient: null,
+      clinicNameGradient: null,
+      backgroundColor: "#ffffff",
+      accentColor: "#f3f4f6",
+      ...insertTheme,
+      id,
+      isActive: false, // New themes are inactive by default
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.themes.set(id, theme);
+    return theme;
+  }
+
+  async updateTheme(id: string, updates: Partial<Theme>): Promise<Theme | undefined> {
+    const theme = this.themes.get(id);
+    if (!theme) return undefined;
+
+    const updatedTheme = { 
+      ...theme, 
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.themes.set(id, updatedTheme);
+    return updatedTheme;
+  }
+
+  async deleteTheme(id: string): Promise<boolean> {
+    const theme = this.themes.get(id);
+    if (!theme) return false;
+    
+    // Don't allow deleting the active theme
+    if (theme.isActive) return false;
+    
+    return this.themes.delete(id);
+  }
+
+  async setActiveTheme(id: string): Promise<Theme | undefined> {
+    const newActiveTheme = this.themes.get(id);
+    if (!newActiveTheme) return undefined;
+
+    // Deactivate all themes first
+    const allThemes = Array.from(this.themes.values());
+    for (const theme of allThemes) {
+      if (theme.isActive) {
+        await this.updateTheme(theme.id, { isActive: false });
+      }
+    }
+
+    // Activate the selected theme
+    return await this.updateTheme(id, { isActive: true });
   }
 }
 

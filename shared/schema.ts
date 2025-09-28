@@ -56,6 +56,31 @@ export const media = pgTable("media", {
   isActive: boolean("is_active").notNull().default(true),
 });
 
+// Theme colors table
+export const themes = pgTable("themes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().default("Default Theme"),
+  isActive: boolean("is_active").notNull().default(true),
+  // Main theme colors
+  primaryColor: text("primary_color").notNull().default("#3b82f6"),
+  secondaryColor: text("secondary_color").notNull().default("#6b7280"),
+  // Specific UI element colors
+  callingColor: text("calling_color").notNull().default("#3b82f6"), // "CALLING" text color
+  highlightBoxColor: text("highlight_box_color").notNull().default("#ef4444"), // "HIGHLIGHT BOX" color
+  historyNameColor: text("history_name_color").notNull().default("#6b7280"), // "HISTORY NAME" color
+  clinicNameColor: text("clinic_name_color").notNull().default("#1f2937"), // "NAMA KLINIK" color
+  // Gradient support
+  callingGradient: text("calling_gradient"), // Optional gradient for CALLING
+  highlightBoxGradient: text("highlight_box_gradient"), // Optional gradient for HIGHLIGHT BOX
+  historyNameGradient: text("history_name_gradient"), // Optional gradient for HISTORY NAME
+  clinicNameGradient: text("clinic_name_gradient"), // Optional gradient for NAMA KLINIK
+  // Background and accent colors
+  backgroundColor: text("background_color").notNull().default("#ffffff"),
+  accentColor: text("accent_color").notNull().default("#f3f4f6"),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+  updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -87,12 +112,29 @@ export const insertMediaSchema = createInsertSchema(media).pick({
   size: true,
 });
 
+export const insertThemeSchema = createInsertSchema(themes).pick({
+  name: true,
+  primaryColor: true,
+  secondaryColor: true,
+  callingColor: true,
+  highlightBoxColor: true,
+  historyNameColor: true,
+  clinicNameColor: true,
+  callingGradient: true,
+  highlightBoxGradient: true,
+  historyNameGradient: true,
+  clinicNameGradient: true,
+  backgroundColor: true,
+  accentColor: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertWindow = z.infer<typeof insertWindowSchema>;
 export type InsertPatient = z.infer<typeof insertPatientSchema>;
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
 export type InsertMedia = z.infer<typeof insertMediaSchema>;
+export type InsertTheme = z.infer<typeof insertThemeSchema>;
 
 // Select types
 export type User = typeof users.$inferSelect;
@@ -100,3 +142,4 @@ export type Window = typeof windows.$inferSelect;
 export type Patient = typeof patients.$inferSelect;
 export type Setting = typeof settings.$inferSelect;
 export type Media = typeof media.$inferSelect;
+export type Theme = typeof themes.$inferSelect;

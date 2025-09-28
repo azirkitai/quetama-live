@@ -11,7 +11,7 @@ import { Monitor, Volume2, Palette, Upload, Save, RefreshCw, CheckCircle, Plus, 
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Setting, Media } from "@shared/schema";
+import type { Setting, Media, Theme } from "@shared/schema";
 
 interface SettingsState {
   mediaType: string;
@@ -67,6 +67,23 @@ export default function Settings() {
     queryKey: ['/api/media'],
   });
 
+  // Fetch active theme from API
+  const { data: activeTheme, isLoading: themeLoading, refetch: refetchTheme } = useQuery<Theme>({
+    queryKey: ['/api/themes/active'],
+  });
+
+  // Theme color state
+  const [themeColors, setThemeColors] = useState({
+    callingColor: "#3b82f6",
+    callingGradient: "",
+    highlightBoxColor: "#ef4444", 
+    highlightBoxGradient: "",
+    historyNameColor: "#6b7280",
+    historyNameGradient: "",
+    clinicNameColor: "#1f2937",
+    clinicNameGradient: "",
+  });
+
   // Update state when settings are loaded from database
   useEffect(() => {
     if (settings.length > 0) {
@@ -89,6 +106,22 @@ export default function Settings() {
       setUnsavedChanges([]); // Clear unsaved changes when loading fresh data
     }
   }, [settings, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.enableSound, settingsObj.soundType, settingsObj.enableTTS, settingsObj.volume]);
+
+  // Update theme colors when active theme is loaded
+  useEffect(() => {
+    if (activeTheme) {
+      setThemeColors({
+        callingColor: activeTheme.callingColor,
+        callingGradient: activeTheme.callingGradient || "",
+        highlightBoxColor: activeTheme.highlightBoxColor,
+        highlightBoxGradient: activeTheme.highlightBoxGradient || "",
+        historyNameColor: activeTheme.historyNameColor,
+        historyNameGradient: activeTheme.historyNameGradient || "",
+        clinicNameColor: activeTheme.clinicNameColor,
+        clinicNameGradient: activeTheme.clinicNameGradient || "",
+      });
+    }
+  }, [activeTheme]);
 
   // Save settings mutation
   const saveSettingsMutation = useMutation({
@@ -126,10 +159,60 @@ export default function Settings() {
     }
   });
 
+  // Update theme colors mutation
+  const updateThemeMutation = useMutation({
+    mutationFn: async (themeData: Partial<Theme>) => {
+      if (!activeTheme) {
+        throw new Error('No active theme found');
+      }
+      return await apiRequest("PATCH", `/api/themes/${activeTheme.id}`, themeData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Tema Berjaya Dikemas Kini",
+        description: "Warna tema telah disimpan dan digunakan pada sistem",
+      });
+      // Refresh theme data
+      queryClient.invalidateQueries({ queryKey: ['/api/themes/active'] });
+      refetchTheme();
+    },
+    onError: (error) => {
+      toast({
+        title: "Ralat Mengemas Kini Tema",
+        description: "Gagal menyimpan warna tema. Sila cuba lagi.",
+        variant: "destructive"
+      });
+      console.error('Error updating theme:', error);
+    }
+  });
+
   const trackChange = (key: string) => {
     if (!unsavedChanges.includes(key)) {
       setUnsavedChanges([...unsavedChanges, key]);
     }
+  };
+
+  // Handle theme color changes
+  const handleThemeColorChange = (field: keyof typeof themeColors, value: string) => {
+    setThemeColors(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Save theme colors
+  const handleSaveTheme = () => {
+    const themeData = {
+      callingColor: themeColors.callingColor,
+      callingGradient: themeColors.callingGradient || null,
+      highlightBoxColor: themeColors.highlightBoxColor,
+      highlightBoxGradient: themeColors.highlightBoxGradient || null,
+      historyNameColor: themeColors.historyNameColor,
+      historyNameGradient: themeColors.historyNameGradient || null,
+      clinicNameColor: themeColors.clinicNameColor,
+      clinicNameGradient: themeColors.clinicNameGradient || null,
+    };
+    updateThemeMutation.mutate(themeData);
   };
 
   const updateDisplaySetting = (key: keyof SettingsState, value: any) => {
@@ -366,17 +449,18 @@ export default function Settings() {
 
         {/* Display Settings */}
         <TabsContent value="display" className="space-y-6">
+          {/* MEDIA CARD */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Palette className="h-5 w-5 mr-2" />
-                Media & Theme
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Media Settings
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Show in Dashboard Section */}
               <div className="space-y-4">
-                <Label className="text-base font-semibold">Show in Dashboard:</Label>
+                <Label className="text-base font-semibold">Pilihan Media untuk Dashboard:</Label>
                 <div className="flex space-x-6">
                   <div className="flex items-center space-x-2">
                     <input
@@ -389,7 +473,7 @@ export default function Settings() {
                       className="w-4 h-4 text-blue-600"
                       data-testid="radio-own-media"
                     />
-                    <Label htmlFor="own-media">Own Media</Label>
+                    <Label htmlFor="own-media">Upload Gambar (PNG/JPEG)</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <input
@@ -402,7 +486,7 @@ export default function Settings() {
                       className="w-4 h-4 text-blue-600"
                       data-testid="radio-youtube-media"
                     />
-                    <Label htmlFor="youtube-media">YouTube</Label>
+                    <Label htmlFor="youtube-media">YouTube Video</Label>
                   </div>
                 </div>
                 
@@ -410,7 +494,7 @@ export default function Settings() {
                 {currentSettings.dashboardMediaType === "youtube" && (
                   <div className="mt-4 space-y-2">
                     <Label htmlFor="youtube-url" className="text-sm font-medium">
-                      YouTube Video URL:
+                      URL YouTube Video:
                     </Label>
                     <Input
                       id="youtube-url"
@@ -421,6 +505,34 @@ export default function Settings() {
                       className="w-full"
                       data-testid="input-youtube-url"
                     />
+                    <div className="flex space-x-2 mt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (currentSettings.youtubeUrl) {
+                            // Simple YouTube URL validation
+                            const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
+                            if (youtubeRegex.test(currentSettings.youtubeUrl)) {
+                              toast({
+                                title: "URL YouTube Sah",
+                                description: "URL YouTube telah disahkan dan boleh digunakan.",
+                              });
+                            } else {
+                              toast({
+                                title: "URL Tidak Sah",
+                                description: "Sila masukkan URL YouTube yang sah.",
+                                variant: "destructive"
+                              });
+                            }
+                          }
+                        }}
+                        data-testid="button-validate-youtube"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Sahkan URL
+                      </Button>
+                    </div>
                     <p className="text-xs text-muted-foreground">
                       Masukkan URL YouTube video yang akan dipaparkan di paparan TV
                     </p>
@@ -428,71 +540,84 @@ export default function Settings() {
                 )}
               </div>
 
-              {/* Media Type - Only for Own Media (when dashboardMediaType is "own") */}
+              {/* Media Upload Section - Only for Own Media */}
               {currentSettings.dashboardMediaType === "own" && (
-                <div className="space-y-2">
-                  <Label>Own Media Type</Label>
-                  <div className="flex space-x-2">
-                    <Select 
-                      value={currentSettings.mediaType} 
-                      onValueChange={(value) => updateDisplaySetting('mediaType', value)}
-                    >
-                      <SelectTrigger data-testid="select-media-type" className="flex-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="image">Image Media</SelectItem>
-                        <SelectItem value="none">No Background</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      onClick={handleAddMedia}
-                      variant="default"
-                      className="bg-blue-600 hover:bg-blue-700"
-                      data-testid="button-add-media"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Media
-                    </Button>
+                <div className="space-y-4">
+                  <Label className="text-base font-semibold">Upload Media (PNG/JPEG):</Label>
+                  <div className="space-y-2">
+                    <div className="flex space-x-2">
+                      <Select 
+                        value={currentSettings.mediaType} 
+                        onValueChange={(value) => updateDisplaySetting('mediaType', value)}
+                      >
+                        <SelectTrigger data-testid="select-media-type" className="flex-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="image">Gambar Media</SelectItem>
+                          <SelectItem value="none">Tiada Latar Belakang</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        onClick={handleAddMedia}
+                        variant="default"
+                        className="bg-blue-600 hover:bg-blue-700"
+                        data-testid="button-add-media"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Tambah Media
+                      </Button>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Boleh upload banyak gambar dalam format PNG atau JPEG<br/>
+                      Tip: Namakan fail mengikut urutan untuk paparan teratur (contoh: 1.jpg, 2.jpg, 3.jpg)
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Note: Please rename your media files in sequence to display in order<br/>
-                    Example: 1.jpg, 2.jpg, 3.jpg
-                  </p>
+                  
+                  {/* Other Media Uploads */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div className="space-y-2">
+                      <Label>Logo Klinik</Label>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleFileUpload("logo")}
+                        className="w-full"
+                        data-testid="button-upload-logo"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Logo
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Background Image</Label>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleFileUpload("background")}
+                        className="w-full"
+                        data-testid="button-upload-background"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Background
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               )}
+            </CardContent>
+          </Card>
 
-              {/* File Uploads */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Logo Klinik</Label>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleFileUpload("logo")}
-                    className="w-full"
-                    data-testid="button-upload-logo"
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Logo
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  <Label>Background Image</Label>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleFileUpload("background")}
-                    className="w-full"
-                    data-testid="button-upload-background"
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Background
-                  </Button>
-                </div>
-              </div>
-
-              {/* Theme Color */}
+          {/* THEME CARD */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Theme & Color Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Main Theme */}
               <div className="space-y-2">
-                <Label>Tema Warna</Label>
+                <Label className="text-base font-semibold">Tema Utama:</Label>
                 <Select 
                   value={currentSettings.theme} 
                   onValueChange={(value) => updateDisplaySetting('theme', value)}
@@ -508,6 +633,129 @@ export default function Settings() {
                     <SelectItem value="custom">Custom Gradient</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Custom Color Settings */}
+              <div className="space-y-4">
+                <Label className="text-base font-semibold">Kustomisasi Warna Element:</Label>
+                
+                {/* CALLING Color */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Warna "CALLING":</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      type="color"
+                      value="#3b82f6"
+                      className="w-12 h-8 p-1 border rounded"
+                      data-testid="color-calling"
+                    />
+                    <Input
+                      type="text"
+                      placeholder="#3b82f6 atau gradient"
+                      className="flex-1"
+                      value={themeColors.callingColor}
+                      onChange={(e) => handleThemeColorChange('callingColor', e.target.value)}
+                      data-testid="input-calling-color"
+                    />
+                    <Button variant="outline" size="sm" data-testid="button-gradient-calling">
+                      Gradient
+                    </Button>
+                  </div>
+                </div>
+
+                {/* HIGHLIGHT BOX Color */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Warna "HIGHLIGHT BOX":</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      type="color"
+                      value="#ef4444"
+                      className="w-12 h-8 p-1 border rounded"
+                      data-testid="color-highlight"
+                    />
+                    <Input
+                      type="text"
+                      placeholder="#ef4444 atau gradient"
+                      className="flex-1"
+                      value={themeColors.highlightBoxColor}
+                      onChange={(e) => handleThemeColorChange('highlightBoxColor', e.target.value)}
+                      data-testid="input-highlight-color"
+                    />
+                    <Button variant="outline" size="sm" data-testid="button-gradient-highlight">
+                      Gradient
+                    </Button>
+                  </div>
+                </div>
+
+                {/* HISTORY NAME Color */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Warna "HISTORY NAME":</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      type="color"
+                      value="#6b7280"
+                      className="w-12 h-8 p-1 border rounded"
+                      data-testid="color-history"
+                    />
+                    <Input
+                      type="text"
+                      placeholder="#6b7280 atau gradient"
+                      className="flex-1"
+                      value={themeColors.historyNameColor}
+                      onChange={(e) => handleThemeColorChange('historyNameColor', e.target.value)}
+                      data-testid="input-history-color"
+                    />
+                    <Button variant="outline" size="sm" data-testid="button-gradient-history">
+                      Gradient
+                    </Button>
+                  </div>
+                </div>
+
+                {/* NAMA KLINIK Color */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Warna "NAMA KLINIK":</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      type="color"
+                      value="#1f2937"
+                      className="w-12 h-8 p-1 border rounded"
+                      data-testid="color-clinic-name"
+                    />
+                    <Input
+                      type="text"
+                      placeholder="#1f2937 atau gradient"
+                      className="flex-1"
+                      value={themeColors.clinicNameColor}
+                      onChange={(e) => handleThemeColorChange('clinicNameColor', e.target.value)}
+                      data-testid="input-clinic-name-color"
+                    />
+                    <Button variant="outline" size="sm" data-testid="button-gradient-clinic-name">
+                      Gradient
+                    </Button>
+                  </div>
+                </div>
+
+                <p className="text-xs text-muted-foreground mt-4">
+                  Tip: Untuk gradient, masukkan format seperti "linear-gradient(45deg, #ff0000, #00ff00)"<br/>
+                  Atau gunakan butang "Gradient" untuk pilihan mudah
+                </p>
+
+                {/* Save Theme Button */}
+                <div className="pt-6 border-t">
+                  <Button 
+                    onClick={handleSaveTheme}
+                    className="w-full"
+                    disabled={updateThemeMutation.isPending}
+                    data-testid="button-save-theme"
+                  >
+                    {updateThemeMutation.isPending ? (
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-2" />
+                    )}
+                    Simpan Tetapan Tema
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

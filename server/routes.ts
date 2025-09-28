@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPatientSchema, insertUserSchema } from "@shared/schema";
+import { insertPatientSchema, insertUserSchema, insertThemeSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Patient registration routes
@@ -548,6 +548,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting media:", error);
       res.status(500).json({ error: "Failed to delete media" });
+    }
+  });
+
+  // Theme management routes
+  
+  // Get all themes
+  app.get("/api/themes", async (req, res) => {
+    try {
+      const themes = await storage.getThemes();
+      res.json(themes);
+    } catch (error) {
+      console.error("Error fetching themes:", error);
+      res.status(500).json({ error: "Failed to fetch themes" });
+    }
+  });
+
+  // Get active theme
+  app.get("/api/themes/active", async (req, res) => {
+    try {
+      const activeTheme = await storage.getActiveTheme();
+      
+      if (!activeTheme) {
+        return res.status(404).json({ error: "No active theme found" });
+      }
+      
+      res.json(activeTheme);
+    } catch (error) {
+      console.error("Error fetching active theme:", error);
+      res.status(500).json({ error: "Failed to fetch active theme" });
+    }
+  });
+
+  // Get theme by ID
+  app.get("/api/themes/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const theme = await storage.getThemeById(id);
+      
+      if (!theme) {
+        return res.status(404).json({ error: "Theme not found" });
+      }
+      
+      res.json(theme);
+    } catch (error) {
+      console.error("Error fetching theme:", error);
+      res.status(500).json({ error: "Failed to fetch theme" });
+    }
+  });
+
+  // Create new theme
+  app.post("/api/themes", async (req, res) => {
+    try {
+      const themeData = insertThemeSchema.parse(req.body);
+      const theme = await storage.createTheme(themeData);
+      res.status(201).json(theme);
+    } catch (error) {
+      console.error("Error creating theme:", error);
+      res.status(400).json({ error: "Invalid theme data" });
+    }
+  });
+
+  // Update theme
+  app.patch("/api/themes/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      const theme = await storage.updateTheme(id, updates);
+      
+      if (!theme) {
+        return res.status(404).json({ error: "Theme not found" });
+      }
+      
+      res.json(theme);
+    } catch (error) {
+      console.error("Error updating theme:", error);
+      res.status(500).json({ error: "Failed to update theme" });
+    }
+  });
+
+  // Set active theme
+  app.patch("/api/themes/:id/activate", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const theme = await storage.setActiveTheme(id);
+      
+      if (!theme) {
+        return res.status(404).json({ error: "Theme not found" });
+      }
+      
+      res.json(theme);
+    } catch (error) {
+      console.error("Error activating theme:", error);
+      res.status(500).json({ error: "Failed to activate theme" });
+    }
+  });
+
+  // Delete theme
+  app.delete("/api/themes/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteTheme(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Theme not found or cannot delete active theme" });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting theme:", error);
+      res.status(500).json({ error: "Failed to delete theme" });
     }
   });
 
