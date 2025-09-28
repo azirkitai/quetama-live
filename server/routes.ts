@@ -873,6 +873,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register both GET and POST handlers for TTS endpoint
   app.get("/api/tts", handleTTSRequest);
   app.post("/api/tts", handleTTSRequest);
+  
+  // Get available ElevenLabs voices
+  app.get('/api/tts/voices', async (req, res) => {
+    try {
+      const ELEVEN_API_KEY = process.env.ELEVEN_API_KEY;
+      if (!ELEVEN_API_KEY) {
+        return res.status(503).json({ 
+          error: 'ElevenLabs API key not configured',
+          message: 'Configure ELEVEN_API_KEY in secrets.'
+        });
+      }
+
+      const response = await fetch('https://api.elevenlabs.io/v1/voices', {
+        method: 'GET',
+        headers: {
+          'xi-api-key': ELEVEN_API_KEY,
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      // Filter and format voices for easier selection
+      const voices = data.voices.map((voice: any) => ({
+        voice_id: voice.voice_id,
+        name: voice.name,
+        category: voice.category,
+        description: voice.description || '',
+        accent: voice.labels?.accent || '',
+        age: voice.labels?.age || '',
+        gender: voice.labels?.gender || '',
+        use_case: voice.labels?.["use case"] || ''
+      }));
+
+      res.json({
+        total: voices.length,
+        voices: voices
+      });
+    } catch (error) {
+      console.error('Error fetching ElevenLabs voices:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch voices',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 
   // Display routes (for TV display management)
   
