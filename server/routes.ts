@@ -701,7 +701,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/themes/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const updates = req.body;
+      
+      // Validate theme updates using partial schema
+      const updateThemeSchema = insertThemeSchema.partial();
+      const updates = updateThemeSchema.parse(req.body);
       
       const theme = await storage.updateTheme(id, updates);
       
@@ -712,7 +715,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(theme);
     } catch (error) {
       console.error("Error updating theme:", error);
-      res.status(500).json({ error: "Failed to update theme" });
+      res.status(400).json({ error: "Invalid theme data" });
     }
   });
 
