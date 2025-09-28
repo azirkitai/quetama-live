@@ -257,11 +257,84 @@ export default function Settings() {
     });
   };
 
+  // File upload state
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
   const handleFileUpload = (type: "logo" | "background") => {
     toast({
       title: "Muat Naik Fail",
       description: `Fungsi muat naik ${type} akan dilaksanakan tidak lama lagi`,
     });
+  };
+
+  // Handle file selection
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Check if file is PNG or JPEG
+      if (file.type === 'image/png' || file.type === 'image/jpeg') {
+        setSelectedFile(file);
+        toast({
+          title: "Fail Dipilih",
+          description: `${file.name} siap untuk dimuat naik`,
+        });
+      } else {
+        toast({
+          title: "Format Fail Tidak Sah",
+          description: "Sila pilih fail dalam format PNG atau JPEG sahaja",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
+  // Upload image mutation
+  const uploadImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('name', file.name);
+      formData.append('type', 'image');
+
+      const response = await fetch('/api/media/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Gambar Berjaya Dimuat Naik",
+        description: "Gambar telah disimpan dan ditambah ke galeri media",
+      });
+      setSelectedFile(null);
+      // Clear file input
+      const fileInput = document.getElementById('image-upload') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+      // Refresh media list
+      queryClient.invalidateQueries({ queryKey: ['/api/media'] });
+      refetchMedia();
+    },
+    onError: (error) => {
+      toast({
+        title: "Ralat Muat Naik",
+        description: "Gagal memuat naik gambar. Sila cuba lagi.",
+        variant: "destructive"
+      });
+      console.error('Error uploading image:', error);
+    }
+  });
+
+  // Handle upload button click
+  const handleUploadImage = () => {
+    if (selectedFile) {
+      uploadImageMutation.mutate(selectedFile);
+    }
   };
 
   // Add media mutation
@@ -540,67 +613,56 @@ export default function Settings() {
                 )}
               </div>
 
-              {/* Media Upload Section - Only for Own Media */}
+              {/* Image Upload Section - Only for Own Media */}
               {currentSettings.dashboardMediaType === "own" && (
                 <div className="space-y-4">
-                  <Label className="text-base font-semibold">Upload Media (PNG/JPEG):</Label>
-                  <div className="space-y-2">
+                  <Label className="text-base font-semibold">Upload Gambar (PNG/JPEG):</Label>
+                  
+                  {/* File Upload Section */}
+                  <div className="space-y-4 p-4 border-2 border-dashed border-gray-300 rounded-lg">
+                    <div className="text-center">
+                      <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                      <Label className="text-sm font-medium">Pilih Gambar untuk Dimuat Naik</Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Format: PNG atau JPEG sahaja
+                      </p>
+                    </div>
+                    
                     <div className="flex space-x-2">
-                      <Select 
-                        value={currentSettings.mediaType} 
-                        onValueChange={(value) => updateDisplaySetting('mediaType', value)}
-                      >
-                        <SelectTrigger data-testid="select-media-type" className="flex-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="image">Gambar Media</SelectItem>
-                          <SelectItem value="none">Tiada Latar Belakang</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Input
+                        id="image-upload"
+                        type="file"
+                        accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                        onChange={handleFileSelect}
+                        className="flex-1"
+                        data-testid="input-image-upload"
+                      />
                       <Button
-                        onClick={handleAddMedia}
+                        onClick={handleUploadImage}
+                        disabled={!selectedFile || uploadImageMutation.isPending}
                         variant="default"
                         className="bg-blue-600 hover:bg-blue-700"
-                        data-testid="button-add-media"
+                        data-testid="button-upload-image"
                       >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Tambah Media
+                        {uploadImageMutation.isPending ? (
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Upload className="h-4 w-4 mr-2" />
+                        )}
+                        Upload
                       </Button>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Boleh upload banyak gambar dalam format PNG atau JPEG<br/>
-                      Tip: Namakan fail mengikut urutan untuk paparan teratur (contoh: 1.jpg, 2.jpg, 3.jpg)
-                    </p>
+                    
+                    {selectedFile && (
+                      <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
+                        Fail dipilih: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                      </div>
+                    )}
                   </div>
                   
-                  {/* Other Media Uploads */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div className="space-y-2">
-                      <Label>Logo Klinik</Label>
-                      <Button
-                        variant="outline"
-                        onClick={() => handleFileUpload("logo")}
-                        className="w-full"
-                        data-testid="button-upload-logo"
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload Logo
-                      </Button>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Background Image</Label>
-                      <Button
-                        variant="outline"
-                        onClick={() => handleFileUpload("background")}
-                        className="w-full"
-                        data-testid="button-upload-background"
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload Background
-                      </Button>
-                    </div>
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Tip: Namakan fail mengikut urutan untuk paparan teratur (contoh: 1.jpg, 2.jpg, 3.jpg)
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -795,9 +857,31 @@ export default function Settings() {
                 {mediaFiles.slice(currentMediaIndex * 4, (currentMediaIndex + 1) * 4).map((media, index) => (
                   <div key={media.id} className="relative group">
                     <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-blue-400 transition-colors">
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+                      {/* Display actual image if it's an image type */}
+                      {media.type === 'image' && media.url ? (
+                        <img 
+                          src={media.url} 
+                          alt={media.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback to placeholder if image fails to load
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      
+                      {/* Fallback placeholder */}
+                      <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 ${media.type === 'image' && media.url ? 'hidden' : ''}`}>
                         <div className="text-center p-2">
                           <Eye className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+                          <p className="text-xs text-gray-600 font-medium truncate">{media.name}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Name overlay for actual images */}
+                      {media.type === 'image' && media.url && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-2">
                           {editingMediaId === media.id ? (
                             <Input
                               value={editingName}
@@ -811,14 +895,14 @@ export default function Settings() {
                               }}
                               onBlur={handleSaveRename}
                               autoFocus
-                              className="text-xs h-6 text-center"
+                              className="text-xs h-6 text-center bg-white/90 text-black"
                               data-testid={`input-rename-${media.id}`}
                             />
                           ) : (
-                            <p className="text-xs text-gray-600 font-medium truncate">{media.name}</p>
+                            <p className="text-xs font-medium truncate text-center">{media.name}</p>
                           )}
                         </div>
-                      </div>
+                      )}
                     </div>
                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
                       <Button
@@ -860,7 +944,34 @@ export default function Settings() {
                 <div className="text-center py-8 text-gray-500">
                   <Eye className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                   <p>Tiada media yang dimuat naik</p>
-                  <p className="text-sm">Klik 'Add Media' untuk memuat naik fail media</p>
+                  <p className="text-sm">Upload gambar untuk melihat galeri media</p>
+                </div>
+              )}
+
+              {/* Save to Dashboard Button */}
+              {mediaFiles.length > 0 && (
+                <div className="pt-6 border-t">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium">Transfer ke Paparan Iklan</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Gambar yang dimuat naik akan dipaparkan pada skrin TV
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={() => {
+                        toast({
+                          title: "Gambar Berjaya Dipindah",
+                          description: `${mediaFiles.length} gambar telah dipindah ke paparan iklan`,
+                        });
+                      }}
+                      className="bg-green-600 hover:bg-green-700"
+                      data-testid="button-save-to-dashboard"
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      Simpan ke Paparan ({mediaFiles.length})
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>

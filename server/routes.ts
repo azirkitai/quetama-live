@@ -2,6 +2,25 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertPatientSchema, insertUserSchema, insertThemeSchema } from "@shared/schema";
+import multer from "multer";
+import fs from "fs/promises";
+import path from "path";
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Only allow PNG and JPEG files
+    if (file.mimetype === 'image/png' || file.mimetype === 'image/jpeg') {
+      cb(null, true);
+    } else {
+      cb(null, false);
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Patient registration routes
@@ -477,6 +496,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching media:", error);
       res.status(500).json({ error: "Failed to fetch media" });
+    }
+  });
+
+  // Upload media file with actual file handling
+  app.post("/api/media/upload", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const { name, type } = req.body;
+      const file = req.file;
+
+      // Validate file type
+      if (file.mimetype !== 'image/png' && file.mimetype !== 'image/jpeg') {
+        return res.status(400).json({ error: "Only PNG and JPEG files are allowed" });
+      }
+
+      // Generate filename with timestamp to avoid conflicts
+      const timestamp = Date.now();
+      const extension = file.mimetype === 'image/png' ? 'png' : 'jpg';
+      const filename = `${timestamp}_${(name || file.originalname).toLowerCase().replace(/\s+/g, '_').replace(/\.[^/.]+$/, "")}.${extension}`;
+      
+      // Use object storage path - create relative to workspace
+      const PUBLIC_OBJECT_SEARCH_PATHS = process.env.PUBLIC_OBJECT_SEARCH_PATHS;
+      let publicPath = 'uploads/public'; // default fallback to local directory
+      
+      if (PUBLIC_OBJECT_SEARCH_PATHS) {
+        try {
+          // Try parsing as JSON first
+          const paths = JSON.parse(PUBLIC_OBJECT_SEARCH_PATHS);
+          if (Array.isArray(paths) && paths.length > 0) {
+            // Make relative to current working directory
+            publicPath = paths[0].startsWith('/') ? paths[0].substring(1) : paths[0];
+          }
+        } catch (e) {
+          // If not JSON, treat as direct path string
+          console.log('Using PUBLIC_OBJECT_SEARCH_PATHS as direct path:', PUBLIC_OBJECT_SEARCH_PATHS);
+          // Make relative to current working directory
+          publicPath = PUBLIC_OBJECT_SEARCH_PATHS.startsWith('/') ? PUBLIC_OBJECT_SEARCH_PATHS.substring(1) : PUBLIC_OBJECT_SEARCH_PATHS;
+        }
+      }
+
+      const filePath = path.join(publicPath, filename);
+      const url = `/${publicPath}/${filename}`;
+
+      console.log('Uploading file to:', filePath);
+      console.log('File URL will be:', url);
+
+      // Ensure directory exists (create recursively)
+      await fs.mkdir(publicPath, { recursive: true });
+
+      // Write file to object storage
+      await fs.writeFile(filePath, file.buffer);
+
+      // Save to database
+      const media = await storage.createMedia({
+        name: name || file.originalname,
+        filename,
+        url,
+        type: 'image',
+        mimeType: file.mimetype,
+        size: file.size,
+      });
+
+      res.status(201).json(media);
+    } catch (error) {
+      console.error("Error uploading media:", error);
+      res.status(500).json({ error: "Failed to upload media" });
     }
   });
 
