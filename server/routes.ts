@@ -779,6 +779,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                    process.env.ELEVEN_VOICE_ID || 
                    '21m00Tcm4TlvDq8ikWAM';
           modelId = 'eleven_multilingual_v2'; // Better for Malay (multilingual required)
+          console.log(`[TTS] BM Voice - DB Setting: ${bmVoiceSetting?.value}, Final VoiceID: ${voiceId}, Model: ${modelId}`);
         } else {
           // English configuration  
           const enVoiceSetting = await storage.getSetting('elevenVoiceIdEN');
@@ -787,6 +788,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                    process.env.ELEVEN_VOICE_ID || 
                    '21m00Tcm4TlvDq8ikWAM';
           modelId = 'eleven_monolingual_v1'; // Better for English
+          console.log(`[TTS] EN Voice - DB Setting: ${enVoiceSetting?.value}, Final VoiceID: ${voiceId}, Model: ${modelId}`);
         }
       } catch (error) {
         console.warn('Failed to fetch voice settings from database, using fallback:', error);
