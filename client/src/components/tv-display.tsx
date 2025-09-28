@@ -138,7 +138,7 @@ export function TVDisplay({
           setIsMediaVisible(true);
         }, 500); // 500ms fade out duration
         
-      }, 5000); // Change media every 5 seconds
+      }, 10000); // Change media every 10 seconds
       
       return () => {
         if (mediaTimerRef.current) {
