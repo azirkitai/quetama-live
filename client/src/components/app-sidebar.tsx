@@ -9,7 +9,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import logoImage from "@assets/PANEL KLINIK UTAMA (8)_1759061809470.png";
+import logoImage from "@assets/EZTURN (1)_1759062234605.png";
 
 import {
   Sidebar,
