@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Volume2, Calendar } from "lucide-react";
+import { useActiveTheme, createGradientStyle, createTextGradientStyle } from "@/hooks/useActiveTheme";
 
 interface QueueItem {
   id: string;
@@ -45,6 +46,9 @@ export function TVDisplay({
   isFullscreen = false
 }: TVDisplayProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Fetch active theme
+  const { data: theme } = useActiveTheme();
   
   // Animation states
   const [showHighlight, setShowHighlight] = useState(false);
@@ -199,7 +203,10 @@ export function TVDisplay({
       </div>
 
       {/* Top Right - Patient Names Header */}
-      <div className={`bg-blue-700 text-white ${isFullscreen ? 'p-0 m-0' : 'p-4'} flex flex-col w-full`}>
+      <div className={`text-white ${isFullscreen ? 'p-0 m-0' : 'p-4'} flex flex-col w-full`}
+           style={{
+             ...createGradientStyle(theme?.callingGradient, theme?.callingColor || '#1d4ed8')
+           }}>
         {/* Header */}
         <div className={`text-center ${isFullscreen ? 'mb-2 pt-4 px-4' : 'mb-4'}`}>
           <div className="flex items-center justify-center space-x-3 mb-2">
@@ -216,15 +223,22 @@ export function TVDisplay({
               </div>
             )}
           </div>
-          <h1 className="font-bold text-yellow-400 text-[30px]" 
-              style={{ fontSize: 'clamp(2rem, 3.5vw, 3.5rem)' }} 
+          <h1 className="font-bold text-[30px]" 
+              style={{ 
+                fontSize: 'clamp(2rem, 3.5vw, 3.5rem)',
+                ...createTextGradientStyle(theme?.clinicNameGradient, theme?.clinicNameColor || '#facc15')
+              }} 
               data-testid="clinic-name">
             {clinicName}
           </h1>
           <p className="text-yellow-400" style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)' }}>
             TROPICANA AMAN
           </p>
-          <div className="bg-blue-800 text-yellow-400 px-4 py-2 rounded-lg mt-2">
+          <div className="px-4 py-2 rounded-lg mt-2"
+               style={{
+                 ...createGradientStyle(theme?.callingGradient, theme?.callingColor || '#1e40af'),
+                 color: theme?.callingGradient ? '#ffffff' : '#ffffff'
+               }}>
             <h2 className="font-bold" style={{ fontSize: 'clamp(1.75rem, 2.5vw, 2.5rem)' }}>CALLING</h2>
           </div>
         </div>
@@ -252,8 +266,11 @@ export function TVDisplay({
             </div>
           </div>
         ) : (
-          <div className={`bg-blue-600 ${isFullscreen ? 'p-2 mx-4 rounded-md mb-2' : 'p-3 rounded-lg mb-3'} text-center`}>
-            <div className="text-yellow-400" style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)' }}>N/A</div>
+          <div className={`${isFullscreen ? 'p-2 mx-4 rounded-md mb-2' : 'p-3 rounded-lg mb-3'} text-center`}
+               style={{
+                 ...createGradientStyle(theme?.highlightBoxGradient, theme?.highlightBoxColor || '#2563eb')
+               }}>
+            <div className="text-white" style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)' }}>N/A</div>
           </div>
         )}
 
@@ -306,8 +323,11 @@ export function TVDisplay({
           {queueHistory.length > 0 ? (
             queueHistory.slice(0, 4).map((item) => (
               <div key={item.id} className="bg-blue-600 p-3 rounded grid grid-cols-2 gap-1">
-                <div className="font-bold text-yellow-400" 
-                     style={{ fontSize: 'clamp(1.25rem, 2vw, 2rem)' }}>
+                <div className="font-bold" 
+                     style={{ 
+                       fontSize: 'clamp(1.25rem, 2vw, 2rem)',
+                       ...createTextGradientStyle(theme?.historyNameGradient, theme?.historyNameColor || '#facc15')
+                     }}>
                   {item.name}
                 </div>
                 <div className="text-yellow-400" 
@@ -345,13 +365,21 @@ export function TVDisplay({
         <div className="fixed inset-0 flex items-center justify-center z-[100]" 
              style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
              data-testid="highlight-overlay">
-          <div className="bg-blue-600 px-16 py-8 shadow-2xl border-4 border-yellow-400">
+          <div className="px-16 py-8 shadow-2xl border-4"
+               style={{
+                 ...createGradientStyle(theme?.highlightBoxGradient, theme?.highlightBoxColor || '#2563eb'),
+                 borderColor: theme?.highlightBoxColor || '#facc15'
+               }}>
             <div className="text-center space-y-4">
               <div className="text-white font-bold" style={{ fontSize: 'clamp(3rem, 8vw, 6rem)' }}
                    data-testid="highlight-patient-name">
                 {currentPatient.name}
               </div>
-              <div className="text-yellow-400 font-bold" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
+              <div className="font-bold" 
+                   style={{ 
+                     fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+                     color: theme?.highlightBoxGradient ? '#ffffff' : '#ffffff'
+                   }}
                    data-testid="highlight-patient-room">
                 {currentPatient.room}
               </div>
