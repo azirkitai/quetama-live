@@ -211,8 +211,8 @@ export class AudioSystem {
       : `Panggilan untuk ${patientName}. Sila ke ${windowName}.`;
 
     try {
-      // Try ElevenLabs TTS first
-      const ttsUrl = `/api/tts?text=${encodeURIComponent(textToSpeak)}`;
+      // Try ElevenLabs TTS first with language parameter
+      const ttsUrl = `/api/tts?text=${encodeURIComponent(textToSpeak)}&language=${language}`;
       const response = await fetch(ttsUrl);
       
       if (response.ok && response.headers.get('content-type')?.includes('audio/mpeg')) {

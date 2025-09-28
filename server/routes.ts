@@ -722,6 +722,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Support both GET (query param) and POST (body) methods
       const text = (req.query.text || req.body?.text || '').toString().trim();
+      const language = (req.query.language || req.body?.language || 'en').toString().toLowerCase();
+      
       if (!text) {
         return res.status(400).json({ error: 'text parameter is required' });
       }
@@ -764,17 +766,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Default voice ID (can be customized via settings)
-      const DEFAULT_VOICE_ID = process.env.ELEVEN_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
-      const voiceId = req.query.voice || DEFAULT_VOICE_ID;
+      // Fetch voice IDs from database settings (with fallback to environment)
+      let voiceId: string;
+      let modelId: string;
+      
+      try {
+        if (language === 'ms' || language === 'my' || language === 'bm') {
+          // Bahasa Malaysia configuration
+          const bmVoiceSetting = await storage.getSetting('elevenVoiceIdBM');
+          voiceId = bmVoiceSetting?.value || 
+                   process.env.ELEVEN_VOICE_ID_BM || 
+                   process.env.ELEVEN_VOICE_ID || 
+                   '21m00Tcm4TlvDq8ikWAM';
+          modelId = 'eleven_multilingual_v2'; // Better for Malay (multilingual required)
+        } else {
+          // English configuration  
+          const enVoiceSetting = await storage.getSetting('elevenVoiceIdEN');
+          voiceId = enVoiceSetting?.value || 
+                   process.env.ELEVEN_VOICE_ID_EN || 
+                   process.env.ELEVEN_VOICE_ID || 
+                   '21m00Tcm4TlvDq8ikWAM';
+          modelId = 'eleven_monolingual_v1'; // Better for English
+        }
+      } catch (error) {
+        console.warn('Failed to fetch voice settings from database, using fallback:', error);
+        // Fallback to environment variables only
+        if (language === 'ms' || language === 'my' || language === 'bm') {
+          voiceId = process.env.ELEVEN_VOICE_ID_BM || process.env.ELEVEN_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
+          modelId = 'eleven_multilingual_v2';
+        } else {
+          voiceId = process.env.ELEVEN_VOICE_ID_EN || process.env.ELEVEN_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
+          modelId = 'eleven_monolingual_v1';
+        }
+      }
 
       const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream?` +
                   `optimize_streaming_latency=3&output_format=mp3_44100_128`;
 
       const body = {
         text,
-        // Model multilingual untuk BM+English support
-        model_id: 'eleven_multilingual_v2',
+        model_id: modelId, // Use language-specific model
         voice_settings: {
           stability: 0.4,
           similarity_boost: 0.8,

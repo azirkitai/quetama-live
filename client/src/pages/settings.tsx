@@ -32,6 +32,9 @@ interface SettingsState {
   soundMode: 'synth' | 'preset' | 'file';
   presetKey?: string;
   customAudioId?: string;
+  // Separate voice models for better quality
+  elevenVoiceIdBM: string; // Voice ID for Bahasa Malaysia
+  elevenVoiceIdEN: string; // Voice ID for English
 }
 
 // Using Media type from shared schema instead of local interface
@@ -70,7 +73,10 @@ export default function Settings() {
     // Enhanced audio system defaults
     soundMode: 'synth',
     presetKey: undefined,
-    customAudioId: undefined
+    customAudioId: undefined,
+    // Separate voice models for better quality
+    elevenVoiceIdBM: "21m00Tcm4TlvDq8ikWAM", // Default ElevenLabs voice for BM
+    elevenVoiceIdEN: "21m00Tcm4TlvDq8ikWAM"  // Default ElevenLabs voice for EN
   });
 
   // YouTube preview states
@@ -165,7 +171,10 @@ export default function Settings() {
         // Enhanced audio system fields
         soundMode: (settingsObj.soundMode as 'synth' | 'preset' | 'file') || 'synth',
         presetKey: settingsObj.presetKey || undefined,
-        customAudioId: settingsObj.customAudioId || undefined
+        customAudioId: settingsObj.customAudioId || undefined,
+        // Separate voice models for better quality
+        elevenVoiceIdBM: settingsObj.elevenVoiceIdBM || "21m00Tcm4TlvDq8ikWAM",
+        elevenVoiceIdEN: settingsObj.elevenVoiceIdEN || "21m00Tcm4TlvDq8ikWAM"
       };
       
       setCurrentSettings(newSettings);
@@ -176,7 +185,7 @@ export default function Settings() {
         validateAndPreviewYouTube(newSettings.youtubeUrl);
       }
     }
-  }, [settings, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.enableSound, settingsObj.soundType, settingsObj.enableTTS, settingsObj.ttsLanguage, settingsObj.volume, settingsObj.soundMode, settingsObj.presetKey, settingsObj.customAudioId]);
+  }, [settings, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.enableSound, settingsObj.soundType, settingsObj.enableTTS, settingsObj.ttsLanguage, settingsObj.volume, settingsObj.soundMode, settingsObj.presetKey, settingsObj.customAudioId, settingsObj.elevenVoiceIdBM, settingsObj.elevenVoiceIdEN]);
 
   // Update theme colors when active theme is loaded
   useEffect(() => {
@@ -401,7 +410,10 @@ export default function Settings() {
       // Enhanced audio system fields
       { key: 'soundMode', value: currentSettings.soundMode, category: 'sound' },
       { key: 'presetKey', value: currentSettings.presetKey || '', category: 'sound' },
-      { key: 'customAudioId', value: currentSettings.customAudioId || '', category: 'sound' }
+      { key: 'customAudioId', value: currentSettings.customAudioId || '', category: 'sound' },
+      // Separate voice models for better quality
+      { key: 'elevenVoiceIdBM', value: currentSettings.elevenVoiceIdBM, category: 'sound' },
+      { key: 'elevenVoiceIdEN', value: currentSettings.elevenVoiceIdEN, category: 'sound' }
     ];
     saveSettingsMutation.mutate(soundSettingsToSave);
   };
@@ -1619,18 +1631,72 @@ export default function Settings() {
                           <div className="p-4 border rounded-lg bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
                             <div className="text-sm space-y-2">
                               <div className="font-medium text-blue-900 dark:text-blue-100">
-                                High-Quality Natural Voice
+                                Separate Language Models for Better Quality
                               </div>
                               <div className="text-blue-700 dark:text-blue-300">
-                                Sistem ini telah disediakan untuk ElevenLabs TTS yang memberikan suara natural berkualiti tinggi untuk BM & English.
+                                Menggunakan model berlainan untuk Bahasa Malaysia dan English untuk kualiti suara yang lebih baik.
                               </div>
                               <div className="mt-3 text-xs text-blue-600 dark:text-blue-400 space-y-1">
                                 <div><strong>Setup Required:</strong></div>
                                 <div>1. Dapatkan ElevenLabs API key dari elevenlabs.io</div>
                                 <div>2. Di Replit Secrets, tambah: <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">ELEVEN_API_KEY</code></div>
-                                <div>3. (Opsional) Tambah: <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">ELEVEN_VOICE_ID</code> untuk suara pilihan</div>
+                                <div>3. (Opsional) Tambah voice IDs khusus untuk setiap bahasa di bawah</div>
                                 <div className="mt-2 font-medium">Jika tidak dikonfigurasi, akan auto-fallback ke browser TTS.</div>
                               </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Separate Voice Models Configuration */}
+                        <div className="space-y-4">
+                          <Label>Voice Models untuk Setiap Bahasa</Label>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Bahasa Malaysia Voice ID */}
+                            <div className="space-y-2">
+                              <Label htmlFor="elevenVoiceIdBM">Voice ID - Bahasa Malaysia</Label>
+                              <Input
+                                id="elevenVoiceIdBM"
+                                data-testid="input-eleven-voice-bm"
+                                value={currentSettings.elevenVoiceIdBM}
+                                onChange={(e) => {
+                                  setCurrentSettings(prev => ({ ...prev, elevenVoiceIdBM: e.target.value }));
+                                  setUnsavedChanges(prev => [...prev.filter(key => key !== 'elevenVoiceIdBM'), 'elevenVoiceIdBM']);
+                                }}
+                                placeholder="21m00Tcm4TlvDq8ikWAM"
+                                className="font-mono text-sm"
+                              />
+                              <div className="text-xs text-muted-foreground">
+                                Voice ID khusus untuk panggilan Bahasa Malaysia
+                              </div>
+                            </div>
+
+                            {/* English Voice ID */}
+                            <div className="space-y-2">
+                              <Label htmlFor="elevenVoiceIdEN">Voice ID - English</Label>
+                              <Input
+                                id="elevenVoiceIdEN"
+                                data-testid="input-eleven-voice-en"
+                                value={currentSettings.elevenVoiceIdEN}
+                                onChange={(e) => {
+                                  setCurrentSettings(prev => ({ ...prev, elevenVoiceIdEN: e.target.value }));
+                                  setUnsavedChanges(prev => [...prev.filter(key => key !== 'elevenVoiceIdEN'), 'elevenVoiceIdEN']);
+                                }}
+                                placeholder="21m00Tcm4TlvDq8ikWAM"
+                                className="font-mono text-sm"
+                              />
+                              <div className="text-xs text-muted-foreground">
+                                Voice ID khusus untuk panggilan English
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="p-3 border rounded-lg bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
+                            <div className="text-sm text-amber-700 dark:text-amber-300">
+                              <div className="font-medium mb-1">💡 Tips untuk Voice Quality:</div>
+                              <div>• Guna voice ID berlainan untuk setiap bahasa untuk hasil terbaik</div>
+                              <div>• Test voice samples di ElevenLabs sebelum configure</div>
+                              <div>• Voice models yang sama akan digunakan untuk kedua-dua bahasa jika dibiarkan kosong</div>
                             </div>
                           </div>
                         </div>
