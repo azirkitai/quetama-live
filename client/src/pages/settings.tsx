@@ -488,7 +488,7 @@ export default function Settings() {
   const [editingMediaId, setEditingMediaId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   
-  const totalPages = Math.max(1, Math.ceil(mediaFiles.length / 4));
+  const totalPages = Math.max(1, Math.ceil(mediaFiles.length / 3));
   
   // Clamp currentMediaIndex to valid range
   useEffect(() => {
@@ -743,16 +743,17 @@ export default function Settings() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-              <div className="grid grid-cols-4 gap-4">
-                {mediaFiles.slice(currentMediaIndex * 4, (currentMediaIndex + 1) * 4).map((media, index) => (
+              <div className="grid grid-cols-3 gap-4">
+                {mediaFiles.slice(currentMediaIndex * 3, (currentMediaIndex + 1) * 3).map((media, index) => (
                   <div key={media.id} className="relative group">
-                    <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-blue-400 transition-colors">
+                    <div className="bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-blue-400 transition-colors flex items-center justify-center"
+                         style={{ minHeight: '200px', maxHeight: '300px' }}>
                       {/* Display actual image if it's an image type */}
                       {media.type === 'image' && media.url ? (
                         <img 
                           src={media.url} 
                           alt={media.name}
-                          className="w-full h-full object-cover"
+                          className="max-w-full max-h-full object-contain rounded"
                           onError={(e) => {
                             // Fallback to placeholder if image fails to load
                             (e.target as HTMLImageElement).style.display = 'none';
@@ -816,15 +817,16 @@ export default function Settings() {
                     </div>
                     <div className="absolute bottom-2 left-2 right-2">
                       <div className="bg-black/50 text-white text-xs px-2 py-1 rounded text-center">
-                        {index + 1 + currentMediaIndex * 4} / {mediaFiles.length}
+                        {index + 1 + currentMediaIndex * 3} / {mediaFiles.length}
                       </div>
                     </div>
                   </div>
                 ))}
                 
-                {/* Empty slots if less than 4 items */}
-                {Array.from({ length: Math.max(0, 4 - mediaFiles.slice(currentMediaIndex * 4, (currentMediaIndex + 1) * 4).length) }).map((_, index) => (
-                  <div key={`empty-${index}`} className="aspect-square bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                {/* Empty slots if less than 3 items */}
+                {Array.from({ length: Math.max(0, 3 - mediaFiles.slice(currentMediaIndex * 3, (currentMediaIndex + 1) * 3).length) }).map((_, index) => (
+                  <div key={`empty-${index}`} className="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center"
+                       style={{ minHeight: '200px', maxHeight: '300px' }}>
                     <Plus className="h-8 w-8 text-gray-400" />
                   </div>
                 ))}
@@ -849,11 +851,39 @@ export default function Settings() {
                       </p>
                     </div>
                     <Button 
-                      onClick={() => {
-                        toast({
-                          title: "Gambar Berjaya Dipindah",
-                          description: `${mediaFiles.length} gambar telah dipindah ke paparan iklan`,
-                        });
+                      onClick={async () => {
+                        try {
+                          const mediaIds = mediaFiles.map(media => media.id);
+                          const response = await fetch('/api/display', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ mediaIds }),
+                          });
+
+                          if (response.ok) {
+                            const result = await response.json();
+                            toast({
+                              title: "Gambar Berjaya Dipindah",
+                              description: result.message || `${mediaFiles.length} gambar telah dipindah ke paparan iklan`,
+                            });
+                          } else {
+                            const error = await response.json();
+                            toast({
+                              title: "Ralat",
+                              description: error.error || "Gagal memindah gambar ke paparan",
+                              variant: "destructive",
+                            });
+                          }
+                        } catch (error) {
+                          console.error('Error saving to display:', error);
+                          toast({
+                            title: "Ralat",
+                            description: "Gagal memindah gambar ke paparan",
+                            variant: "destructive",
+                          });
+                        }
                       }}
                       className="bg-green-600 hover:bg-green-700"
                       data-testid="button-save-to-dashboard"

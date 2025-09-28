@@ -662,6 +662,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Display routes (for TV display management)
+  
+  // Add test media (for development/testing)
+  app.post("/api/media/test", async (req, res) => {
+    try {
+      const testMedia = [
+        {
+          name: "Medical Scan Image",
+          filename: "scan_image.jpg",
+          url: "https://via.placeholder.com/800x600/4f46e5/ffffff?text=Medical+Scan",
+          type: 'image' as const,
+          mimeType: "image/jpeg",
+          size: 145000,
+        },
+        {
+          name: "Clinic Poster",
+          filename: "poster.png", 
+          url: "https://via.placeholder.com/600x900/10b981/ffffff?text=Clinic+Poster",
+          type: 'image' as const,
+          mimeType: "image/png",
+          size: 230000,
+        },
+        {
+          name: "Health Info Banner",
+          filename: "health_banner.jpg",
+          url: "https://via.placeholder.com/1200x400/f59e0b/ffffff?text=Health+Information",
+          type: 'image' as const,
+          mimeType: "image/jpeg", 
+          size: 180000,
+        },
+        {
+          name: "Appointment Notice",
+          filename: "appointment.png",
+          url: "https://via.placeholder.com/400x800/ef4444/ffffff?text=Appointment+Notice",
+          type: 'image' as const,
+          mimeType: "image/png",
+          size: 95000,
+        }
+      ];
+
+      const createdMedia = [];
+      for (const mediaData of testMedia) {
+        const media = await storage.createMedia(mediaData);
+        createdMedia.push(media);
+      }
+
+      res.json({ 
+        success: true, 
+        message: `${createdMedia.length} test media items created`,
+        media: createdMedia 
+      });
+    } catch (error) {
+      console.error("Error creating test media:", error);
+      res.status(500).json({ error: "Failed to create test media" });
+    }
+  });
+  
+  // Get active media for display
+  app.get("/api/display", async (req, res) => {
+    try {
+      const activeMedia = await storage.getActiveMedia();
+      res.json(activeMedia);
+    } catch (error) {
+      console.error("Error fetching display media:", error);
+      res.status(500).json({ error: "Failed to fetch display media" });
+    }
+  });
+
+  // Save media items to display (mark as active)
+  app.post("/api/display", async (req, res) => {
+    try {
+      const { mediaIds } = req.body;
+      
+      if (!Array.isArray(mediaIds)) {
+        return res.status(400).json({ error: "mediaIds must be an array" });
+      }
+
+      // First, deactivate all current media
+      const allMedia = await storage.getMedia();
+      for (const media of allMedia) {
+        if (media.isActive) {
+          await storage.updateMedia(media.id, { isActive: false });
+        }
+      }
+
+      // Then activate the selected media
+      const updatedMedia = [];
+      for (const mediaId of mediaIds) {
+        const updated = await storage.updateMedia(mediaId, { isActive: true });
+        if (updated) {
+          updatedMedia.push(updated);
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: `${updatedMedia.length} media items activated for display`,
+        activeMedia: updatedMedia 
+      });
+    } catch (error) {
+      console.error("Error saving media to display:", error);
+      res.status(500).json({ error: "Failed to save media to display" });
+    }
+  });
+
   // Theme management routes
   
   // Get all themes
