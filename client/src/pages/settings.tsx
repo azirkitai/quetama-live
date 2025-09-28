@@ -711,37 +711,38 @@ export default function Settings() {
             </CardContent>
           </Card>
 
-          {/* Media Gallery Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Media Gallery</span>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={prevMedia}
-                    disabled={currentMediaIndex <= 0}
-                    data-testid="button-prev-media"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="text-sm text-muted-foreground">
-                    {currentMediaIndex + 1} / {totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={nextMedia}
-                    disabled={currentMediaIndex >= totalPages - 1}
-                    data-testid="button-next-media"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          {/* Media Gallery Section - Only shown for image uploads */}
+          {currentSettings.dashboardMediaType === "own" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Media Gallery</span>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={prevMedia}
+                      disabled={currentMediaIndex <= 0}
+                      data-testid="button-prev-media"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      {currentMediaIndex + 1} / {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={nextMedia}
+                      disabled={currentMediaIndex >= totalPages - 1}
+                      data-testid="button-next-media"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
               <div className="grid grid-cols-4 gap-4">
                 {mediaFiles.slice(currentMediaIndex * 4, (currentMediaIndex + 1) * 4).map((media, index) => (
                   <div key={media.id} className="relative group">
@@ -863,8 +864,9 @@ export default function Settings() {
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* THEME CARD */}
           <Card>
