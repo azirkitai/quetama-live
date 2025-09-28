@@ -82,7 +82,7 @@ export function AppSidebar() {
     >
       {/* Branding Header */}
       <div 
-        className="p-6 border-b border-sidebar-border/20"
+        className="p-8 border-b border-sidebar-border/20"
         style={{
           background: 'transparent',
           backgroundColor: 'transparent'
@@ -92,7 +92,7 @@ export function AppSidebar() {
           <img 
             src={logoImage} 
             alt="QueTAMA System" 
-            className="h-16 w-auto object-contain"
+            className="h-32 w-auto object-contain max-w-full"
             style={{ filter: 'brightness(1.1)' }}
           />
         </div>
