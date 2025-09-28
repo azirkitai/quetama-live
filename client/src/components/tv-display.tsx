@@ -746,7 +746,10 @@ export function TVDisplay({
             ))
           ) : (
             <div className="text-center text-yellow-400 py-4">
-              <p style={{ fontSize: 'clamp(1.25rem, 2vw, 2rem)' }}>Tiada dalam barisan</p>
+              <p style={{ 
+                fontSize: 'clamp(1.25rem, 2vw, 2rem)',
+                ...getTextGroupStyles('Token Label')
+              }}>Tiada dalam barisan</p>
             </div>
           )}
         </div>
