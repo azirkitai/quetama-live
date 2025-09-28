@@ -9,6 +9,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import logoImage from "@assets/PANEL KLINIK UTAMA (8)_1759061809470.png";
 
 import {
   Sidebar,
@@ -87,14 +88,13 @@ export function AppSidebar() {
           backgroundColor: 'transparent'
         }}
       >
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">K</span>
-          </div>
-          <div>
-            <h2 className="text-sidebar-foreground font-bold text-lg">KLINIK</h2>
-            <p className="text-sidebar-foreground/60 text-xs uppercase tracking-wide">Calling System</p>
-          </div>
+        <div className="flex justify-center items-center">
+          <img 
+            src={logoImage} 
+            alt="QueTAMA System" 
+            className="h-12 w-auto object-contain"
+            style={{ filter: 'brightness(1.1)' }}
+          />
         </div>
       </div>
 
