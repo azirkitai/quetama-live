@@ -92,7 +92,7 @@ export function AppSidebar() {
           <img 
             src={logoImage} 
             alt="QueTAMA System" 
-            className="h-12 w-auto object-contain"
+            className="h-16 w-auto object-contain"
             style={{ filter: 'brightness(1.1)' }}
           />
         </div>
