@@ -139,6 +139,7 @@ export class MemStorage implements IStorage {
       { key: "showWeather", value: "false", category: "display" },
       { key: "marqueeText", value: "Selamat datang ke Klinik Kesihatan", category: "display" },
       { key: "marqueeColor", value: "#ffffff", category: "display" },
+      { key: "marqueeBackgroundColor", value: "#1e40af", category: "display" },
       { key: "enableSound", value: "true", category: "sound" },
       { key: "volume", value: "70", category: "sound" },
       { key: "soundMode", value: "preset", category: "sound" },

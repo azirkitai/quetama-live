@@ -25,6 +25,7 @@ interface SettingsState {
   showWeather: boolean;
   marqueeText: string;
   marqueeColor: string;
+  marqueeBackgroundColor: string;
   enableSound: boolean;
   volume: number;
   // Simplified audio system - preset only
@@ -60,6 +61,7 @@ export default function Settings() {
     showWeather: false,
     marqueeText: "Selamat datang ke Klinik Kesihatan",
     marqueeColor: "#ffffff",
+    marqueeBackgroundColor: "#1e40af",
     enableSound: true,
     volume: 70,
     // Simplified audio system - preset only
@@ -151,6 +153,7 @@ export default function Settings() {
         showWeather: settingsObj.showWeather === "true",
         marqueeText: settingsObj.marqueeText || "Selamat datang ke Klinik Kesihatan",
         marqueeColor: settingsObj.marqueeColor || "#ffffff",
+        marqueeBackgroundColor: settingsObj.marqueeBackgroundColor || "#1e40af",
         enableSound: settingsObj.enableSound === "true",
         volume: parseInt(settingsObj.volume || "70"),
         // Simplified audio system - preset only
@@ -166,7 +169,7 @@ export default function Settings() {
         validateAndPreviewYouTube(newSettings.youtubeUrl);
       }
     }
-  }, [settings, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.enableSound, settingsObj.volume, settingsObj.presetKey]);
+  }, [settings, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.marqueeBackgroundColor, settingsObj.enableSound, settingsObj.volume, settingsObj.presetKey]);
 
   // Update theme colors when active theme is loaded
   useEffect(() => {
@@ -352,7 +355,8 @@ export default function Settings() {
       { key: 'showPrayerTimes', value: currentSettings.showPrayerTimes.toString(), category: 'display' },
       { key: 'showWeather', value: currentSettings.showWeather.toString(), category: 'display' },
       { key: 'marqueeText', value: currentSettings.marqueeText, category: 'display' },
-      { key: 'marqueeColor', value: currentSettings.marqueeColor, category: 'display' }
+      { key: 'marqueeColor', value: currentSettings.marqueeColor, category: 'display' },
+      { key: 'marqueeBackgroundColor', value: currentSettings.marqueeBackgroundColor, category: 'display' }
     ];
     saveSettingsMutation.mutate(displaySettingsToSave);
   };
