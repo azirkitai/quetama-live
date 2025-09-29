@@ -1207,8 +1207,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Patient methods (using memStorage for now due to type complexity)
-  async getPatients(): Promise<Patient[]> {
-    return await db.select().from(schema.patients);
+  async getPatients(userId: string): Promise<Patient[]> {
+    return await db.select().from(schema.patients).where(eq(schema.patients.userId, userId));
   }
 
   async getPatient(id: string): Promise<Patient | undefined> {
@@ -1216,7 +1216,7 @@ export class DatabaseStorage implements IStorage {
     return patient;
   }
 
-  async getPatientsByDate(date: string): Promise<Patient[]> {
+  async getPatientsByDate(date: string, userId: string): Promise<Patient[]> {
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
@@ -1225,13 +1225,14 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(schema.patients)
       .where(
         and(
+          eq(schema.patients.userId, userId),
           sql`${schema.patients.registeredAt} >= ${startOfDay.toISOString()}`,
           sql`${schema.patients.registeredAt} <= ${endOfDay.toISOString()}`
         )
       );
   }
 
-  async getNextPatientNumber(): Promise<number> {
+  async getNextPatientNumber(userId: string): Promise<number> {
     const today = new Date().toISOString().split('T')[0];
     const startOfDay = new Date(today);
     startOfDay.setHours(0, 0, 0, 0);
@@ -1242,6 +1243,7 @@ export class DatabaseStorage implements IStorage {
       .from(schema.patients)
       .where(
         and(
+          eq(schema.patients.userId, userId),
           sql`${schema.patients.registeredAt} >= ${startOfDay.toISOString()}`,
           sql`${schema.patients.registeredAt} <= ${endOfDay.toISOString()}`
         )
