@@ -1002,28 +1002,6 @@ export function TVDisplay({
 
             {/* Modal Content */}
             <div className="text-center space-y-6 relative z-10">
-              {/* ROOM Label */}
-              <div className="font-semibold tracking-wider mb-2" 
-                   style={{ color: modalTextColor, opacity: 0.8, fontSize: '36px' }}>
-                ROOM
-              </div>
-
-              {/* Room Name */}
-              <div className="px-8 py-4 rounded border-2"
-                   style={{
-                     borderColor: modalBorderColor,
-                     backgroundColor: 'rgba(0, 0, 0, 0.2)'
-                   }}>
-                <div className="font-bold" 
-                     style={{ 
-                       fontSize: '70px',
-                       color: modalTextColor
-                     }}
-                     data-testid="highlight-patient-room">
-                  {currentPatient.room}
-                </div>
-              </div>
-
               {/* NAME Label */}
               <div className="font-semibold tracking-wider mb-2" 
                    style={{ color: modalTextColor, opacity: 0.8, fontSize: '36px' }}>
@@ -1043,6 +1021,28 @@ export function TVDisplay({
                      }}
                      data-testid="highlight-patient-name">
                   {currentPatient.name}
+                </div>
+              </div>
+
+              {/* ROOM Label */}
+              <div className="font-semibold tracking-wider mb-2" 
+                   style={{ color: modalTextColor, opacity: 0.8, fontSize: '36px' }}>
+                ROOM
+              </div>
+
+              {/* Room Name */}
+              <div className="px-8 py-4 rounded border-2"
+                   style={{
+                     borderColor: modalBorderColor,
+                     backgroundColor: 'rgba(0, 0, 0, 0.2)'
+                   }}>
+                <div className="font-bold" 
+                     style={{ 
+                       fontSize: '70px',
+                       color: modalTextColor
+                     }}
+                     data-testid="highlight-patient-room">
+                  {currentPatient.room}
                 </div>
               </div>
             </div>
