@@ -561,13 +561,19 @@ export class MemStorage implements IStorage {
   }
 
   async getCurrentCall(userId: string): Promise<Patient | undefined> {
-    // Get the most recently called patient - including requeued patients
-    // Keep showing the last called patient until a new one is called
+    // Get currently active called patient - only 'called' or 'in-progress' status
+    // Exclude completed patients to prevent them from appearing as current call
     const calledPatients = Array.from(this.patients.values())
       .filter(p => p.userId === userId)
-      .filter(p => p.status === 'called' || p.status === 'requeue' || p.status === 'completed' || p.status === 'in-progress')
+      .filter(p => p.status === 'called' || p.status === 'in-progress') // Only active calls
       .filter(p => p.calledAt) // Only patients that have actually been called
+      .filter(p => !p.completedAt) // Exclude completed patients
       .sort((a, b) => {
+        // Prioritize 'called' status over 'in-progress'
+        if (a.status === 'called' && b.status !== 'called') return -1;
+        if (b.status === 'called' && a.status !== 'called') return 1;
+        
+        // Then sort by most recent calledAt
         const timeA = a.calledAt?.getTime() || a.registeredAt.getTime();
         const timeB = b.calledAt?.getTime() || b.registeredAt.getTime();
         return timeB - timeA;
@@ -1416,8 +1422,16 @@ export class DatabaseStorage implements IStorage {
       })
       .from(schema.patients)
       .leftJoin(schema.windows, eq(schema.patients.windowId, schema.windows.id))
-      .where(and(eq(schema.patients.status, "called"), eq(schema.patients.userId, userId)))
-      .orderBy(sql`${schema.patients.calledAt} DESC`)
+      .where(and(
+        eq(schema.patients.userId, userId),
+        sql`${schema.patients.calledAt} IS NOT NULL`,
+        sql`${schema.patients.completedAt} IS NULL`,
+        sql`${schema.patients.status} IN ('called','in-progress')`
+      ))
+      .orderBy(
+        sql`CASE WHEN ${schema.patients.status} = 'called' THEN 0 WHEN ${schema.patients.status} = 'in-progress' THEN 1 ELSE 2 END`,
+        sql`${schema.patients.calledAt} DESC`
+      )
       .limit(1);
     
     return result ? {

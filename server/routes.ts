@@ -610,10 +610,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const currentCall = await storage.getCurrentCall(req.session.userId);
-      
-      // DEBUG: Log what getCurrentCall returns
-      console.log("🔍 API getCurrentCall returned:", currentCall);
-      
       res.json(currentCall || null);
     } catch (error) {
       console.error("Error fetching current call:", error);
