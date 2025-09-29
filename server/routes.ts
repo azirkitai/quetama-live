@@ -81,8 +81,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             id: user.id,
             username: user.username,
             role: user.role,
-            clinicName: user.clinicName,
-            clinicLocation: user.clinicLocation
+            clinicName: "",
+            clinicLocation: ""
           }
         });
       });
@@ -119,8 +119,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: user.id,
           username: user.username,
           role: user.role,
-          clinicName: user.clinicName,
-          clinicLocation: user.clinicLocation
+          clinicName: "",
+          clinicLocation: ""
         }
       });
     } catch (error) {
@@ -419,8 +419,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user: {
           id: user.id,
           username: user.username,
-          clinicName: user.clinicName,
-          clinicLocation: user.clinicLocation
+          clinicName: "",
+          clinicLocation: ""
         },
         settings,
         themes,
