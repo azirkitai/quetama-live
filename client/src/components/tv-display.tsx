@@ -887,22 +887,22 @@ export function TVDisplay({
         <div className="space-y-1 overflow-y-auto flex-1" data-testid="queue-list">
           {queueHistory.length > 0 ? (
             queueHistory.slice(0, 4).map((item) => (
-              <>
-                <div key={`${item.id}-name`} className="font-bold" 
+              <div key={item.id} className="grid grid-cols-2 gap-1">
+                <div className="font-bold" 
                      style={{ 
                        fontSize: 'clamp(1.25rem, 2vw, 2rem)',
                        ...getHistoryNameStyle()
                      }}>
                   {item.name}
                 </div>
-                <div key={`${item.id}-room`}
+                <div 
                      style={{ 
                        fontSize: 'clamp(1.25rem, 2vw, 2rem)',
                        ...getHistoryNameStyle()
                      }}>
                   {item.room}
                 </div>
-              </>
+              </div>
             ))
           ) : (
             <div className="text-center py-4">
