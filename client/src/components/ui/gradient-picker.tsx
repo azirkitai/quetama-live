@@ -5,96 +5,65 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Palette, Wand2, Plus, Trash2 } from "lucide-react";
-
-interface GradientPickerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onApply: (gradient: string) => void;
-  currentValue?: string;
-  title?: string;
-}
-
-// Predefined gradient categories with visual appeal
-const gradientCategories = {
-  calling: {
-    name: "Calling Gradients",
-    gradients: [
-      "linear-gradient(45deg, #3b82f6, #1d4ed8)",
-      "linear-gradient(90deg, #06b6d4, #0891b2)", 
-      "linear-gradient(135deg, #8b5cf6, #7c3aed)",
-      "linear-gradient(180deg, #10b981, #059669)",
-      "linear-gradient(225deg, #2563eb, #1e40af)",
-      "linear-gradient(270deg, #0ea5e9, #0284c7)",
-      "linear-gradient(315deg, #a855f7, #9333ea)",
-      "linear-gradient(360deg, #16a34a, #15803d)"
-    ]
-  },
-  highlight: {
-    name: "Highlight Gradients", 
-    gradients: [
-      "linear-gradient(45deg, #ef4444, #dc2626)",
-      "linear-gradient(90deg, #f59e0b, #d97706)",
-      "linear-gradient(135deg, #ec4899, #db2777)",
-      "linear-gradient(180deg, #f97316, #ea580c)",
-      "linear-gradient(225deg, #e11d48, #be185d)",
-      "linear-gradient(270deg, #eab308, #ca8a04)",
-      "linear-gradient(315deg, #f43f5e, #e11d48)",
-      "linear-gradient(360deg, #fb923c, #f97316)"
-    ]
-  },
-  aurora: {
-    name: "Aurora Collection",
-    gradients: [
-      "linear-gradient(45deg, #a855f7, #06b6d4, #10b981)",
-      "linear-gradient(90deg, #ec4899, #8b5cf6, #3b82f6)",
-      "linear-gradient(135deg, #f59e0b, #ef4444, #ec4899)",
-      "linear-gradient(180deg, #10b981, #06b6d4, #8b5cf6)",
-      "linear-gradient(225deg, #3b82f6, #a855f7, #ec4899)",
-      "linear-gradient(270deg, #8b5cf6, #ec4899, #f59e0b)",
-      "linear-gradient(315deg, #06b6d4, #10b981, #f59e0b)",
-      "linear-gradient(360deg, #ef4444, #3b82f6, #10b981)"
-    ]
-  },
-  metallic: {
-    name: "Metallic & Professional", 
-    gradients: [
-      "linear-gradient(45deg, #6b7280, #4b5563)",
-      "linear-gradient(90deg, #64748b, #475569)",
-      "linear-gradient(135deg, #78716c, #57534e)",
-      "linear-gradient(180deg, #71717a, #52525b)",
-      "linear-gradient(225deg, #9ca3af, #6b7280)",
-      "linear-gradient(270deg, #94a3b8, #64748b)",
-      "linear-gradient(315deg, #a8a29e, #78716c)",
-      "linear-gradient(360deg, #a1a1aa, #71717a)"
-    ]
-  },
-  background: {
-    name: "Background Styles",
-    gradients: [
-      "linear-gradient(45deg, #ffffff, #f8fafc)",
-      "linear-gradient(90deg, #f1f5f9, #e2e8f0)",
-      "linear-gradient(135deg, #fef7cd, #fef3c7)",
-      "linear-gradient(180deg, #dcfce7, #bbf7d0)",
-      "linear-gradient(225deg, #fce7f3, #fbcfe8)",
-      "linear-gradient(270deg, #dbeafe, #bfdbfe)",
-      "linear-gradient(315deg, #ede9fe, #ddd6fe)",
-      "linear-gradient(360deg, #ecfdf5, #d1fae5)"
-    ]
-  }
-};
+import { Slider } from "@/components/ui/slider";
+import { X, Plus, Palette, Wand2 } from "lucide-react";
 
 interface ColorStop {
   color: string;
   position: number;
 }
 
-export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", title = "Select Gradient" }: GradientPickerProps) {
-  const [customGradient, setCustomGradient] = useState(currentValue);
-  const [selectedPreset, setSelectedPreset] = useState("");
-  
-  // Visual gradient builder state
-  const [gradientDirection, setGradientDirection] = useState("45deg");
+interface GradientPickerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onApply: (gradient: string) => void;
+  title: string;
+  currentValue?: string;
+}
+
+const gradientCategories = {
+  ocean: {
+    name: "Ocean",
+    gradients: [
+      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+      "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+      "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
+    ]
+  },
+  sunset: {
+    name: "Sunset",
+    gradients: [
+      "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+      "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+      "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
+      "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)"
+    ]
+  },
+  cool: {
+    name: "Cool",
+    gradients: [
+      "linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)",
+      "linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%)",
+      "linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%)",
+      "linear-gradient(135deg, #fd79a8 0%, #00b894 100%)"
+    ]
+  },
+  warm: {
+    name: "Warm",
+    gradients: [
+      "linear-gradient(135deg, #fdcb6e 0%, #e84393 100%)",
+      "linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%)",
+      "linear-gradient(135deg, #e84393 0%, #f39c12 100%)",
+      "linear-gradient(135deg, #00b894 0%, #fdcb6e 100%)"
+    ]
+  }
+};
+
+export function GradientPicker({ isOpen, onClose, onApply, title, currentValue }: GradientPickerProps) {
+  const [selectedPreset, setSelectedPreset] = useState<string>("");
+  const [customGradient, setCustomGradient] = useState<string>(currentValue || "");
+  const [gradientDirection, setGradientDirection] = useState<string>("45deg");
   const [colorStops, setColorStops] = useState<ColorStop[]>([
     { color: "#ff0000", position: 0 },
     { color: "#00ff00", position: 100 }
@@ -193,7 +162,6 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
     updateCustomGradientFromVisual(colorStops, newDirection);
   };
 
-
   const handleApply = () => {
     onApply(customGradient);
     onClose();
@@ -201,8 +169,8 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[600px] max-w-[90vw] max-h-[80vh] overflow-hidden" data-testid="dialog-gradient-picker">
-        <DialogHeader>
+      <DialogContent className="w-[600px] max-w-[90vw] max-h-[80vh] flex flex-col" data-testid="dialog-gradient-picker">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Palette className="h-5 w-5" />
             {title}
@@ -212,7 +180,7 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 overflow-y-auto">
+        <div className="space-y-4 overflow-y-auto flex-1 min-h-0">
           <Tabs defaultValue="presets" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="presets" className="flex items-center gap-2" data-testid="tab-preset-gradients">
@@ -233,7 +201,7 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
                         className={`h-12 rounded-md border-2 transition-all hover:scale-105 ${
                           selectedPreset === gradient 
                             ? "border-primary ring-2 ring-primary/20" 
-                            : "border-muted hover:border-primary/50"
+                            : "border-border hover:border-primary/50"
                         }`}
                         style={{ background: gradient }}
                         onClick={() => handlePresetSelect(gradient)}
@@ -262,6 +230,7 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="0deg">↑ Top (0°)</SelectItem>
                         <SelectItem value="45deg">↗ Top Right (45°)</SelectItem>
                         <SelectItem value="90deg">→ Right (90°)</SelectItem>
                         <SelectItem value="135deg">↘ Bottom Right (135°)</SelectItem>
@@ -269,7 +238,6 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
                         <SelectItem value="225deg">↙ Bottom Left (225°)</SelectItem>
                         <SelectItem value="270deg">← Left (270°)</SelectItem>
                         <SelectItem value="315deg">↖ Top Left (315°)</SelectItem>
-                        <SelectItem value="0deg">↑ Top (0°)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -280,49 +248,67 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
                     <div 
                       className="h-16 rounded-md border"
                       style={{ background: generateGradientCSS() }}
+                      data-testid="gradient-preview"
                     />
                   </div>
 
                   {/* Color Stops */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <Label>Colors</Label>
-                      <Button size="sm" variant="outline" onClick={addColorStop} data-testid="button-add-color">
+                      <Label>Color Stops</Label>
+                      <Button 
+                        size="sm" 
+                        onClick={addColorStop}
+                        disabled={colorStops.length >= 10}
+                        data-testid="button-add-color-stop"
+                      >
                         <Plus className="h-4 w-4 mr-1" />
                         Add Color
                       </Button>
                     </div>
                     
-                    <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                    <div className="space-y-3 max-h-48 overflow-y-auto">
                       {colorStops.map((stop, index) => (
-                        <div key={index} className="flex items-center gap-2 p-2 border rounded">
-                          <Input
-                            type="color"
-                            value={stop.color}
-                            onChange={(e) => updateColorStop(index, 'color', e.target.value)}
-                            className="w-12 h-8 p-1 border rounded"
-                            data-testid={`color-stop-${index}`}
-                          />
-                          <div className="flex-1">
-                            <Label className="text-xs text-muted-foreground">Position: {stop.position}%</Label>
-                            <input
-                              type="range"
-                              min="0"
-                              max="100"
-                              value={stop.position}
-                              onChange={(e) => updateColorStop(index, 'position', parseInt(e.target.value))}
-                              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                              data-testid={`position-stop-${index}`}
+                        <div key={index} className="flex items-center gap-3 p-3 border rounded-md" data-testid={`color-stop-${index}`}>
+                          <div className="flex items-center gap-2 flex-1">
+                            <Input
+                              type="color"
+                              value={stop.color}
+                              onChange={(e) => updateColorStop(index, "color", e.target.value)}
+                              className="w-12 h-8 p-1 border rounded"
+                              data-testid={`color-picker-${index}`}
+                            />
+                            <Input
+                              type="text"
+                              value={stop.color}
+                              onChange={(e) => updateColorStop(index, "color", e.target.value)}
+                              className="flex-1 font-mono text-sm"
+                              placeholder="#FF0000"
+                              data-testid={`color-input-${index}`}
                             />
                           </div>
+                          
+                          <div className="flex items-center gap-2 w-24">
+                            <Slider
+                              value={[stop.position]}
+                              onValueChange={(value) => updateColorStop(index, "position", value[0])}
+                              max={100}
+                              step={1}
+                              className="flex-1"
+                              data-testid={`position-slider-${index}`}
+                            />
+                            <span className="text-xs w-8 text-muted-foreground">{stop.position}%</span>
+                          </div>
+                          
                           {colorStops.length > 2 && (
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               variant="ghost"
                               onClick={() => removeColorStop(index)}
-                              data-testid={`remove-stop-${index}`}
+                              className="p-1 h-8 w-8 text-destructive hover:text-destructive"
+                              data-testid={`remove-color-stop-${index}`}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <X className="h-4 w-4" />
                             </Button>
                           )}
                         </div>
@@ -366,19 +352,20 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
               </Tabs>
             </TabsContent>
           </Tabs>
-          
-          <div className="flex justify-between items-center pt-4 border-t">
-            <div className="text-sm text-muted-foreground">
-              Current: {customGradient ? customGradient.substring(0, 40) + "..." : "None"}
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={onClose} data-testid="button-gradient-cancel">
-                Cancel
-              </Button>
-              <Button onClick={handleApply} disabled={!customGradient} data-testid="button-gradient-apply">
-                Apply Gradient
-              </Button>
-            </div>
+        </div>
+        
+        {/* Footer with Apply button - always visible */}
+        <div className="flex justify-between items-center pt-4 border-t flex-shrink-0 bg-background">
+          <div className="text-sm text-muted-foreground">
+            Current: {customGradient ? customGradient.substring(0, 40) + "..." : "None"}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose} data-testid="button-gradient-cancel">
+              Cancel
+            </Button>
+            <Button onClick={handleApply} disabled={!customGradient} data-testid="button-gradient-apply">
+              Apply Gradient
+            </Button>
           </div>
         </div>
       </DialogContent>
