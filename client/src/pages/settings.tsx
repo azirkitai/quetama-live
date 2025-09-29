@@ -25,6 +25,8 @@ interface SettingsState {
   showWeather: boolean;
   marqueeText: string;
   marqueeColor: string;
+  marqueeTextMode: 'solid' | 'gradient';
+  marqueeTextGradient: string;
   marqueeBackgroundColor: string;
   enableSound: boolean;
   volume: number;
@@ -33,24 +35,36 @@ interface SettingsState {
   presetKey: PresetSoundKeyType;
   // Individual section colors
   headerTextColor: string;
+  headerTextMode: 'solid' | 'gradient';
+  headerTextGradient: string;
   headerBackgroundColor: string;
   headerBackgroundMode: 'solid' | 'gradient';
   headerBackgroundGradient: string;
   callNameTextColor: string;
+  callNameTextMode: 'solid' | 'gradient';
+  callNameTextGradient: string;
   callBackgroundColor: string;
   callBackgroundMode: 'solid' | 'gradient';
   callBackgroundGradient: string;
   windowTextColor: string;
+  windowTextMode: 'solid' | 'gradient';
+  windowTextGradient: string;
   callBorderColor: string;
   prayerTimesTextColor: string;
+  prayerTimesTextMode: 'solid' | 'gradient';
+  prayerTimesTextGradient: string;
   prayerTimesBackgroundColor: string;
   prayerTimesBackgroundMode: 'solid' | 'gradient';
   prayerTimesBackgroundGradient: string;
   weatherTextColor: string;
+  weatherTextMode: 'solid' | 'gradient';
+  weatherTextGradient: string;
   weatherBackgroundColor: string;
   weatherBackgroundMode: 'solid' | 'gradient';
   weatherBackgroundGradient: string;
   queueTextColor: string;
+  queueTextMode: 'solid' | 'gradient';
+  queueTextGradient: string;
   queueBackgroundColor: string;
   queueBackgroundMode: 'solid' | 'gradient';
   queueBackgroundGradient: string;
@@ -75,22 +89,36 @@ export default function Settings() {
   // Gradient picker states
   const [gradientPickers, setGradientPickers] = useState<{
     header: boolean;
+    headerText: boolean;
     call: boolean;
+    callNameText: boolean;
+    windowText: boolean;
     prayer: boolean;
+    prayerText: boolean;
     weather: boolean;
+    weatherText: boolean;
     queue: boolean;
+    queueText: boolean;
     queueItem: boolean;
     historyName: boolean;
     marquee: boolean;
+    marqueeText: boolean;
   }>({
     header: false,
+    headerText: false,
     call: false,
+    callNameText: false,
+    windowText: false,
     prayer: false,
+    prayerText: false,
     weather: false,
+    weatherText: false,
     queue: false,
+    queueText: false,
     queueItem: false,
     historyName: false,
-    marquee: false
+    marquee: false,
+    marqueeText: false
   });
   
   // Fetch current settings from database
@@ -115,6 +143,8 @@ export default function Settings() {
     showWeather: false,
     marqueeText: '',
     marqueeColor: '#ffffff',
+    marqueeTextMode: 'solid' as 'solid' | 'gradient',
+    marqueeTextGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
     marqueeBackgroundColor: '#000000',
     enableSound: false,
     volume: 50,
@@ -122,24 +152,36 @@ export default function Settings() {
     presetKey: 'notification_sound',
     // Individual section colors with defaults
     headerTextColor: '#ffffff',
+    headerTextMode: 'solid' as 'solid' | 'gradient',
+    headerTextGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
     headerBackgroundColor: '#1e40af',
     headerBackgroundMode: 'solid' as 'solid' | 'gradient',
     headerBackgroundGradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     callNameTextColor: '#ffffff',
+    callNameTextMode: 'solid' as 'solid' | 'gradient',
+    callNameTextGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
     callBackgroundColor: '#16a34a',
     callBackgroundMode: 'solid' as 'solid' | 'gradient',
     callBackgroundGradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
     windowTextColor: '#ffffff',
+    windowTextMode: 'solid' as 'solid' | 'gradient',
+    windowTextGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
     callBorderColor: '#22c55e',
     prayerTimesTextColor: '#ffffff',
+    prayerTimesTextMode: 'solid' as 'solid' | 'gradient',
+    prayerTimesTextGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
     prayerTimesBackgroundColor: '#7c3aed',
     prayerTimesBackgroundMode: 'solid' as 'solid' | 'gradient',
     prayerTimesBackgroundGradient: 'linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%)',
     weatherTextColor: '#ffffff',
+    weatherTextMode: 'solid' as 'solid' | 'gradient',
+    weatherTextGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
     weatherBackgroundColor: '#f97316',
     weatherBackgroundMode: 'solid' as 'solid' | 'gradient',
     weatherBackgroundGradient: 'linear-gradient(135deg, #fdcb6e 0%, #e84393 100%)',
     queueTextColor: '#1f2937',
+    queueTextMode: 'solid' as 'solid' | 'gradient',
+    queueTextGradient: 'linear-gradient(135deg, #1f2937 0%, #4b5563 100%)',
     queueBackgroundColor: '#f3f4f6',
     queueBackgroundMode: 'solid' as 'solid' | 'gradient',
     queueBackgroundGradient: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)',
@@ -167,6 +209,8 @@ export default function Settings() {
         showWeather: settingsObj.showWeather === 'true',
         marqueeText: settingsObj.marqueeText || '',
         marqueeColor: settingsObj.marqueeColor || '#ffffff',
+        marqueeTextMode: (settingsObj.marqueeTextMode as 'solid' | 'gradient') || 'solid',
+        marqueeTextGradient: settingsObj.marqueeTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
         marqueeBackgroundColor: settingsObj.marqueeBackgroundColor || '#000000',
         enableSound: settingsObj.enableSound === 'true',
         volume: parseInt(settingsObj.volume || '50'),
@@ -174,24 +218,36 @@ export default function Settings() {
         presetKey: (settingsObj.presetKey as PresetSoundKeyType) || 'notification_sound',
         // Individual section colors with defaults
         headerTextColor: settingsObj.headerTextColor || '#ffffff',
+        headerTextMode: (settingsObj.headerTextMode as 'solid' | 'gradient') || 'solid',
+        headerTextGradient: settingsObj.headerTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
         headerBackgroundColor: settingsObj.headerBackgroundColor || '#1e40af',
         headerBackgroundMode: (settingsObj.headerBackgroundMode as 'solid' | 'gradient') || 'solid',
         headerBackgroundGradient: settingsObj.headerBackgroundGradient || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         callNameTextColor: settingsObj.callNameTextColor || '#ffffff',
+        callNameTextMode: (settingsObj.callNameTextMode as 'solid' | 'gradient') || 'solid',
+        callNameTextGradient: settingsObj.callNameTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
         callBackgroundColor: settingsObj.callBackgroundColor || '#16a34a',
         callBackgroundMode: (settingsObj.callBackgroundMode as 'solid' | 'gradient') || 'solid',
         callBackgroundGradient: settingsObj.callBackgroundGradient || 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
         windowTextColor: settingsObj.windowTextColor || '#ffffff',
+        windowTextMode: (settingsObj.windowTextMode as 'solid' | 'gradient') || 'solid',
+        windowTextGradient: settingsObj.windowTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
         callBorderColor: settingsObj.callBorderColor || '#22c55e',
         prayerTimesTextColor: settingsObj.prayerTimesTextColor || '#ffffff',
+        prayerTimesTextMode: (settingsObj.prayerTimesTextMode as 'solid' | 'gradient') || 'solid',
+        prayerTimesTextGradient: settingsObj.prayerTimesTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
         prayerTimesBackgroundColor: settingsObj.prayerTimesBackgroundColor || '#7c3aed',
         prayerTimesBackgroundMode: (settingsObj.prayerTimesBackgroundMode as 'solid' | 'gradient') || 'solid',
         prayerTimesBackgroundGradient: settingsObj.prayerTimesBackgroundGradient || 'linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%)',
         weatherTextColor: settingsObj.weatherTextColor || '#ffffff',
+        weatherTextMode: (settingsObj.weatherTextMode as 'solid' | 'gradient') || 'solid',
+        weatherTextGradient: settingsObj.weatherTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
         weatherBackgroundColor: settingsObj.weatherBackgroundColor || '#f97316',
         weatherBackgroundMode: (settingsObj.weatherBackgroundMode as 'solid' | 'gradient') || 'solid',
         weatherBackgroundGradient: settingsObj.weatherBackgroundGradient || 'linear-gradient(135deg, #fdcb6e 0%, #e84393 100%)',
         queueTextColor: settingsObj.queueTextColor || '#1f2937',
+        queueTextMode: (settingsObj.queueTextMode as 'solid' | 'gradient') || 'solid',
+        queueTextGradient: settingsObj.queueTextGradient || 'linear-gradient(135deg, #1f2937 0%, #4b5563 100%)',
         queueBackgroundColor: settingsObj.queueBackgroundColor || '#f3f4f6',
         queueBackgroundMode: (settingsObj.queueBackgroundMode as 'solid' | 'gradient') || 'solid',
         queueBackgroundGradient: settingsObj.queueBackgroundGradient || 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)',
