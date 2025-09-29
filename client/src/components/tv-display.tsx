@@ -870,7 +870,7 @@ export function TVDisplay({
       {/* Second Row Right - Background Header with Floating History */}
       <div className={`relative text-white ${isFullscreen ? 'p-4' : 'p-4'} flex flex-col w-full h-full`}
            style={{
-             ...getBackgroundStyle(queueBackgroundMode, queueBackgroundColor, queueBackgroundGradient, '#1d4ed8')
+             backgroundColor: 'transparent'
            }}>
         {/* Background Header - Full Height */}
         <div className="mb-4">
