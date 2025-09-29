@@ -85,8 +85,6 @@ export function TVDisplay({
   showWeather = false,
   tvToken
 }: TVDisplayProps) {
-  // DEBUG: Log currentPatient data
-  console.log("📺 TVDisplay received currentPatient:", currentPatient);
   
   const [currentTime, setCurrentTime] = useState(new Date());
   

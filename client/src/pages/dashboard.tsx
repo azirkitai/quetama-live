@@ -32,8 +32,8 @@ export default function Dashboard() {
   });
 
   // Fetch current call
-  const { data: currentCall } = useQuery<Patient | null>({
-    queryKey: ['/api/dashboard/current-call', Date.now()], // Force new request each time
+  const { data: currentCall, error: currentCallError, isLoading: currentCallLoading } = useQuery<Patient | null>({
+    queryKey: ['/api/dashboard/current-call'], // Stable query key
     queryFn: async () => {
       const response = await fetch(`/api/dashboard/current-call?t=${Date.now()}`, {
         method: 'GET',
@@ -49,6 +49,7 @@ export default function Dashboard() {
     staleTime: 0, // Always consider data stale
     gcTime: 0, // Don't cache results
   });
+
 
   // Fetch recent history 
   const { data: history = [] } = useQuery<Patient[]>({
