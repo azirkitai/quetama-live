@@ -762,7 +762,8 @@ export function TVDisplay({
                 <p className="font-bold" style={{ 
                   ...getHistoryNameStyle(),
                   ...getTextGroupStyles('Patient History', true),
-                  fontSize: 'clamp(1.75rem, 3vw, 3rem)' // Put fontSize LAST to override getTextGroupStyles
+                  fontSize: 'clamp(2rem, 4vw, 4rem) !important', // Force override with !important
+                  fontWeight: 'bold !important'
                 }}>Tiada dalam barisan</p>
               </div>
             )}
