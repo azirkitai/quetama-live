@@ -1265,16 +1265,24 @@ export class DatabaseStorage implements IStorage {
     const endOfDay = new Date(today);
     endOfDay.setHours(23, 59, 59, 999);
 
-    return await db.select().from(schema.patients)
+    // Get current call to exclude from history to avoid duplication
+    const currentCall = await this.getCurrentCall();
+
+    const history = await db.select().from(schema.patients)
       .where(
         and(
-          eq(schema.patients.status, "called"),
+          sql`${schema.patients.calledAt} IS NOT NULL`,
           sql`${schema.patients.registeredAt} >= ${startOfDay.toISOString()}`,
           sql`${schema.patients.registeredAt} <= ${endOfDay.toISOString()}`
         )
       )
       .orderBy(sql`${schema.patients.calledAt} DESC`)
-      .limit(limit);
+      .limit(limit + 1); // Get one extra in case we need to filter out current call
+
+    // Filter out current call to avoid showing it in both current call and history
+    return history
+      .filter(patient => currentCall ? patient.id !== currentCall.id : true)
+      .slice(0, limit);
   }
 }
 
