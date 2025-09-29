@@ -121,6 +121,19 @@ export function TVDisplay({
     return { backgroundColor: solidColor || fallbackColor };
   };
   
+  // Universal helper function to get text style based on mode (solid vs gradient)
+  const getTextStyle = (mode: string | undefined, solidColor: string, gradientValue: string, fallbackColor: string) => {
+    if (mode === 'gradient' && gradientValue) {
+      return {
+        background: gradientValue,
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text'
+      };
+    }
+    return { color: solidColor || fallbackColor };
+  };
+  
   // Extract individual section settings
   const headerBackgroundMode = settingsObj.headerBackgroundMode || 'solid';
   const headerBackgroundColor = settingsObj.headerBackgroundColor || '#1e40af';
@@ -152,6 +165,34 @@ export function TVDisplay({
   
   const marqueeBackgroundMode = settingsObj.marqueeBackgroundMode || 'solid';
   const marqueeBackgroundGradient = settingsObj.marqueeBackgroundGradient || 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)';
+  
+  // Extract text color settings
+  const headerTextMode = settingsObj.headerTextMode || 'solid';
+  const headerTextColor = settingsObj.headerTextColor || '#ffffff';
+  const headerTextGradient = settingsObj.headerTextGradient || 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+  
+  const callNameTextMode = settingsObj.callNameTextMode || 'solid';
+  const callNameTextColor = settingsObj.callNameTextColor || '#ffffff';
+  const callNameTextGradient = settingsObj.callNameTextGradient || 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+  
+  const windowTextMode = settingsObj.windowTextMode || 'solid';
+  const windowTextColor = settingsObj.windowTextColor || '#ffffff';
+  const windowTextGradient = settingsObj.windowTextGradient || 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
+  
+  const prayerTimesTextMode = settingsObj.prayerTimesTextMode || 'solid';
+  const prayerTimesTextColor = settingsObj.prayerTimesTextColor || '#ffffff';
+  const prayerTimesTextGradient = settingsObj.prayerTimesTextGradient || 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)';
+  
+  const weatherTextMode = settingsObj.weatherTextMode || 'solid';
+  const weatherTextColor = settingsObj.weatherTextColor || '#ffffff';
+  const weatherTextGradient = settingsObj.weatherTextGradient || 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)';
+  
+  const queueTextMode = settingsObj.queueTextMode || 'solid';
+  const queueTextColor = settingsObj.queueTextColor || '#1f2937';
+  const queueTextGradient = settingsObj.queueTextGradient || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+  
+  const marqueeTextMode = settingsObj.marqueeTextMode || 'solid';
+  const marqueeTextGradient = settingsObj.marqueeTextGradient || 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)';
 
   // Helper function to get text group styles
   const getTextGroupStyles = (groupName: string) => {
