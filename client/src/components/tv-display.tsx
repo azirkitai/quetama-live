@@ -647,14 +647,16 @@ export function TVDisplay({
         <div className={`text-center ${isFullscreen ? 'mb-2 pt-4 px-4' : 'mb-4'}`}>
           {/* Logo Display - Use uploaded logo if enabled */}
           {showClinicLogo && settingsClinicLogo && (
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <img 
-                src={settingsClinicLogo} 
-                alt="Logo Klinik" 
-                className="h-32 w-auto object-contain bg-white rounded-lg p-2 shadow-lg"
-                style={{ maxWidth: '350px' }}
-                data-testid="clinic-logo"
-              />
+            <div className="flex items-center justify-center mb-4">
+              <div className="bg-white rounded-lg p-4 shadow-lg">
+                <img 
+                  src={settingsClinicLogo} 
+                  alt="Logo Klinik" 
+                  className="h-32 w-auto object-contain"
+                  style={{ maxWidth: '350px' }}
+                  data-testid="clinic-logo"
+                />
+              </div>
             </div>
           )}
           <h1 className="font-bold text-[16px]" 
