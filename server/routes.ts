@@ -1026,8 +1026,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get active media for display
   app.get("/api/display", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       // Get current settings to determine media type
-      const settings = await storage.getSettings();
+      const settings = await storage.getSettings(req.session.userId);
       const settingsObj = settings.reduce((acc: Record<string, string>, setting) => {
         acc[setting.key] = setting.value;
         return acc;
@@ -1052,7 +1057,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json(youtubeMedia);
       } else {
         // Otherwise return regular uploaded media
-        const activeMedia = await storage.getActiveMedia();
+        const activeMedia = await storage.getActiveMedia(req.session.userId);
         res.json(activeMedia);
       }
     } catch (error) {
@@ -1064,6 +1069,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Save media items to display (mark as active)
   app.post("/api/display", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { mediaIds } = req.body;
       
       if (!Array.isArray(mediaIds)) {
@@ -1071,17 +1081,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // First, deactivate all current media
-      const allMedia = await storage.getMedia();
+      const allMedia = await storage.getMedia(req.session.userId);
       for (const media of allMedia) {
         if (media.isActive) {
-          await storage.updateMedia(media.id, { isActive: false });
+          await storage.updateMedia(media.id, { isActive: false }, req.session.userId);
         }
       }
 
       // Then activate the selected media
       const updatedMedia = [];
       for (const mediaId of mediaIds) {
-        const updated = await storage.updateMedia(mediaId, { isActive: true });
+        const updated = await storage.updateMedia(mediaId, { isActive: true }, req.session.userId);
         if (updated) {
           updatedMedia.push(updated);
         }
