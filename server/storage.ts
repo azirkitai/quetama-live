@@ -1268,12 +1268,12 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(schema.patients)
       .where(
         and(
-          eq(schema.patients.status, "completed"),
+          eq(schema.patients.status, "called"),
           sql`${schema.patients.registeredAt} >= ${startOfDay.toISOString()}`,
           sql`${schema.patients.registeredAt} <= ${endOfDay.toISOString()}`
         )
       )
-      .orderBy(sql`${schema.patients.completedAt} DESC`)
+      .orderBy(sql`${schema.patients.calledAt} DESC`)
       .limit(limit);
   }
 }
