@@ -2302,5 +2302,6 @@ export default function Settings() {
         title="Clinic Name Text Gradient"
         currentValue={currentSettings.clinicNameTextGradient}
       />
+    </div>
   );
 }
