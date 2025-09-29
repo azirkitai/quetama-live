@@ -148,7 +148,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new patient
   app.post("/api/patients", async (req, res) => {
     try {
-      const patientData = insertPatientSchema.parse(req.body);
+      // Check if user is authenticated
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      // Add userId from session to patient data
+      const patientDataWithUser = {
+        ...req.body,
+        userId: req.session.userId
+      };
+      
+      const patientData = insertPatientSchema.parse(patientDataWithUser);
       const patient = await storage.createPatient(patientData);
       res.json(patient);
     } catch (error) {
