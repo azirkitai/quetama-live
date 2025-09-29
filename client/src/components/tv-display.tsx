@@ -784,11 +784,11 @@ export function TVDisplay({
            }}>
         {/* Date/Time Section - Larger */}
         <div className={`bg-white text-gray-900 p-6 ${isFullscreen ? 'rounded-md mb-6' : 'rounded-lg mb-6'} flex items-center justify-center space-x-8`}>
-          <div className="bg-teal-500 text-white p-4 rounded-lg">
+          <div className="bg-teal-500 text-white p-8 rounded-lg">
             <div className="text-center">
-              <div className="text-sm">Today</div>
-              <div className="text-4xl font-bold">{dateInfo.day}</div>
-              <div className="text-sm">Sep</div>
+              <div className="text-lg font-semibold">Today</div>
+              <div className="text-6xl font-bold">{dateInfo.day}</div>
+              <div className="text-lg font-semibold">Sep</div>
             </div>
           </div>
           <div className="text-center">
