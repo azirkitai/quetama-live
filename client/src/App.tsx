@@ -12,8 +12,6 @@ import { useState, useEffect } from "react";
 
 // Import pages
 import Dashboard from "@/pages/dashboard";
-import AdminDashboard from "@/pages/dashboard-admin";
-import StaffDashboard from "@/pages/dashboard-staff";
 import Management from "@/pages/management";
 import Register from "@/pages/register";
 import Queue from "@/pages/queue";
@@ -23,22 +21,10 @@ import Administration from "@/pages/administration";
 import LoginPage from "@/pages/login";
 import NotFound from "@/pages/not-found";
 
-// Role-based Dashboard Router
-function DashboardRouter() {
-  const { user } = useAuth();
-  
-  // Return appropriate dashboard based on user role
-  if (user?.role === 'admin') {
-    return <AdminDashboard />;
-  } else {
-    return <StaffDashboard />;
-  }
-}
-
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={DashboardRouter} />
+      <Route path="/" component={Dashboard} />
       <Route path="/management" component={Management} />
       <Route path="/register" component={Register} />
       <Route path="/queue" component={Queue} />
