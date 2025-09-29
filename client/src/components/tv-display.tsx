@@ -661,7 +661,7 @@ export function TVDisplay({
               style={{ 
                 ...getTextGroupStyles('clinic_name', true), // Exclude color overrides so Settings can override
                 ...getTextStyle(clinicNameTextMode, clinicNameTextColor, clinicNameTextGradient, '#ffffff'),
-                fontSize: '25px' // Put fontSize LAST to override getTextGroupStyles
+                fontSize: '30px' // Put fontSize LAST to override getTextGroupStyles
               }} 
               data-testid="clinic-name">
             {clinicName}
