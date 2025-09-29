@@ -26,6 +26,7 @@ interface PatientCardProps {
   onComplete: (patientId: string) => void;
   onRequeue: (patientId: string, reason?: string) => void;
   disabled?: boolean;
+  selectedWindow?: string; // Current selected window by user
 }
 
 export function PatientCard({
@@ -36,10 +37,15 @@ export function PatientCard({
   onDelete,
   onComplete,
   onRequeue,
-  disabled = false
+  disabled = false,
+  selectedWindow
 }: PatientCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showRequeueDropdown, setShowRequeueDropdown] = useState(false);
+
+  // Check if this patient is assigned to a different room than selected
+  const isAssignedToOtherRoom = patient.windowId && selectedWindow && patient.windowId !== selectedWindow;
+  const shouldDisableButtons = disabled || isAssignedToOtherRoom;
 
   const handleCall = () => {
     console.log(`Calling patient ${patient.id}`);
@@ -175,7 +181,7 @@ export function PatientCard({
           {patient.status === "waiting" && (
             <Button
               onClick={handleCall}
-              disabled={disabled}
+              disabled={shouldDisableButtons}
               size="sm"
               className="flex-1"
               data-testid={`button-call-${patient.id}`}
@@ -189,7 +195,7 @@ export function PatientCard({
             <>
               <Button
                 onClick={handleCall}
-                disabled={disabled}
+                disabled={shouldDisableButtons}
                 size="sm"
                 variant="default"
                 className="flex-1"
@@ -200,7 +206,7 @@ export function PatientCard({
               </Button>
               <Button
                 onClick={handleRecall}
-                disabled={disabled}
+                disabled={shouldDisableButtons}
                 size="sm"
                 variant="secondary"
                 className="flex-1"
@@ -216,7 +222,7 @@ export function PatientCard({
             <>
               <Button
                 onClick={handleCallAgain}
-                disabled={disabled}
+                disabled={shouldDisableButtons}
                 size="sm"
                 variant="secondary"
                 className="flex-1"
@@ -228,7 +234,7 @@ export function PatientCard({
               
               <Button
                 onClick={handleComplete}
-                disabled={disabled}
+                disabled={shouldDisableButtons}
                 size="sm"
                 variant="default"
                 className="flex-1"
@@ -241,7 +247,7 @@ export function PatientCard({
               {!showRequeueDropdown ? (
                 <Button
                   onClick={handleRequeue}
-                  disabled={disabled}
+                  disabled={shouldDisableButtons}
                   size="sm"
                   variant="outline"
                   className="flex-1"
@@ -282,7 +288,7 @@ export function PatientCard({
 
           <Button
             onClick={handleDelete}
-            disabled={disabled}
+            disabled={shouldDisableButtons}
             size="sm"
             variant={isDeleting ? "destructive" : "outline"}
             data-testid={`button-delete-${patient.id}`}

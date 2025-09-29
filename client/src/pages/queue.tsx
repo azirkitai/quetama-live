@@ -374,6 +374,7 @@ export default function Queue() {
                 onComplete={handleCompletePatient}
                 onRequeue={handleRequeuePatient}
                 disabled={updatePatientStatusMutation.isPending}
+                selectedWindow={selectedWindow}
               />
             ))}
           </div>
@@ -407,6 +408,7 @@ export default function Queue() {
                 onComplete={handleCompletePatient}
                 onRequeue={handleRequeuePatient}
                 disabled={!selectedWindow || updatePatientStatusMutation.isPending}
+                selectedWindow={selectedWindow}
               />
             ))}
           </div>
