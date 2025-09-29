@@ -206,24 +206,30 @@ export function TVDisplay({
   const marqueeTextMode = settingsObj.marqueeTextMode || 'solid';
   const marqueeTextGradient = settingsObj.marqueeTextGradient || 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)';
 
-  // Helper function to get text group styles
-  const getTextGroupStyles = (groupName: string) => {
+  // Helper function to get text group styles (excluding color/gradient properties that Settings should override)
+  const getTextGroupStyles = (groupName: string, excludeColorOverrides = false) => {
     const group = (textGroups as any[]).find((g: any) => g.groupName === groupName);
     if (!group) return {};
 
     const styles: any = {};
-    if (group.color) styles.color = group.color;
+    
+    // Always include non-color properties that don't conflict with Settings
     if (group.backgroundColor) styles.backgroundColor = group.backgroundColor;
     if (group.fontSize) styles.fontSize = group.fontSize;
     if (group.fontWeight) styles.fontWeight = group.fontWeight;
     if (group.textAlign) styles.textAlign = group.textAlign;
     
-    // Handle gradient (takes precedence over color)
-    if (group.gradient) {
-      styles.background = group.gradient;
-      styles.WebkitBackgroundClip = 'text';
-      styles.WebkitTextFillColor = 'transparent';
-      styles.backgroundClip = 'text';
+    // Only include color/gradient if not excluding them (so Settings can override)
+    if (!excludeColorOverrides) {
+      if (group.color) styles.color = group.color;
+      
+      // Handle gradient (takes precedence over color)
+      if (group.gradient) {
+        styles.background = group.gradient;
+        styles.WebkitBackgroundClip = 'text';
+        styles.WebkitTextFillColor = 'transparent';
+        styles.backgroundClip = 'text';
+      }
     }
 
     return styles;
@@ -653,7 +659,7 @@ export function TVDisplay({
           <h1 className="font-bold text-[30px]" 
               style={{ 
                 fontSize: 'clamp(2rem, 3.5vw, 3.5rem)',
-                ...getTextGroupStyles('clinic_name'),
+                ...getTextGroupStyles('clinic_name', true), // Exclude color overrides so Settings can override
                 ...getTextStyle(clinicNameTextMode, clinicNameTextColor, clinicNameTextGradient, '#ffffff')
               }} 
               data-testid="clinic-name">
