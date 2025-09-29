@@ -121,8 +121,6 @@ export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
   role: true,
-  clinicName: true,
-  clinicLocation: true,
 });
 
 export const insertWindowSchema = createInsertSchema(windows).pick({

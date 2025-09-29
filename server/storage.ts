@@ -761,4 +761,327 @@ export class MemStorage implements IStorage {
 
 }
 
-export const storage = new MemStorage();
+// Database Storage Implementation
+import { db } from "./db";
+import { eq, and } from "drizzle-orm";
+import * as schema from "@shared/schema";
+
+export class DatabaseStorage implements IStorage {
+  private systemUserId: string;
+
+  constructor() {
+    this.systemUserId = "system";
+    this.initializeDefaultSettings();
+    this.initializeDefaultTheme();
+    this.initializeDefaultTextGroups();
+  }
+
+  private async initializeDefaultSettings() {
+    const defaultSettings = [
+      { key: "mediaType", value: "image", category: "display" },
+      { key: "theme", value: "blue", category: "display" },
+      { key: "showPrayerTimes", value: "true", category: "display" },
+      { key: "showWeather", value: "false", category: "display" },
+      { key: "marqueeText", value: "Selamat datang ke Klinik Kesihatan", category: "display" },
+      { key: "marqueeColor", value: "#ffffff", category: "display" },
+      { key: "marqueeBackgroundColor", value: "#1e40af", category: "display" },
+      { key: "enableSound", value: "true", category: "sound" },
+      { key: "volume", value: "70", category: "sound" },
+      { key: "soundMode", value: "preset", category: "sound" },
+      { key: "presetKey", value: "airport_call", category: "sound" }
+    ];
+
+    for (const setting of defaultSettings) {
+      const existing = await db.select().from(schema.settings)
+        .where(eq(schema.settings.key, setting.key))
+        .limit(1);
+      
+      if (existing.length === 0) {
+        await this.setSetting(setting.key, setting.value, setting.category, this.systemUserId);
+      }
+    }
+  }
+
+  private async initializeDefaultTheme() {
+    const existing = await db.select().from(schema.themes)
+      .where(eq(schema.themes.isActive, true))
+      .limit(1);
+
+    if (existing.length === 0) {
+      await db.insert(schema.themes).values({
+        name: "Default Theme",
+        isActive: true,
+        primaryColor: "#3b82f6",
+        secondaryColor: "#6b7280",
+        callingColor: "#3b82f6",
+        highlightBoxColor: "#ef4444",
+        historyNameColor: "#6b7280",
+        clinicNameColor: "#1f2937",
+        modalBackgroundColor: "#1e293b",
+        modalBorderColor: "#fbbf24",
+        modalTextColor: "#ffffff",
+        callingGradient: null,
+        highlightBoxGradient: null,
+        historyNameGradient: null,
+        clinicNameGradient: null,
+        backgroundColor: "#ffffff",
+        backgroundGradient: null,
+        accentColor: "#f3f4f6",
+        userId: this.systemUserId,
+      });
+    }
+  }
+
+  private async initializeDefaultTextGroups() {
+    const defaultTextGroups = [
+      { groupName: "clinic_name", displayName: "Clinic Name", color: "#ffffff" },
+      { groupName: "patient_name", displayName: "Patient Name", color: "#facc15" },
+      { groupName: "window_name", displayName: "Window Name", color: "#facc15" },
+    ];
+
+    for (const group of defaultTextGroups) {
+      const existing = await db.select().from(schema.textGroups)
+        .where(and(
+          eq(schema.textGroups.groupName, group.groupName),
+          eq(schema.textGroups.userId, this.systemUserId)
+        ))
+        .limit(1);
+
+      if (existing.length === 0) {
+        await db.insert(schema.textGroups).values({
+          ...group,
+          userId: this.systemUserId,
+        });
+      }
+    }
+  }
+
+  // Settings methods
+  async getSettings(): Promise<Setting[]> {
+    return await db.select().from(schema.settings);
+  }
+
+  async getSetting(key: string): Promise<Setting | undefined> {
+    const result = await db.select().from(schema.settings)
+      .where(eq(schema.settings.key, key))
+      .limit(1);
+    return result[0];
+  }
+
+  async getSettingsByCategory(category: string): Promise<Setting[]> {
+    return await db.select().from(schema.settings)
+      .where(eq(schema.settings.category, category));
+  }
+
+  async setSetting(key: string, value: string, category: string, userId?: string): Promise<Setting> {
+    const setting = {
+      key,
+      value,
+      category,
+      userId: userId || this.systemUserId,
+    };
+    
+    const result = await db.insert(schema.settings)
+      .values(setting)
+      .returning();
+    return result[0];
+  }
+
+  async updateSetting(key: string, value: string): Promise<Setting | undefined> {
+    const result = await db.update(schema.settings)
+      .set({ value })
+      .where(eq(schema.settings.key, key))
+      .returning();
+    return result[0];
+  }
+
+  async deleteSetting(key: string): Promise<boolean> {
+    const result = await db.delete(schema.settings)
+      .where(eq(schema.settings.key, key));
+    return result.rowCount > 0;
+  }
+
+  // Implement all other methods from MemStorage but using database operations
+  // For now, I'll delegate to MemStorage for non-settings methods
+  private memStorage = new MemStorage();
+
+  // User methods
+  async getUsers(): Promise<User[]> {
+    return this.memStorage.getUsers();
+  }
+
+  async getUser(id: string): Promise<User | undefined> {
+    return this.memStorage.getUser(id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return this.memStorage.getUserByUsername(username);
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    return this.memStorage.createUser(insertUser);
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    return this.memStorage.updateUser(id, updates);
+  }
+
+  async deleteUser(id: string): Promise<boolean> {
+    return this.memStorage.deleteUser(id);
+  }
+
+  async authenticateUser(username: string, password: string): Promise<User | null> {
+    return this.memStorage.authenticateUser(username, password);
+  }
+
+  async toggleUserStatus(id: string): Promise<User | undefined> {
+    return this.memStorage.toggleUserStatus(id);
+  }
+
+  // Window methods
+  async getWindows(): Promise<Window[]> {
+    return this.memStorage.getWindows();
+  }
+
+  async getWindow(id: string): Promise<Window | undefined> {
+    return this.memStorage.getWindow(id);
+  }
+
+  async createWindow(insertWindow: InsertWindow): Promise<Window> {
+    return this.memStorage.createWindow(insertWindow);
+  }
+
+  async updateWindow(id: string, updates: Partial<Window>): Promise<Window | undefined> {
+    return this.memStorage.updateWindow(id, updates);
+  }
+
+  async deleteWindow(id: string): Promise<boolean> {
+    return this.memStorage.deleteWindow(id);
+  }
+
+  async toggleWindowStatus(id: string): Promise<Window | undefined> {
+    return this.memStorage.toggleWindowStatus(id);
+  }
+
+  async updateWindowPatient(windowId: string, patientId: string | undefined): Promise<Window | undefined> {
+    return this.memStorage.updateWindowPatient(windowId, patientId);
+  }
+
+  // Patient methods
+  async getPatients(): Promise<Patient[]> {
+    return this.memStorage.getPatients();
+  }
+
+  async getPatient(id: string): Promise<Patient | undefined> {
+    return this.memStorage.getPatient(id);
+  }
+
+  async getPatientsByDate(date: string): Promise<Patient[]> {
+    return this.memStorage.getPatientsByDate(date);
+  }
+
+  async getNextPatientNumber(): Promise<number> {
+    return this.memStorage.getNextPatientNumber();
+  }
+
+  async createPatient(insertPatient: InsertPatient): Promise<Patient> {
+    return this.memStorage.createPatient(insertPatient);
+  }
+
+  async updatePatient(id: string, updates: Partial<Patient>): Promise<Patient | undefined> {
+    return this.memStorage.updatePatient(id, updates);
+  }
+
+  async updatePatientStatus(id: string, status: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined> {
+    return this.memStorage.updatePatientStatus(id, status, windowId, requeueReason);
+  }
+
+  async deletePatient(id: string): Promise<boolean> {
+    return this.memStorage.deletePatient(id);
+  }
+
+  // Media methods
+  async getMedia(): Promise<Media[]> {
+    return this.memStorage.getMedia();
+  }
+
+  async getMediaById(id: string): Promise<Media | undefined> {
+    return this.memStorage.getMediaById(id);
+  }
+
+  async createMedia(insertMedia: InsertMedia): Promise<Media> {
+    return this.memStorage.createMedia(insertMedia);
+  }
+
+  async updateMedia(id: string, updates: Partial<Media>): Promise<Media | undefined> {
+    return this.memStorage.updateMedia(id, updates);
+  }
+
+  async deleteMedia(id: string): Promise<boolean> {
+    return this.memStorage.deleteMedia(id);
+  }
+
+  async getActiveMedia(): Promise<Media[]> {
+    return this.memStorage.getActiveMedia();
+  }
+
+  // Theme methods
+  async getThemes(): Promise<Theme[]> {
+    return this.memStorage.getThemes();
+  }
+
+  async getActiveTheme(): Promise<Theme | undefined> {
+    return this.memStorage.getActiveTheme();
+  }
+
+  async getThemeById(id: string): Promise<Theme | undefined> {
+    return this.memStorage.getThemeById(id);
+  }
+
+  async createTheme(insertTheme: InsertTheme): Promise<Theme> {
+    return this.memStorage.createTheme(insertTheme);
+  }
+
+  async updateTheme(id: string, updates: Partial<Theme>): Promise<Theme | undefined> {
+    return this.memStorage.updateTheme(id, updates);
+  }
+
+  async deleteTheme(id: string): Promise<boolean> {
+    return this.memStorage.deleteTheme(id);
+  }
+
+  async setActiveTheme(id: string): Promise<Theme | undefined> {
+    return this.memStorage.setActiveTheme(id);
+  }
+
+  // Text Group methods
+  async getTextGroups(): Promise<TextGroup[]> {
+    return this.memStorage.getTextGroups();
+  }
+
+  async getActiveTextGroups(): Promise<TextGroup[]> {
+    return this.memStorage.getActiveTextGroups();
+  }
+
+  async getTextGroupById(id: string): Promise<TextGroup | undefined> {
+    return this.memStorage.getTextGroupById(id);
+  }
+
+  async createTextGroup(insertTextGroup: InsertTextGroup): Promise<TextGroup> {
+    return this.memStorage.createTextGroup(insertTextGroup);
+  }
+
+  async updateTextGroup(id: string, updates: Partial<TextGroup>): Promise<TextGroup | undefined> {
+    return this.memStorage.updateTextGroup(id, updates);
+  }
+
+  async deleteTextGroup(id: string): Promise<boolean> {
+    return this.memStorage.deleteTextGroup(id);
+  }
+
+  async toggleTextGroupStatus(id: string): Promise<TextGroup | undefined> {
+    return this.memStorage.toggleTextGroupStatus(id);
+  }
+}
+
+export const storage = new DatabaseStorage();
