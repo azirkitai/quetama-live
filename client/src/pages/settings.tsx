@@ -28,6 +28,7 @@ interface SettingsState {
   marqueeTextMode: 'solid' | 'gradient';
   marqueeTextGradient: string;
   marqueeBackgroundColor: string;
+  clinicName: string;
   clinicNameTextColor: string;
   clinicNameTextMode: 'solid' | 'gradient';
   clinicNameTextGradient: string;
@@ -151,6 +152,7 @@ export default function Settings() {
     marqueeTextMode: 'solid' as 'solid' | 'gradient',
     marqueeTextGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
     marqueeBackgroundColor: '#000000',
+    clinicName: 'KLINIK UTAMA 24 JAM',
     clinicNameTextColor: '#ffffff',
     clinicNameTextMode: 'solid' as 'solid' | 'gradient',
     clinicNameTextGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
@@ -220,6 +222,7 @@ export default function Settings() {
         marqueeTextMode: (settingsObj.marqueeTextMode as 'solid' | 'gradient') || 'solid',
         marqueeTextGradient: settingsObj.marqueeTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
         marqueeBackgroundColor: settingsObj.marqueeBackgroundColor || '#000000',
+        clinicName: settingsObj.clinicName || 'KLINIK UTAMA 24 JAM',
         clinicNameTextColor: settingsObj.clinicNameTextColor || '#ffffff',
         clinicNameTextMode: (settingsObj.clinicNameTextMode as 'solid' | 'gradient') || 'solid',
         clinicNameTextGradient: settingsObj.clinicNameTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
@@ -286,7 +289,7 @@ export default function Settings() {
     // Basic settings
     settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, 
     settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, 
-    settingsObj.marqueeBackgroundColor, settingsObj.enableSound, settingsObj.volume, settingsObj.presetKey,
+    settingsObj.marqueeBackgroundColor, settingsObj.clinicName, settingsObj.enableSound, settingsObj.volume, settingsObj.presetKey,
     // Header text and background
     settingsObj.headerTextColor, settingsObj.headerTextMode, settingsObj.headerTextGradient,
     settingsObj.headerBackgroundColor, settingsObj.headerBackgroundMode, settingsObj.headerBackgroundGradient,
@@ -409,6 +412,7 @@ export default function Settings() {
       { key: 'marqueeText', value: currentSettings.marqueeText, category: 'display' },
       { key: 'marqueeColor', value: currentSettings.marqueeColor, category: 'display' },
       { key: 'marqueeBackgroundColor', value: currentSettings.marqueeBackgroundColor, category: 'display' },
+      { key: 'clinicName', value: currentSettings.clinicName, category: 'display' },
       { key: 'dashboardMediaType', value: currentSettings.dashboardMediaType, category: 'display' },
       { key: 'youtubeUrl', value: currentSettings.youtubeUrl, category: 'display' },
       // Individual section colors with gradient support
@@ -857,6 +861,47 @@ export default function Settings() {
           </h2>
           <p className="text-sm text-muted-foreground">Kustomisasi warna setiap bahagian skrin secara individu</p>
         </div>
+        
+        {/* Clinic Name Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              Clinic Name Settings
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Tetapkan nama klinik yang akan dipaparkan di skrin TV</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nama Klinik</Label>
+              <Input
+                type="text"
+                value={currentSettings.clinicName || "KLINIK UTAMA 24 JAM"}
+                onChange={(e) => updateDisplaySetting('clinicName', e.target.value)}
+                placeholder="Masukkan nama klinik"
+                data-testid="input-clinic-name"
+                className="text-lg font-medium"
+              />
+              <p className="text-xs text-muted-foreground">
+                Nama ini akan dipaparkan di header skrin TV dan sinkronisasi dengan semua paparan
+              </p>
+            </div>
+            
+            <Button 
+              onClick={handleSaveDisplay} 
+              className="w-full" 
+              data-testid="button-save-clinic-name-settings"
+              disabled={saveSettingsMutation.isPending}
+            >
+              {saveSettingsMutation.isPending ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Simpan Nama Klinik
+            </Button>
+          </CardContent>
+        </Card>
         
         {/* Header Section Colors */}
         <Card>

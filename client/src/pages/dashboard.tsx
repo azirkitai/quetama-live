@@ -67,6 +67,7 @@ export default function Dashboard() {
 
   const showPrayerTimes = settings.showPrayerTimes === true;
   const showWeather = settings.showWeather === true;
+  const clinicName = settings.clinicName || "KLINIK UTAMA 24 JAM";
 
   // Convert Patient to QueueItem for TV display
   const convertToQueueItem = (patient: Patient): QueueItem => {
@@ -99,7 +100,7 @@ export default function Dashboard() {
         <TVDisplay
           currentPatient={currentCall ? convertToQueueItem(currentCall) : undefined}
           queueHistory={history.map(convertToQueueItem)}
-          clinicName="KLINIK UTAMA 24 JAM"
+          clinicName={clinicName}
           clinicLogo={undefined}
           mediaItems={activeMedia.map(media => ({
             url: media.url,
@@ -218,7 +219,7 @@ export default function Dashboard() {
               <TVDisplay
                 currentPatient={currentCall ? convertToQueueItem(currentCall) : undefined}
                 queueHistory={history.slice(0, 4).map(convertToQueueItem)}
-                clinicName="KLINIK UTAMA 24 JAM"
+                clinicName={clinicName}
                 clinicLogo={undefined}
                 mediaItems={activeMedia.map(media => ({
                   url: media.url,
