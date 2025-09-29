@@ -1092,7 +1092,7 @@ export class DatabaseStorage implements IStorage {
       }));
     } catch (error) {
       console.error('Database error, falling back to memory storage:', error);
-      return this.memStorage.getWindows();
+      return this.memStorage.getWindows('system');
     }
   }
 
@@ -1351,16 +1351,16 @@ export class DatabaseStorage implements IStorage {
     return this.memStorage.createTextGroup(insertTextGroup);
   }
 
-  async updateTextGroup(id: string, updates: Partial<TextGroup>): Promise<TextGroup | undefined> {
-    return this.memStorage.updateTextGroup(id, updates);
+  async updateTextGroup(id: string, updates: Partial<TextGroup>, userId: string): Promise<TextGroup | undefined> {
+    return this.memStorage.updateTextGroup(id, updates, userId);
   }
 
-  async deleteTextGroup(id: string): Promise<boolean> {
-    return this.memStorage.deleteTextGroup(id);
+  async deleteTextGroup(id: string, userId: string): Promise<boolean> {
+    return this.memStorage.deleteTextGroup(id, userId);
   }
 
-  async toggleTextGroupStatus(id: string): Promise<TextGroup | undefined> {
-    return this.memStorage.toggleTextGroupStatus(id);
+  async toggleTextGroupStatus(id: string, userId: string): Promise<TextGroup | undefined> {
+    return this.memStorage.toggleTextGroupStatus(id, userId);
   }
 
   // Dashboard methods
@@ -1404,7 +1404,7 @@ export class DatabaseStorage implements IStorage {
     return currentCall;
   }
 
-  async getRecentHistory(limit: number = 10): Promise<Patient[]> {
+  async getRecentHistory(userId: string, limit: number = 10): Promise<Patient[]> {
     const today = new Date().toISOString().split('T')[0];
     const startOfDay = new Date(today);
     startOfDay.setHours(0, 0, 0, 0);
@@ -1428,6 +1428,7 @@ export class DatabaseStorage implements IStorage {
     // Filter out current call to avoid showing it in both current call and history
     return history
       .filter(patient => currentCall ? patient.id !== currentCall.id : true)
+      .filter(patient => patient.userId === userId)
       .slice(0, limit);
   }
 }
