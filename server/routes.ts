@@ -601,6 +601,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Sesi tidak aktif" });
       }
       
+      // Force no cache for current call API to ensure real-time updates
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'ETag': `"${Date.now()}"` // Unique ETag to prevent 304 responses
+      });
+      
       const currentCall = await storage.getCurrentCall(req.session.userId);
       res.json(currentCall || null);
     } catch (error) {
