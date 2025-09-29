@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Shield, UserPlus, Trash2, Edit, Users } from "lucide-react";
+import { Shield, UserPlus, Trash2, Edit, Users, Monitor, Settings, Palette, FileImage } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -17,7 +17,9 @@ export default function Administration() {
   const [newUser, setNewUser] = useState({
     username: "",
     password: "",
-    role: "user" as "admin" | "user"
+    role: "user" as "admin" | "user",
+    clinicName: "",
+    clinicLocation: ""
   });
   const [editingUser, setEditingUser] = useState<string | null>(null);
 
@@ -37,7 +39,7 @@ export default function Administration() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      setNewUser({ username: "", password: "", role: "user" });
+      setNewUser({ username: "", password: "", role: "user", clinicName: "", clinicLocation: "" });
       toast({
         title: "Pengguna Berjaya Ditambah",
         description: "Pengguna baru telah didaftarkan ke dalam sistem",
@@ -56,7 +58,7 @@ export default function Administration() {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!newUser.username.trim() || !newUser.password.trim()) {
+    if (!newUser.username.trim() || !newUser.password.trim() || !newUser.clinicName.trim() || !newUser.clinicLocation.trim()) {
       toast({
         title: "Ralat Validasi",
         description: "Sila lengkapkan semua maklumat",
@@ -77,7 +79,9 @@ export default function Administration() {
     createUserMutation.mutate({
       username: newUser.username.trim(),
       password: newUser.password.trim(),
-      role: newUser.role
+      role: newUser.role,
+      clinicName: newUser.clinicName.trim(),
+      clinicLocation: newUser.clinicLocation.trim()
     });
   };
 
@@ -216,6 +220,32 @@ export default function Administration() {
                 </Select>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="clinicName">Nama Klinik</Label>
+                <Input
+                  id="clinicName"
+                  type="text"
+                  value={newUser.clinicName}
+                  onChange={(e) => setNewUser(prev => ({ ...prev, clinicName: e.target.value }))}
+                  placeholder="Masukkan nama klinik"
+                  required
+                  data-testid="input-clinic-name"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="clinicLocation">Lokasi Klinik</Label>
+                <Input
+                  id="clinicLocation"
+                  type="text"
+                  value={newUser.clinicLocation}
+                  onChange={(e) => setNewUser(prev => ({ ...prev, clinicLocation: e.target.value }))}
+                  placeholder="Masukkan lokasi klinik"
+                  required
+                  data-testid="input-clinic-location"
+                />
+              </div>
+
               <Button
                 type="submit"
                 disabled={createUserMutation.isPending}
@@ -261,47 +291,84 @@ export default function Administration() {
                           <div className="font-medium" data-testid={`text-username-${user.id}`}>
                             {user.username}
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            {user.lastLogin ? `Last login: ${user.lastLogin}` : "Never logged in"}
+                          <div className="text-sm font-medium text-blue-600">
+                            {user.clinicName}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            Created: {new Date(user.createdAt).toLocaleDateString()}
+                            📍 {user.clinicLocation}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {user.lastLogin ? `Last login: ${new Date(user.lastLogin).toLocaleDateString()}` : "Never logged in"}
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-2">
-                        <Badge 
-                          variant={user.role === "admin" ? "default" : "secondary"}
-                          data-testid={`badge-role-${user.id}`}
-                        >
-                          {user.role}
-                        </Badge>
-                        <Badge 
-                          variant={user.isActive ? "default" : "outline"}
-                          data-testid={`badge-status-${user.id}`}
-                        >
-                          {user.isActive ? "Active" : "Inactive"}
-                        </Badge>
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Badge 
+                            variant={user.role === "admin" ? "default" : "secondary"}
+                            data-testid={`badge-role-${user.id}`}
+                          >
+                            {user.role}
+                          </Badge>
+                          <Badge 
+                            variant={user.isActive ? "default" : "outline"}
+                            data-testid={`badge-status-${user.id}`}
+                          >
+                            {user.isActive ? "Active" : "Inactive"}
+                          </Badge>
+                        </div>
                         
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleToggleUserStatus(user.id)}
-                          data-testid={`button-toggle-${user.id}`}
-                        >
-                          {user.isActive ? "Deactivate" : "Activate"}
-                        </Button>
+                        <div className="text-xs text-muted-foreground border-t pt-2">
+                          <div className="grid grid-cols-2 gap-1">
+                            <div className="flex items-center">
+                              <Settings className="h-3 w-3 mr-1" />
+                              <span>Display Settings</span>
+                            </div>
+                            <div className="flex items-center">
+                              <Palette className="h-3 w-3 mr-1" />
+                              <span>Theme Config</span>
+                            </div>
+                            <div className="flex items-center">
+                              <FileImage className="h-3 w-3 mr-1" />
+                              <span>Media Files</span>
+                            </div>
+                            <div className="flex items-center">
+                              <Monitor className="h-3 w-3 mr-1" />
+                              <span>Screen Setup</span>
+                            </div>
+                          </div>
+                        </div>
                         
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteUser(user.id)}
-                          disabled={user.role === "admin" && user.username === "admin"}
-                          data-testid={`button-delete-${user.id}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center space-x-1 pt-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleToggleUserStatus(user.id)}
+                            data-testid={`button-toggle-${user.id}`}
+                          >
+                            {user.isActive ? "Deactivate" : "Activate"}
+                          </Button>
+                          
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            title="Urus Paparan"
+                            data-testid={`button-manage-display-${user.id}`}
+                          >
+                            <Monitor className="h-4 w-4" />
+                          </Button>
+                          
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteUser(user.id)}
+                            disabled={user.role === "admin" && user.username === "admin"}
+                            data-testid={`button-delete-${user.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
