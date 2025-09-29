@@ -563,7 +563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { patientId } = req.body;
       
-      const window = await storage.updateWindowPatient(id, patientId, req.session.userId);
+      const window = await storage.updateWindowPatient(id, req.session.userId, patientId);
       if (!window) {
         return res.status(404).json({ error: "Window not found" });
       }
