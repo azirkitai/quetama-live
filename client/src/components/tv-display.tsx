@@ -644,39 +644,37 @@ export function TVDisplay({
              ...getBackgroundStyle(headerBackgroundMode, headerBackgroundColor, headerBackgroundGradient, '#1d4ed8')
            }}>
         {/* Header */}
-        <div className={`text-center ${isFullscreen ? 'mb-2 pt-4 px-4' : 'mb-4'}`}>
-          {/* Logo Display - Use uploaded logo if enabled */}
-          {showClinicLogo && settingsClinicLogo && (
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <img 
-                src={settingsClinicLogo} 
-                alt="Logo Klinik" 
-                className="h-32 w-auto object-contain bg-white rounded-lg p-2 shadow-lg"
-                style={{ maxWidth: '350px' }}
-                data-testid="clinic-logo"
-              />
-            </div>
-          )}
-          <h1 className="font-bold text-[30px]" 
-              style={{ 
-                fontSize: '30px',
-                ...getTextGroupStyles('clinic_name', true), // Exclude color overrides so Settings can override
-                ...getTextStyle(clinicNameTextMode, clinicNameTextColor, clinicNameTextGradient, '#ffffff')
-              }} 
-              data-testid="clinic-name">
-            {clinicName}
-          </h1>
-          <div className="px-4 py-2 rounded-lg mt-2"
-               style={{
-                 ...getBackgroundStyle(callBackgroundMode, callBackgroundColor, callBackgroundGradient, '#1e40af'),
-                 color: '#ffffff'
-               }}>
-            <h2 className="font-bold" style={{ 
-              fontSize: 'clamp(1.75rem, 2.5vw, 2.5rem)',
-              ...getTextGroupStyles('title', true), // Exclude color overrides so Settings can override
-              ...getTextStyle(callNameTextMode, callNameTextColor, callNameTextGradient, '#ffffff')
-            }}>CALLING</h2>
+        {/* Logo Display - Use uploaded logo if enabled */}
+        {showClinicLogo && settingsClinicLogo && (
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <img 
+              src={settingsClinicLogo} 
+              alt="Logo Klinik" 
+              className="h-32 w-auto object-contain bg-white rounded-lg p-2 shadow-lg"
+              style={{ maxWidth: '350px' }}
+              data-testid="clinic-logo"
+            />
           </div>
+        )}
+        <h1 className="font-bold text-center" 
+            style={{ 
+              fontSize: '20px',
+              ...getTextGroupStyles('clinic_name', true), // Exclude color overrides so Settings can override
+              ...getTextStyle(clinicNameTextMode, clinicNameTextColor, clinicNameTextGradient, '#ffffff')
+            }} 
+            data-testid="clinic-name">
+          {clinicName}
+        </h1>
+        <div className="px-4 py-2 rounded-lg mt-2 text-center"
+             style={{
+               ...getBackgroundStyle(callBackgroundMode, callBackgroundColor, callBackgroundGradient, '#1e40af'),
+               color: '#ffffff'
+             }}>
+          <h2 className="font-bold" style={{ 
+            fontSize: 'clamp(1.75rem, 2.5vw, 2.5rem)',
+            ...getTextGroupStyles('title', true), // Exclude color overrides so Settings can override
+            ...getTextStyle(callNameTextMode, callNameTextColor, callNameTextGradient, '#ffffff')
+          }}>CALLING</h2>
         </div>
 
         {/* Current Patient Display */}
