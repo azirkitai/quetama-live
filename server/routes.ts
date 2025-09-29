@@ -1,8 +1,18 @@
 import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
+import { Server as SocketIOServer } from "socket.io";
 import { storage } from "./storage";
-import { insertPatientSchema, insertUserSchema, insertTextGroupSchema, insertThemeSchema } from "@shared/schema";
+import { insertPatientSchema, insertUserSchema, insertTextGroupSchema, insertThemeSchema, insertQrSessionSchema } from "@shared/schema";
+import { createHash, randomBytes } from "crypto";
+import { z } from "zod";
+
+// Global Socket.IO server instance for server-authoritative events
+let globalIo: SocketIOServer | null = null;
+
+export function setGlobalIo(io: SocketIOServer) {
+  globalIo = io;
+}
 import multer from "multer";
 import fs from "fs/promises";
 import path from "path";
@@ -45,6 +55,16 @@ function requireAuth(req: any, res: any, next: any) {
   }
   next();
 }
+
+// QR endpoint validation schemas
+const qrAuthorizeSchema = z.object({
+  username: z.string().min(1, "Username diperlukan"),
+  password: z.string().min(1, "Password diperlukan")
+});
+
+const qrFinalizeSchema = z.object({
+  tvVerifier: z.string().min(1, "TV verifier diperlukan")
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -101,6 +121,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json({ success: true, message: "Logout berjaya" });
     });
+  });
+
+  // QR Authentication routes
+  app.post("/api/qr/init", async (req, res) => {
+    try {
+      const tvVerifier = randomBytes(32).toString('hex');
+      const tvVerifierHash = createHash('sha256').update(tvVerifier).digest('hex');
+      const expiresAt = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes from now
+
+      const qrSession = await storage.createQrSession({
+        status: "pending",
+        tvVerifierHash,
+        authorizedUserId: null,
+        expiresAt,
+        usedAt: null,
+        metadata: null
+      });
+
+      // Clean up old sessions periodically
+      await storage.expireOldQrSessions();
+
+      res.json({
+        qrId: qrSession.id,
+        tvVerifier,
+        expiresAt: expiresAt.toISOString(),
+        qrUrl: `${req.protocol}://${req.get('host')}/qr-auth/${qrSession.id}`
+      });
+    } catch (error) {
+      console.error("Error creating QR session:", error);
+      res.status(500).json({ error: "Gagal membuat sesi QR" });
+    }
+  });
+
+  app.post("/api/qr/:id/authorize", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Validate request body with Zod
+      const validationResult = qrAuthorizeSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Data tidak sah", 
+          details: validationResult.error.issues.map(issue => issue.message)
+        });
+      }
+      
+      const { username, password } = validationResult.data;
+
+      // Authenticate user
+      const user = await storage.authenticateUser(username, password);
+      if (!user) {
+        return res.status(401).json({ error: "Username atau password salah" });
+      }
+
+      // Authorize QR session
+      const authorizedSession = await storage.authorizeQrSession(id, user.id);
+      if (!authorizedSession) {
+        return res.status(404).json({ error: "Sesi QR tidak dijumpai atau sudah tamat tempoh" });
+      }
+
+      // SERVER-AUTHORITATIVE: Emit authorization event to QR room
+      if (globalIo) {
+        const qrRoom = `qr:${id}`;
+        globalIo.to(qrRoom).emit("qr:authorization_complete", {
+          qrId: id,
+          user: { username: user.username, id: user.id },
+          message: "QR berjaya disahkan",
+          timestamp: new Date()
+        });
+        console.log(`✅ Server emitted QR authorization to room: ${qrRoom}`);
+      }
+
+      res.json({ 
+        success: true, 
+        message: "QR berjaya disahkan",
+        user: sanitizeUser(user)
+      });
+    } catch (error) {
+      console.error("Error authorizing QR session:", error);
+      res.status(500).json({ error: "Gagal mengesahkan sesi QR" });
+    }
+  });
+
+  app.post("/api/qr/:id/finalize", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Validate request body with Zod
+      const validationResult = qrFinalizeSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Data tidak sah", 
+          details: validationResult.error.issues.map(issue => issue.message)
+        });
+      }
+      
+      const { tvVerifier } = validationResult.data;
+
+      const result = await storage.finalizeQrSession(id, tvVerifier);
+      if (!result.success) {
+        return res.status(400).json({ error: "Gagal mengesahkan QR - sesi tidak sah atau sudah tamat tempoh" });
+      }
+
+      if (result.userId) {
+        // Set session for TV display
+        req.session.userId = result.userId;
+        const user = await storage.getUser(result.userId);
+        if (user) {
+          req.session.username = user.username;
+          req.session.role = user.role;
+        }
+
+        // SERVER-AUTHORITATIVE: Emit finalization event to QR room
+        if (globalIo) {
+          const qrRoom = `qr:${id}`;
+          globalIo.to(qrRoom).emit("qr:login_complete", {
+            qrId: id,
+            userId: result.userId,
+            message: "Login QR selesai - TV perlu refresh untuk apply session",
+            timestamp: new Date()
+          });
+          console.log(`🎯 Server emitted QR finalization to room: ${qrRoom}`);
+          
+          // Clean up the QR room after a short delay
+          setTimeout(() => {
+            globalIo?.socketsLeave(qrRoom);
+            console.log(`🧹 QR room ${qrRoom} cleaned up by server`);
+          }, 3000);
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: "Login QR berjaya",
+        userId: result.userId
+      });
+    } catch (error) {
+      console.error("Error finalizing QR session:", error);
+      res.status(500).json({ error: "Gagal menyelesaikan sesi QR" });
+    }
   });
   
   app.get("/api/auth/me", async (req, res) => {
@@ -882,7 +1042,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: 'image',
         mimeType: file.mimetype,
         size: file.size,
-        userId: req.session.userId,
+        userId: req.session.userId as string,
       });
 
       res.status(201).json(media);
@@ -932,6 +1092,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update media (rename)
   app.patch("/api/media/:id", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
       const { name } = req.body;
       
@@ -939,7 +1104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Name is required" });
       }
 
-      const media = await storage.updateMedia(id, { name });
+      const media = await storage.updateMedia(id, { name }, req.session.userId);
       
       if (!media) {
         return res.status(404).json({ error: "Media not found" });
@@ -955,8 +1120,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete media
   app.delete("/api/media/:id", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
-      const deleted = await storage.deleteMedia(id);
+      const deleted = await storage.deleteMedia(id, req.session.userId);
       
       if (!deleted) {
         return res.status(404).json({ error: "Media not found" });

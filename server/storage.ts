@@ -1224,10 +1224,10 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async updateWindow(windowId: string, name: string): Promise<Window | undefined> {
+  async updateWindow(windowId: string, name: string, userId: string): Promise<Window | undefined> {
     const result = await db.update(schema.windows)
       .set({ name })
-      .where(eq(schema.windows.id, windowId))
+      .where(and(eq(schema.windows.id, windowId), eq(schema.windows.userId, userId)))
       .returning();
     
     if (result.length === 0) return undefined;
@@ -1241,18 +1241,24 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async deleteWindow(id: string): Promise<boolean> {
-    const result = await db.delete(schema.windows).where(eq(schema.windows.id, id)).returning();
+  async deleteWindow(windowId: string, userId: string): Promise<boolean> {
+    const result = await db.delete(schema.windows)
+      .where(and(eq(schema.windows.id, windowId), eq(schema.windows.userId, userId)))
+      .returning();
     return result.length > 0;
   }
 
-  async toggleWindowStatus(id: string): Promise<Window | undefined> {
-    const current = await this.getWindow(id);
-    if (!current) return undefined;
+  async toggleWindowStatus(windowId: string, userId: string): Promise<Window | undefined> {
+    // First check if window belongs to user
+    const current = await db.select().from(schema.windows)
+      .where(and(eq(schema.windows.id, windowId), eq(schema.windows.userId, userId)))
+      .limit(1);
+    
+    if (current.length === 0) return undefined;
     
     const result = await db.update(schema.windows)
-      .set({ isActive: !current.isActive })
-      .where(eq(schema.windows.id, id))
+      .set({ isActive: !current[0].isActive })
+      .where(and(eq(schema.windows.id, windowId), eq(schema.windows.userId, userId)))
       .returning();
     
     if (result.length === 0) return undefined;
@@ -1396,9 +1402,9 @@ export class DatabaseStorage implements IStorage {
     return updatedPatient;
   }
 
-  async deletePatient(id: string): Promise<boolean> {
+  async deletePatient(patientId: string, userId: string): Promise<boolean> {
     const result = await db.delete(schema.patients)
-      .where(eq(schema.patients.id, id));
+      .where(and(eq(schema.patients.id, patientId), eq(schema.patients.userId, userId)));
     return result.rowCount !== null && result.rowCount > 0;
   }
 

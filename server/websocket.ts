@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
+import { storage } from "./storage";
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -134,6 +135,53 @@ export function setupWebSocket(io: Server) {
       console.log(`📺 TV display connection attempt with token: ${token}`);
       socket.emit("tv:connected", { message: "TV display connected" });
     });
+
+    // Handle QR authentication flow (server-authoritative)
+    socket.on("qr:join", async (data) => {
+      const { qrId } = data;
+      
+      if (!qrId) {
+        socket.emit("error", { message: "QR ID diperlukan" });
+        return;
+      }
+      
+      // Validate QR session exists and is not expired (server-authoritative)
+      try {
+        const qrSession = await storage.getQrSession(qrId);
+        if (!qrSession) {
+          socket.emit("qr:expired", { 
+            qrId, 
+            message: "Sesi QR tidak dijumpai atau sudah tamat tempoh" 
+          });
+          return;
+        }
+        
+        if (qrSession.expiresAt < new Date()) {
+          socket.emit("qr:expired", { 
+            qrId, 
+            message: "Sesi QR sudah tamat tempoh" 
+          });
+          return;
+        }
+        
+        const qrRoom = `qr:${qrId}`;
+        socket.join(qrRoom);
+        console.log(`🔗 Client ${socket.id} joined QR room: ${qrRoom} (validated)`);
+        
+        socket.emit("qr:joined", { 
+          qrId, 
+          message: "Menunggu pengesahan QR",
+          room: qrRoom,
+          expiresAt: qrSession.expiresAt.toISOString()
+        });
+      } catch (error) {
+        console.error("Error validating QR session:", error);
+        socket.emit("error", { message: "Gagal mengesahkan sesi QR" });
+      }
+    });
+
+    // REMOVED: Client-controlled qr:authorized and qr:finalized events
+    // These are now server-authoritative and emitted from API endpoints
 
     // Handle disconnection
     socket.on("disconnect", (reason) => {

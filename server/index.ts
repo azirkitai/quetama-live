@@ -3,7 +3,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { registerRoutes } from "./routes";
+import { registerRoutes, setGlobalIo } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupWebSocket } from "./websocket";
 
@@ -26,6 +26,7 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production', // HTTPS in production
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'lax', // CSRF protection
   },
 }));
 
@@ -70,6 +71,9 @@ app.use((req, res, next) => {
       methods: ["GET", "POST"]
     }
   });
+  
+  // Make Socket.IO server globally available for server-authoritative events
+  setGlobalIo(io);
   
   // Setup WebSocket handlers with tenant isolation
   setupWebSocket(io);
