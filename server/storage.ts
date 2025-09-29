@@ -1251,28 +1251,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePatientStatus(id: string, status: string, userId: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined> {
-    console.log(`🔍 updatePatientStatus called - ID: ${id}, Status: ${status}, UserId: ${userId}, WindowId: ${windowId}`);
-    
     // Special handling for "completed" status - preserve current room to lastWindowId
     if (status === "completed") {
-      console.log(`🎯 Handling COMPLETED status for patient ${id}`);
-      
       // First get the current patient to preserve their windowId to lastWindowId
       const [currentPatient] = await db.select()
         .from(schema.patients)
         .where(and(eq(schema.patients.id, id), eq(schema.patients.userId, userId)));
       
       if (!currentPatient) {
-        console.log(`❌ Patient ${id} not found for user ${userId}`);
         return undefined;
       }
-      
-      console.log(`📋 Current patient before completion:`, {
-        id: currentPatient.id,
-        name: currentPatient.name,
-        currentWindowId: currentPatient.windowId,
-        currentLastWindowId: currentPatient.lastWindowId
-      });
       
       const updateData: any = { 
         status,
@@ -1281,21 +1269,11 @@ export class DatabaseStorage implements IStorage {
         requeueReason: requeueReason || null,
         completedAt: new Date()
       };
-      
-      console.log(`💾 Update data for completion:`, updateData);
 
       const [updatedPatient] = await db.update(schema.patients)
         .set(updateData)
         .where(and(eq(schema.patients.id, id), eq(schema.patients.userId, userId)))
         .returning();
-
-      console.log(`✅ Patient completed - Result:`, {
-        id: updatedPatient?.id,
-        name: updatedPatient?.name,
-        status: updatedPatient?.status,
-        windowId: updatedPatient?.windowId,
-        lastWindowId: updatedPatient?.lastWindowId
-      });
 
       return updatedPatient;
     }
@@ -1505,7 +1483,24 @@ export class DatabaseStorage implements IStorage {
     // Get current call to exclude from history to avoid duplication
     const currentCall = await this.getCurrentCall(userId);
 
-    const history = await db.select().from(schema.patients)
+    const history = await db.select({
+      id: schema.patients.id,
+      name: schema.patients.name,
+      number: schema.patients.number,
+      status: schema.patients.status,
+      windowId: schema.patients.windowId,
+      lastWindowId: schema.patients.lastWindowId,
+      registeredAt: schema.patients.registeredAt,
+      calledAt: schema.patients.calledAt,
+      completedAt: schema.patients.completedAt,
+      requeueReason: schema.patients.requeueReason,
+      trackingHistory: schema.patients.trackingHistory,
+      userId: schema.patients.userId,
+      currentRoom: schema.windows.name, // Room name from current windowId
+      lastRoom: sql<string>`lw.name` // Room name from lastWindowId
+    }).from(schema.patients)
+      .leftJoin(schema.windows, eq(schema.patients.windowId, schema.windows.id))
+      .leftJoin(sql`${schema.windows} lw`, eq(schema.patients.lastWindowId, sql`lw.id`))
       .where(
         and(
           eq(schema.patients.userId, userId),
@@ -1517,10 +1512,16 @@ export class DatabaseStorage implements IStorage {
       .orderBy(sql`${schema.patients.calledAt} DESC`)
       .limit(limit + 1); // Get one extra in case we need to filter out current call
 
-    // Filter out current call to avoid showing it in both current call and history
-    return history
+    // Filter out current call and map room info
+    const filteredHistory = history
       .filter(patient => currentCall ? patient.id !== currentCall.id : true)
-      .slice(0, limit);
+      .slice(0, limit)
+      .map(patient => ({
+        ...patient,
+        room: patient.status === 'completed' ? patient.lastRoom : patient.currentRoom // Use last room for completed, current room for others
+      }));
+
+    return filteredHistory;
   }
 }
 
