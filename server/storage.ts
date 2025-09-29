@@ -1085,10 +1085,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Window methods  
-  async getWindows(): Promise<Window[]> {
+  async getWindows(userId: string): Promise<Window[]> {
     // For now, use database for windows to ensure persistence
     try {
-      const result = await db.select().from(schema.windows);
+      const result = await db.select().from(schema.windows)
+        .where(eq(schema.windows.userId, userId));
       return result.map(w => ({
         id: w.id,
         name: w.name,
@@ -1098,7 +1099,7 @@ export class DatabaseStorage implements IStorage {
       }));
     } catch (error) {
       console.error('Database error, falling back to memory storage:', error);
-      return this.memStorage.getWindows('system');
+      return this.memStorage.getWindows(userId);
     }
   }
 
@@ -1370,7 +1371,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Dashboard methods
-  async getDashboardStats(): Promise<{
+  async getDashboardStats(userId: string): Promise<{
     totalWaiting: number;
     totalCalled: number;
     totalCompleted: number;
@@ -1386,12 +1387,13 @@ export class DatabaseStorage implements IStorage {
     const patients = await db.select().from(schema.patients)
       .where(
         and(
+          eq(schema.patients.userId, userId),
           sql`${schema.patients.registeredAt} >= ${startOfDay.toISOString()}`,
           sql`${schema.patients.registeredAt} <= ${endOfDay.toISOString()}`
         )
       );
 
-    const windows = await this.getWindows();
+    const windows = await this.getWindows(userId);
 
     return {
       totalWaiting: patients.filter(p => p.status === "waiting").length,
@@ -1434,10 +1436,15 @@ export class DatabaseStorage implements IStorage {
       )
       .limit(1);
     
-    return result ? {
+    console.log("🔍 getCurrentCall raw result:", result);
+    
+    const finalResult = result ? {
       ...result,
       windowName: result.room || undefined
     } as Patient & { room?: string } : undefined;
+    
+    console.log("🔍 getCurrentCall final result:", finalResult);
+    return finalResult;
   }
 
   async getRecentHistory(userId: string, limit: number = 10): Promise<Patient[]> {
