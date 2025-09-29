@@ -1,7 +1,7 @@
 import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting, type Media, type InsertMedia, type TextGroup, type InsertTextGroup, type Theme, type InsertTheme, users, settings, themes, textGroups } from "@shared/schema";
 import * as schema from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import * as bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
 
@@ -942,37 +942,118 @@ export class DatabaseStorage implements IStorage {
     return this.memStorage.toggleUserStatus(id);
   }
 
-  // Window methods
+  // Window methods  
   async getWindows(): Promise<Window[]> {
-    return this.memStorage.getWindows();
+    // For now, use database for windows to ensure persistence
+    try {
+      const result = await db.select().from(schema.windows);
+      return result.map(w => ({
+        id: w.id,
+        name: w.name,
+        isActive: w.isActive,
+        currentPatientId: w.currentPatientId || undefined,
+        userId: w.userId
+      }));
+    } catch (error) {
+      console.error('Database error, falling back to memory storage:', error);
+      return this.memStorage.getWindows();
+    }
   }
 
   async getWindow(id: string): Promise<Window | undefined> {
-    const windows = await this.memStorage.getWindows();
-    return windows.find(w => w.id === id);
+    const result = await db.select().from(schema.windows).where(eq(schema.windows.id, id));
+    if (result.length === 0) return undefined;
+    const w = result[0];
+    return {
+      id: w.id,
+      name: w.name,
+      isActive: w.isActive,
+      currentPatientId: w.currentPatientId || undefined,
+      userId: w.userId
+    };
   }
 
   async createWindow(insertWindow: InsertWindow): Promise<Window> {
-    return this.memStorage.createWindow(insertWindow);
+    const windowId = randomUUID();
+    const windowData = {
+      id: windowId,
+      name: insertWindow.name,
+      isActive: true,
+      currentPatientId: null,
+      userId: insertWindow.userId
+    };
+    
+    await db.insert(schema.windows).values(windowData);
+    
+    return {
+      id: windowId,
+      name: insertWindow.name,
+      isActive: true,
+      currentPatientId: undefined,
+      userId: insertWindow.userId
+    };
   }
 
   async updateWindow(windowId: string, name: string): Promise<Window | undefined> {
-    return this.memStorage.updateWindow(windowId, name);
+    const result = await db.update(schema.windows)
+      .set({ name })
+      .where(eq(schema.windows.id, windowId))
+      .returning();
+    
+    if (result.length === 0) return undefined;
+    const w = result[0];
+    return {
+      id: w.id,
+      name: w.name,
+      isActive: w.isActive,
+      currentPatientId: w.currentPatientId || undefined,
+      userId: w.userId
+    };
   }
 
   async deleteWindow(id: string): Promise<boolean> {
-    return this.memStorage.deleteWindow(id);
+    const result = await db.delete(schema.windows).where(eq(schema.windows.id, id)).returning();
+    return result.length > 0;
   }
 
   async toggleWindowStatus(id: string): Promise<Window | undefined> {
-    return this.memStorage.toggleWindowStatus(id);
+    const current = await this.getWindow(id);
+    if (!current) return undefined;
+    
+    const result = await db.update(schema.windows)
+      .set({ isActive: !current.isActive })
+      .where(eq(schema.windows.id, id))
+      .returning();
+    
+    if (result.length === 0) return undefined;
+    const w = result[0];
+    return {
+      id: w.id,
+      name: w.name,
+      isActive: w.isActive,
+      currentPatientId: w.currentPatientId || undefined,
+      userId: w.userId
+    };
   }
 
   async updateWindowPatient(windowId: string, patientId: string | undefined): Promise<Window | undefined> {
-    return this.memStorage.updateWindowPatient(windowId, patientId);
+    const result = await db.update(schema.windows)
+      .set({ currentPatientId: patientId || null })
+      .where(eq(schema.windows.id, windowId))
+      .returning();
+    
+    if (result.length === 0) return undefined;
+    const w = result[0];
+    return {
+      id: w.id,
+      name: w.name,
+      isActive: w.isActive,
+      currentPatientId: w.currentPatientId || undefined,
+      userId: w.userId
+    };
   }
 
-  // Patient methods
+  // Patient methods (using memStorage for now due to type complexity)
   async getPatients(): Promise<Patient[]> {
     return this.memStorage.getPatients();
   }
