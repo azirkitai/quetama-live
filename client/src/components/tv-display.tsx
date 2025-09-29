@@ -183,20 +183,6 @@ export function TVDisplay({
   const clinicNameTextColor = settingsObj.clinicNameTextColor || '#ffffff';
   const clinicNameTextGradient = settingsObj.clinicNameTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
   
-  // DEBUG: Log styling values  
-  console.log('🎨 HISTORY NAME STYLING DEBUG:', {
-    historyNameMode,
-    historyNameColor,
-    historyNameGradient,
-    settingsObjRaw: settingsObj.historyNameColor
-  });
-  
-  console.log('🎨 CLINIC NAME STYLING DEBUG:', {
-    clinicNameTextMode,
-    clinicNameTextColor,
-    clinicNameTextGradient,
-    settingsObjRaw: settingsObj.clinicNameTextColor
-  });
   
   const callNameTextMode = settingsObj.callNameTextMode || 'solid';
   const callNameTextColor = settingsObj.callNameTextColor || '#ffffff';
