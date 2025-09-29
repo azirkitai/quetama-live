@@ -180,6 +180,7 @@ export const insertThemeSchema = createInsertSchema(themes).pick({
   historyNameGradient: true,
   clinicNameGradient: true,
   backgroundColor: true,
+  backgroundGradient: true,
   accentColor: true,
   userId: true,
 });

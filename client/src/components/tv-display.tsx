@@ -442,16 +442,18 @@ export function TVDisplay({
     height: "100dvh",
     width: "100vw",
     margin: 0,
-    padding: 0
+    padding: 0,
+    ...createGradientStyle(theme?.backgroundGradient, theme?.backgroundColor || '#ffffff')
   } : {
     gridTemplateRows: 'auto 1fr',
     gridTemplateColumns: '65% 35%',
-    gap: '0'
+    gap: '0',
+    ...createGradientStyle(theme?.backgroundGradient, theme?.backgroundColor || '#ffffff')
   };
 
   const wrapperClass = isFullscreen 
-    ? "fixed inset-0 w-screen h-screen overflow-hidden bg-white text-gray-900 grid m-0 p-0"
-    : "h-screen bg-white text-gray-900 grid";
+    ? "fixed inset-0 w-screen h-screen overflow-hidden text-gray-900 grid m-0 p-0"
+    : "h-screen text-gray-900 grid";
 
   return (
     <div className={wrapperClass}
