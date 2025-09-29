@@ -873,12 +873,14 @@ export function TVDisplay({
              ...getBackgroundStyle(queueBackgroundMode, queueBackgroundColor, queueBackgroundGradient, '#1d4ed8')
            }}>
         <div className="grid grid-cols-2 gap-1 text-center mb-2">
-          <div className="font-bold text-yellow-400" style={{ 
+          <div className="font-bold" style={{ 
             fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
+            ...getHistoryNameStyle(),
             ...getTextGroupStyles('Token Label', true) // Exclude color overrides so Settings can override
           }}>NAME</div>
-          <div className="font-bold text-yellow-400" style={{ 
+          <div className="font-bold" style={{ 
             fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
+            ...getHistoryNameStyle(),
             ...getTextGroupStyles('Window Label', true) // Exclude color overrides so Settings can override
           }}>ROOM</div>
         </div>
@@ -896,16 +898,20 @@ export function TVDisplay({
                      }}>
                   {item.name}
                 </div>
-                <div className="text-yellow-400" 
-                     style={{ fontSize: 'clamp(1.25rem, 2vw, 2rem)' }}>
+                <div 
+                     style={{ 
+                       fontSize: 'clamp(1.25rem, 2vw, 2rem)',
+                       ...getHistoryNameStyle()
+                     }}>
                   {item.room}
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-center text-yellow-400 py-4">
+            <div className="text-center py-4">
               <p style={{ 
                 fontSize: 'clamp(1.25rem, 2vw, 2rem)',
+                ...getHistoryNameStyle(),
                 ...getTextGroupStyles('Patient History', true) // Exclude color overrides so Settings can override
               }}>Tiada dalam barisan</p>
             </div>
