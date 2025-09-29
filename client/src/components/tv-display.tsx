@@ -950,44 +950,43 @@ export function TVDisplay({
         </div>
       )}
 
-      {/* Floating Text Overlay - Just text without container */}
+      {/* Pure Floating Text - No containers */}
       {showHighlight && currentPatient && (
-        <div className="fixed inset-0 flex items-center justify-center z-[100]" 
-             data-testid="highlight-overlay">
-          <div className="text-center space-y-6">
-            {/* NAME Label */}
-            <div className="font-semibold tracking-wider mb-2" 
-                 style={{ color: modalTextColor, opacity: 0.8, fontSize: '36px' }}>
-              NAME
-            </div>
-            
-            {/* Patient Name */}
-            <div className="font-bold" 
-                 style={{ 
-                   fontSize: '80px',
-                   color: modalTextColor
-                 }}
-                 data-testid="highlight-patient-name">
-              {currentPatient.name}
-            </div>
-
-            {/* ROOM Label */}
-            <div className="font-semibold tracking-wider mb-2" 
-                 style={{ color: modalTextColor, opacity: 0.8, fontSize: '36px' }}>
-              ROOM
-            </div>
-
-            {/* Room Name */}
-            <div className="font-bold" 
-                 style={{ 
-                   fontSize: '70px',
-                   color: modalTextColor
-                 }}
-                 data-testid="highlight-patient-room">
-              {currentPatient.room}
-            </div>
+        <>
+          {/* NAME Label */}
+          <div className="fixed top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 font-semibold tracking-wider z-[100]" 
+               style={{ color: modalTextColor, opacity: 0.8, fontSize: '36px' }}
+               data-testid="highlight-name-label">
+            NAME
           </div>
-        </div>
+          
+          {/* Patient Name */}
+          <div className="fixed top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 font-bold z-[100]" 
+               style={{ 
+                 fontSize: '80px',
+                 color: modalTextColor
+               }}
+               data-testid="highlight-patient-name">
+            {currentPatient.name}
+          </div>
+
+          {/* ROOM Label */}
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 font-semibold tracking-wider z-[100]" 
+               style={{ color: modalTextColor, opacity: 0.8, fontSize: '36px' }}
+               data-testid="highlight-room-label">
+            ROOM
+          </div>
+
+          {/* Room Name */}
+          <div className="fixed top-2/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 font-bold z-[100]" 
+               style={{ 
+                 fontSize: '70px',
+                 color: modalTextColor
+               }}
+               data-testid="highlight-patient-room">
+            {currentPatient.room}
+          </div>
+        </>
       )}
     </div>
   );
