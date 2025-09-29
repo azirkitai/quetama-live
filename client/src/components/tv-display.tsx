@@ -741,17 +741,19 @@ export function TVDisplay({
                      style={{
                        ...getBackgroundStyle(queueItemBackgroundMode, queueItemBackgroundColor, queueItemBackgroundGradient, '#2563eb')
                      }}>
-                  <div className="font-bold text-center" 
+                  <div className="text-center" 
                        style={{ 
-                         fontSize: 'clamp(1.25rem, 2vw, 2rem)',
-                         ...getHistoryNameStyle()
+                         ...getHistoryNameStyle(),
+                         fontSize: 'clamp(1.75rem, 2.5vw, 2.5rem)',
+                         fontWeight: 'bold'
                        }}>
                     {item.name}
                   </div>
                   <div className="text-center" 
                        style={{ 
-                         fontSize: 'clamp(1.25rem, 2vw, 2rem)',
-                         ...getHistoryNameStyle()
+                         ...getHistoryNameStyle(),
+                         fontSize: 'clamp(1.75rem, 2.5vw, 2.5rem)',
+                         fontWeight: 'normal'
                        }}>
                     {item.room}
                   </div>
