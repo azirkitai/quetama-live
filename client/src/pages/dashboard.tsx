@@ -87,15 +87,17 @@ export default function Dashboard() {
 
   // Convert Patient to QueueItem for TV display
   const convertToQueueItem = (patient: Patient): QueueItem => {
-    // Map windowId to window name
-    const window = windows.find(w => w.id === patient.windowId);
-    const windowName = window?.name || "Tidak tersedia";
+    // Use room name directly from API response, fallback to mapping windowId
+    const roomName = (patient as any).room || (() => {
+      const window = windows.find(w => w.id === patient.windowId);
+      return window?.name || "Tidak tersedia";
+    })();
     
     return {
       id: patient.id,
       name: patient.name || `No. ${patient.number}`,
       number: patient.number.toString(),
-      room: windowName,
+      room: roomName,
       status: patient.status === "called" ? "calling" : patient.status === "completed" ? "completed" : "waiting",
       timestamp: new Date()
     };
