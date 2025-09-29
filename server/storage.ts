@@ -248,7 +248,14 @@ export class MemStorage implements IStorage {
       isActive: true,
     };
     
-    const result = await db.insert(users).values(userToInsert).returning();
+    const result = await db.insert(users).values(userToInsert).returning({
+      id: users.id,
+      username: users.username,
+      password: users.password,
+      role: users.role,
+      isActive: users.isActive
+    });
+    
     // Add missing fields for compatibility
     const userWithDefaults = {
       ...result[0],
