@@ -146,6 +146,10 @@ export function TVDisplay({
   const queueItemBackgroundColor = settingsObj.queueItemBackgroundColor || '#2563eb';
   const queueItemBackgroundGradient = settingsObj.queueItemBackgroundGradient || 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)';
   
+  const historyNameColor = settingsObj.historyNameColor || '#facc15';
+  const historyNameMode = settingsObj.historyNameMode || 'solid';
+  const historyNameGradient = settingsObj.historyNameGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
+  
   const marqueeBackgroundMode = settingsObj.marqueeBackgroundMode || 'solid';
   const marqueeBackgroundGradient = settingsObj.marqueeBackgroundGradient || 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)';
 
@@ -170,6 +174,19 @@ export function TVDisplay({
     }
 
     return styles;
+  };
+  
+  // Helper function to create history name text styles
+  const getHistoryNameStyle = () => {
+    if (historyNameMode === 'gradient') {
+      return {
+        background: historyNameGradient,
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text'
+      };
+    }
+    return { color: historyNameColor };
   };
 
   // Location state for prayer times
@@ -802,7 +819,7 @@ export function TVDisplay({
                 <div className="font-bold" 
                      style={{ 
                        fontSize: 'clamp(1.25rem, 2vw, 2rem)',
-                       ...createTextGradientStyle(theme?.historyNameGradient, theme?.historyNameColor || '#facc15')
+                       ...getHistoryNameStyle()
                      }}>
                   {item.name}
                 </div>

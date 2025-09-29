@@ -57,6 +57,9 @@ interface SettingsState {
   queueItemBackgroundColor: string;
   queueItemBackgroundMode: 'solid' | 'gradient';
   queueItemBackgroundGradient: string;
+  historyNameColor: string;
+  historyNameMode: 'solid' | 'gradient';
+  historyNameGradient: string;
   queueHighlightColor: string;
   queueBorderColor: string;
   marqueeBackgroundMode: 'solid' | 'gradient';
@@ -77,6 +80,7 @@ export default function Settings() {
     weather: boolean;
     queue: boolean;
     queueItem: boolean;
+    historyName: boolean;
     marquee: boolean;
   }>({
     header: false,
@@ -85,6 +89,7 @@ export default function Settings() {
     weather: false,
     queue: false,
     queueItem: false,
+    historyName: false,
     marquee: false
   });
   
@@ -141,6 +146,9 @@ export default function Settings() {
     queueItemBackgroundColor: '#2563eb',
     queueItemBackgroundMode: 'solid' as 'solid' | 'gradient',
     queueItemBackgroundGradient: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
+    historyNameColor: '#facc15',
+    historyNameMode: 'solid' as 'solid' | 'gradient',
+    historyNameGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
     queueHighlightColor: '#ef4444',
     queueBorderColor: '#d1d5db',
     marqueeBackgroundMode: 'solid' as 'solid' | 'gradient',
@@ -190,6 +198,9 @@ export default function Settings() {
         queueItemBackgroundColor: settingsObj.queueItemBackgroundColor || '#2563eb',
         queueItemBackgroundMode: (settingsObj.queueItemBackgroundMode as 'solid' | 'gradient') || 'solid',
         queueItemBackgroundGradient: settingsObj.queueItemBackgroundGradient || 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
+        historyNameColor: settingsObj.historyNameColor || '#facc15',
+        historyNameMode: (settingsObj.historyNameMode as 'solid' | 'gradient') || 'solid',
+        historyNameGradient: settingsObj.historyNameGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
         queueHighlightColor: settingsObj.queueHighlightColor || '#ef4444',
         queueBorderColor: settingsObj.queueBorderColor || '#d1d5db',
         marqueeBackgroundMode: (settingsObj.marqueeBackgroundMode as 'solid' | 'gradient') || 'solid',
@@ -1236,6 +1247,66 @@ export default function Settings() {
               )}
             </div>
             
+            {/* History Name Text Controls */}
+            <div className="border-t pt-4 mt-4">
+              <Label className="text-sm font-semibold mb-2 block">Warna Nama Patient (History Name)</Label>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Warna Text Nama</Label>
+                  <Input
+                    type="color"
+                    value={currentSettings.historyNameColor || '#facc15'}
+                    onChange={(e) => updateDisplaySetting('historyNameColor', e.target.value)}
+                    data-testid="input-history-name-color"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Style Nama Patient</Label>
+                  
+                  {/* Toggle between solid and gradient for history name text */}
+                  <div className="flex space-x-2 mb-2">
+                    <Button
+                      variant={currentSettings.historyNameMode === 'solid' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => updateDisplaySetting('historyNameMode', 'solid')}
+                      data-testid="button-history-name-solid"
+                    >
+                      Solid
+                    </Button>
+                    <Button
+                      variant={currentSettings.historyNameMode === 'gradient' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => updateDisplaySetting('historyNameMode', 'gradient')}
+                      data-testid="button-history-name-gradient"
+                    >
+                      <Brush className="h-3 w-3 mr-1" />
+                      Gradient
+                    </Button>
+                  </div>
+
+                  {currentSettings.historyNameMode === 'gradient' && (
+                    <div className="space-y-2">
+                      <Button
+                        variant="outline"
+                        className="w-full h-8 text-xs"
+                        onClick={() => setGradientPickers(prev => ({ ...prev, historyName: true }))}
+                        data-testid="button-history-name-gradient-picker"
+                        style={{
+                          background: currentSettings.historyNameGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                          color: 'white',
+                          border: '2px solid #e5e7eb'
+                        }}
+                      >
+                        <Brush className="h-3 w-3 mr-1" />
+                        Pilih Gradient Text
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Warna Highlight</Label>
@@ -1587,6 +1658,17 @@ export default function Settings() {
         }}
         title="Queue Item Background Gradient"
         currentValue={currentSettings.queueItemBackgroundGradient}
+      />
+      
+      <GradientPicker
+        isOpen={gradientPickers.historyName}
+        onClose={() => setGradientPickers(prev => ({ ...prev, historyName: false }))}
+        onApply={(gradient) => {
+          updateDisplaySetting('historyNameGradient', gradient);
+          setGradientPickers(prev => ({ ...prev, historyName: false }));
+        }}
+        title="History Name Text Gradient"
+        currentValue={currentSettings.historyNameGradient}
       />
       
       <GradientPicker
