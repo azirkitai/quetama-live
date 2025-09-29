@@ -44,7 +44,8 @@ export function PatientCard({
   const [showRequeueDropdown, setShowRequeueDropdown] = useState(false);
 
   // Check if this patient is assigned to a different room than selected
-  const isAssignedToOtherRoom = patient.windowId && selectedWindow && patient.windowId !== selectedWindow;
+  // BUT allow all rooms to call requeued patients
+  const isAssignedToOtherRoom = patient.windowId && selectedWindow && patient.windowId !== selectedWindow && patient.status !== "requeue";
   const shouldDisableButtons = disabled || isAssignedToOtherRoom;
 
   const handleCall = () => {
