@@ -1,8 +1,11 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
+import { createServer } from "http";
+import { Server } from "socket.io";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { setupWebSocket } from "./websocket";
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -57,7 +60,22 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const server = await registerRoutes(app);
+  // Create HTTP server and attach Express app
+  const httpServer = createServer(app);
+  
+  // Setup Socket.IO with tenant isolation
+  const io = new Server(httpServer, {
+    cors: {
+      origin: process.env.NODE_ENV === "production" ? false : "*",
+      methods: ["GET", "POST"]
+    }
+  });
+  
+  // Setup WebSocket handlers with tenant isolation
+  setupWebSocket(io);
+  
+  // Register API routes (but use httpServer instead of app.listen)
+  await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -71,7 +89,7 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
-    await setupVite(app, server);
+    await setupVite(app, httpServer);
   } else {
     serveStatic(app);
   }
@@ -81,11 +99,8 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  httpServer.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
+    log(`WebSocket server ready with tenant isolation`);
   });
 })();
