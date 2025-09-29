@@ -6,10 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Monitor, Volume2, Palette, Upload, Save, RefreshCw, CheckCircle, Plus, ChevronLeft, ChevronRight, Eye, Trash2, Edit, Star, Upload as UploadIcon } from "lucide-react";
+import { Monitor, Volume2, Palette, Upload, Save, RefreshCw, CheckCircle, Plus, ChevronLeft, ChevronRight, Eye, Trash2, Edit, Star, Upload as UploadIcon, Brush } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { GradientPicker } from "@/components/ui/gradient-picker";
 import type { Setting, Media, Theme } from "@shared/schema";
 import { audioSystem } from "@/lib/audio-system";
 
@@ -33,18 +34,30 @@ interface SettingsState {
   // Individual section colors
   headerTextColor: string;
   headerBackgroundColor: string;
+  headerBackgroundMode: 'solid' | 'gradient';
+  headerBackgroundGradient: string;
   callNameTextColor: string;
   callBackgroundColor: string;
+  callBackgroundMode: 'solid' | 'gradient';
+  callBackgroundGradient: string;
   windowTextColor: string;
   callBorderColor: string;
   prayerTimesTextColor: string;
   prayerTimesBackgroundColor: string;
+  prayerTimesBackgroundMode: 'solid' | 'gradient';
+  prayerTimesBackgroundGradient: string;
   weatherTextColor: string;
   weatherBackgroundColor: string;
+  weatherBackgroundMode: 'solid' | 'gradient';
+  weatherBackgroundGradient: string;
   queueTextColor: string;
   queueBackgroundColor: string;
+  queueBackgroundMode: 'solid' | 'gradient';
+  queueBackgroundGradient: string;
   queueHighlightColor: string;
   queueBorderColor: string;
+  marqueeBackgroundMode: 'solid' | 'gradient';
+  marqueeBackgroundGradient: string;
 }
 
 export default function Settings() {
@@ -52,6 +65,23 @@ export default function Settings() {
   const [unsavedChanges, setUnsavedChanges] = useState<string[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Gradient picker states
+  const [gradientPickers, setGradientPickers] = useState<{
+    header: boolean;
+    call: boolean;
+    prayer: boolean;
+    weather: boolean;
+    queue: boolean;
+    marquee: boolean;
+  }>({
+    header: false,
+    call: false,
+    prayer: false,
+    weather: false,
+    queue: false,
+    marquee: false
+  });
   
   // Fetch current settings from database
   const { data: settings = [], isLoading, refetch } = useQuery<Setting[]>({
@@ -83,18 +113,30 @@ export default function Settings() {
     // Individual section colors with defaults
     headerTextColor: '#ffffff',
     headerBackgroundColor: '#1e40af',
+    headerBackgroundMode: 'solid' as 'solid' | 'gradient',
+    headerBackgroundGradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     callNameTextColor: '#ffffff',
     callBackgroundColor: '#16a34a',
+    callBackgroundMode: 'solid' as 'solid' | 'gradient',
+    callBackgroundGradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
     windowTextColor: '#ffffff',
     callBorderColor: '#22c55e',
     prayerTimesTextColor: '#ffffff',
     prayerTimesBackgroundColor: '#7c3aed',
+    prayerTimesBackgroundMode: 'solid' as 'solid' | 'gradient',
+    prayerTimesBackgroundGradient: 'linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%)',
     weatherTextColor: '#ffffff',
     weatherBackgroundColor: '#f97316',
+    weatherBackgroundMode: 'solid' as 'solid' | 'gradient',
+    weatherBackgroundGradient: 'linear-gradient(135deg, #fdcb6e 0%, #e84393 100%)',
     queueTextColor: '#1f2937',
     queueBackgroundColor: '#f3f4f6',
+    queueBackgroundMode: 'solid' as 'solid' | 'gradient',
+    queueBackgroundGradient: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)',
     queueHighlightColor: '#ef4444',
     queueBorderColor: '#d1d5db',
+    marqueeBackgroundMode: 'solid' as 'solid' | 'gradient',
+    marqueeBackgroundGradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
   });
 
   // Update settings state when data is loaded
@@ -117,18 +159,30 @@ export default function Settings() {
         // Individual section colors with defaults
         headerTextColor: settingsObj.headerTextColor || '#ffffff',
         headerBackgroundColor: settingsObj.headerBackgroundColor || '#1e40af',
+        headerBackgroundMode: (settingsObj.headerBackgroundMode as 'solid' | 'gradient') || 'solid',
+        headerBackgroundGradient: settingsObj.headerBackgroundGradient || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         callNameTextColor: settingsObj.callNameTextColor || '#ffffff',
         callBackgroundColor: settingsObj.callBackgroundColor || '#16a34a',
+        callBackgroundMode: (settingsObj.callBackgroundMode as 'solid' | 'gradient') || 'solid',
+        callBackgroundGradient: settingsObj.callBackgroundGradient || 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
         windowTextColor: settingsObj.windowTextColor || '#ffffff',
         callBorderColor: settingsObj.callBorderColor || '#22c55e',
         prayerTimesTextColor: settingsObj.prayerTimesTextColor || '#ffffff',
         prayerTimesBackgroundColor: settingsObj.prayerTimesBackgroundColor || '#7c3aed',
+        prayerTimesBackgroundMode: (settingsObj.prayerTimesBackgroundMode as 'solid' | 'gradient') || 'solid',
+        prayerTimesBackgroundGradient: settingsObj.prayerTimesBackgroundGradient || 'linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%)',
         weatherTextColor: settingsObj.weatherTextColor || '#ffffff',
         weatherBackgroundColor: settingsObj.weatherBackgroundColor || '#f97316',
+        weatherBackgroundMode: (settingsObj.weatherBackgroundMode as 'solid' | 'gradient') || 'solid',
+        weatherBackgroundGradient: settingsObj.weatherBackgroundGradient || 'linear-gradient(135deg, #fdcb6e 0%, #e84393 100%)',
         queueTextColor: settingsObj.queueTextColor || '#1f2937',
         queueBackgroundColor: settingsObj.queueBackgroundColor || '#f3f4f6',
+        queueBackgroundMode: (settingsObj.queueBackgroundMode as 'solid' | 'gradient') || 'solid',
+        queueBackgroundGradient: settingsObj.queueBackgroundGradient || 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)',
         queueHighlightColor: settingsObj.queueHighlightColor || '#ef4444',
         queueBorderColor: settingsObj.queueBorderColor || '#d1d5db',
+        marqueeBackgroundMode: (settingsObj.marqueeBackgroundMode as 'solid' | 'gradient') || 'solid',
+        marqueeBackgroundGradient: settingsObj.marqueeBackgroundGradient || 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
       };
       
       setCurrentSettings(prev => {
@@ -139,7 +193,7 @@ export default function Settings() {
         return hasChanges ? { ...prev, ...newSettings } : prev;
       });
     }
-  }, [settings.length, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.marqueeBackgroundColor, settingsObj.enableSound, settingsObj.volume, settingsObj.presetKey, settingsObj.headerTextColor, settingsObj.headerBackgroundColor, settingsObj.callNameTextColor, settingsObj.callBackgroundColor, settingsObj.windowTextColor, settingsObj.callBorderColor, settingsObj.prayerTimesTextColor, settingsObj.prayerTimesBackgroundColor, settingsObj.weatherTextColor, settingsObj.weatherBackgroundColor, settingsObj.queueTextColor, settingsObj.queueBackgroundColor, settingsObj.queueHighlightColor, settingsObj.queueBorderColor]);
+  }, [settings.length, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.marqueeBackgroundColor, settingsObj.enableSound, settingsObj.volume, settingsObj.presetKey, settingsObj.headerTextColor, settingsObj.headerBackgroundColor, settingsObj.headerBackgroundMode, settingsObj.headerBackgroundGradient, settingsObj.callNameTextColor, settingsObj.callBackgroundColor, settingsObj.callBackgroundMode, settingsObj.callBackgroundGradient, settingsObj.windowTextColor, settingsObj.callBorderColor, settingsObj.prayerTimesTextColor, settingsObj.prayerTimesBackgroundColor, settingsObj.prayerTimesBackgroundMode, settingsObj.prayerTimesBackgroundGradient, settingsObj.weatherTextColor, settingsObj.weatherBackgroundColor, settingsObj.weatherBackgroundMode, settingsObj.weatherBackgroundGradient, settingsObj.queueTextColor, settingsObj.queueBackgroundColor, settingsObj.queueBackgroundMode, settingsObj.queueBackgroundGradient, settingsObj.queueHighlightColor, settingsObj.queueBorderColor, settingsObj.marqueeBackgroundMode, settingsObj.marqueeBackgroundGradient]);
 
   const handleRefresh = () => {
     refetch();
@@ -234,21 +288,33 @@ export default function Settings() {
       { key: 'marqueeBackgroundColor', value: currentSettings.marqueeBackgroundColor, category: 'display' },
       { key: 'dashboardMediaType', value: currentSettings.dashboardMediaType, category: 'display' },
       { key: 'youtubeUrl', value: currentSettings.youtubeUrl, category: 'display' },
-      // Individual section colors
+      // Individual section colors with gradient support
       { key: 'headerTextColor', value: currentSettings.headerTextColor, category: 'display' },
       { key: 'headerBackgroundColor', value: currentSettings.headerBackgroundColor, category: 'display' },
+      { key: 'headerBackgroundMode', value: currentSettings.headerBackgroundMode, category: 'display' },
+      { key: 'headerBackgroundGradient', value: currentSettings.headerBackgroundGradient, category: 'display' },
       { key: 'callNameTextColor', value: currentSettings.callNameTextColor, category: 'display' },
       { key: 'callBackgroundColor', value: currentSettings.callBackgroundColor, category: 'display' },
+      { key: 'callBackgroundMode', value: currentSettings.callBackgroundMode, category: 'display' },
+      { key: 'callBackgroundGradient', value: currentSettings.callBackgroundGradient, category: 'display' },
       { key: 'windowTextColor', value: currentSettings.windowTextColor, category: 'display' },
       { key: 'callBorderColor', value: currentSettings.callBorderColor, category: 'display' },
       { key: 'prayerTimesTextColor', value: currentSettings.prayerTimesTextColor, category: 'display' },
       { key: 'prayerTimesBackgroundColor', value: currentSettings.prayerTimesBackgroundColor, category: 'display' },
+      { key: 'prayerTimesBackgroundMode', value: currentSettings.prayerTimesBackgroundMode, category: 'display' },
+      { key: 'prayerTimesBackgroundGradient', value: currentSettings.prayerTimesBackgroundGradient, category: 'display' },
       { key: 'weatherTextColor', value: currentSettings.weatherTextColor, category: 'display' },
       { key: 'weatherBackgroundColor', value: currentSettings.weatherBackgroundColor, category: 'display' },
+      { key: 'weatherBackgroundMode', value: currentSettings.weatherBackgroundMode, category: 'display' },
+      { key: 'weatherBackgroundGradient', value: currentSettings.weatherBackgroundGradient, category: 'display' },
       { key: 'queueTextColor', value: currentSettings.queueTextColor, category: 'display' },
       { key: 'queueBackgroundColor', value: currentSettings.queueBackgroundColor, category: 'display' },
+      { key: 'queueBackgroundMode', value: currentSettings.queueBackgroundMode, category: 'display' },
+      { key: 'queueBackgroundGradient', value: currentSettings.queueBackgroundGradient, category: 'display' },
       { key: 'queueHighlightColor', value: currentSettings.queueHighlightColor, category: 'display' },
       { key: 'queueBorderColor', value: currentSettings.queueBorderColor, category: 'display' },
+      { key: 'marqueeBackgroundMode', value: currentSettings.marqueeBackgroundMode, category: 'display' },
+      { key: 'marqueeBackgroundGradient', value: currentSettings.marqueeBackgroundGradient, category: 'display' },
     ];
     
     await saveSettingsMutation.mutateAsync(settingsToSave);
@@ -667,13 +733,57 @@ export default function Settings() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Warna Background Header</Label>
-                <Input
-                  type="color"
-                  value={currentSettings.headerBackgroundColor || '#1e40af'}
-                  onChange={(e) => updateDisplaySetting('headerBackgroundColor', e.target.value)}
-                  data-testid="input-header-bg-color"
-                />
+                <Label>Background Header</Label>
+                
+                {/* Toggle between solid and gradient */}
+                <div className="flex space-x-2 mb-2">
+                  <Button
+                    variant={currentSettings.headerBackgroundMode === 'solid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('headerBackgroundMode', 'solid')}
+                    data-testid="button-header-solid"
+                  >
+                    Solid
+                  </Button>
+                  <Button
+                    variant={currentSettings.headerBackgroundMode === 'gradient' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('headerBackgroundMode', 'gradient')}
+                    data-testid="button-header-gradient"
+                  >
+                    <Brush className="h-3 w-3 mr-1" />
+                    Gradient
+                  </Button>
+                </div>
+
+                {currentSettings.headerBackgroundMode === 'solid' ? (
+                  <Input
+                    type="color"
+                    value={currentSettings.headerBackgroundColor || '#1e40af'}
+                    onChange={(e) => updateDisplaySetting('headerBackgroundColor', e.target.value)}
+                    data-testid="input-header-bg-color"
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full h-10"
+                      onClick={() => setGradientPickers(prev => ({ ...prev, header: true }))}
+                      data-testid="button-header-gradient-picker"
+                      style={{
+                        background: currentSettings.headerBackgroundGradient,
+                        color: 'white',
+                        border: '2px solid #e5e7eb'
+                      }}
+                    >
+                      <Brush className="h-4 w-4 mr-2" />
+                      Pilih Gradient
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Preview: {currentSettings.headerBackgroundGradient}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
             <Button 
@@ -713,13 +823,57 @@ export default function Settings() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Warna Background Panggilan</Label>
-                <Input
-                  type="color"
-                  value={currentSettings.callBackgroundColor || '#16a34a'}
-                  onChange={(e) => updateDisplaySetting('callBackgroundColor', e.target.value)}
-                  data-testid="input-call-bg-color"
-                />
+                <Label>Background Panggilan</Label>
+                
+                {/* Toggle between solid and gradient */}
+                <div className="flex space-x-2 mb-2">
+                  <Button
+                    variant={currentSettings.callBackgroundMode === 'solid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('callBackgroundMode', 'solid')}
+                    data-testid="button-call-solid"
+                  >
+                    Solid
+                  </Button>
+                  <Button
+                    variant={currentSettings.callBackgroundMode === 'gradient' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('callBackgroundMode', 'gradient')}
+                    data-testid="button-call-gradient"
+                  >
+                    <Brush className="h-3 w-3 mr-1" />
+                    Gradient
+                  </Button>
+                </div>
+
+                {currentSettings.callBackgroundMode === 'solid' ? (
+                  <Input
+                    type="color"
+                    value={currentSettings.callBackgroundColor || '#16a34a'}
+                    onChange={(e) => updateDisplaySetting('callBackgroundColor', e.target.value)}
+                    data-testid="input-call-bg-color"
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full h-10"
+                      onClick={() => setGradientPickers(prev => ({ ...prev, call: true }))}
+                      data-testid="button-call-gradient-picker"
+                      style={{
+                        background: currentSettings.callBackgroundGradient,
+                        color: 'white',
+                        border: '2px solid #e5e7eb'
+                      }}
+                    >
+                      <Brush className="h-4 w-4 mr-2" />
+                      Pilih Gradient
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Preview: {currentSettings.callBackgroundGradient}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -779,13 +933,57 @@ export default function Settings() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Warna Background Waktu Solat</Label>
-                <Input
-                  type="color"
-                  value={currentSettings.prayerTimesBackgroundColor || '#7c3aed'}
-                  onChange={(e) => updateDisplaySetting('prayerTimesBackgroundColor', e.target.value)}
-                  data-testid="input-prayer-bg-color"
-                />
+                <Label>Background Waktu Solat</Label>
+                
+                {/* Toggle between solid and gradient */}
+                <div className="flex space-x-2 mb-2">
+                  <Button
+                    variant={currentSettings.prayerTimesBackgroundMode === 'solid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('prayerTimesBackgroundMode', 'solid')}
+                    data-testid="button-prayer-solid"
+                  >
+                    Solid
+                  </Button>
+                  <Button
+                    variant={currentSettings.prayerTimesBackgroundMode === 'gradient' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('prayerTimesBackgroundMode', 'gradient')}
+                    data-testid="button-prayer-gradient"
+                  >
+                    <Brush className="h-3 w-3 mr-1" />
+                    Gradient
+                  </Button>
+                </div>
+
+                {currentSettings.prayerTimesBackgroundMode === 'solid' ? (
+                  <Input
+                    type="color"
+                    value={currentSettings.prayerTimesBackgroundColor || '#7c3aed'}
+                    onChange={(e) => updateDisplaySetting('prayerTimesBackgroundColor', e.target.value)}
+                    data-testid="input-prayer-bg-color"
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full h-10"
+                      onClick={() => setGradientPickers(prev => ({ ...prev, prayer: true }))}
+                      data-testid="button-prayer-gradient-picker"
+                      style={{
+                        background: currentSettings.prayerTimesBackgroundGradient,
+                        color: 'white',
+                        border: '2px solid #e5e7eb'
+                      }}
+                    >
+                      <Brush className="h-4 w-4 mr-2" />
+                      Pilih Gradient
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Preview: {currentSettings.prayerTimesBackgroundGradient}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
             <Button 
@@ -825,13 +1023,57 @@ export default function Settings() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Warna Background Cuaca</Label>
-                <Input
-                  type="color"
-                  value={currentSettings.weatherBackgroundColor || '#f97316'}
-                  onChange={(e) => updateDisplaySetting('weatherBackgroundColor', e.target.value)}
-                  data-testid="input-weather-bg-color"
-                />
+                <Label>Background Cuaca</Label>
+                
+                {/* Toggle between solid and gradient */}
+                <div className="flex space-x-2 mb-2">
+                  <Button
+                    variant={currentSettings.weatherBackgroundMode === 'solid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('weatherBackgroundMode', 'solid')}
+                    data-testid="button-weather-solid"
+                  >
+                    Solid
+                  </Button>
+                  <Button
+                    variant={currentSettings.weatherBackgroundMode === 'gradient' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('weatherBackgroundMode', 'gradient')}
+                    data-testid="button-weather-gradient"
+                  >
+                    <Brush className="h-3 w-3 mr-1" />
+                    Gradient
+                  </Button>
+                </div>
+
+                {currentSettings.weatherBackgroundMode === 'solid' ? (
+                  <Input
+                    type="color"
+                    value={currentSettings.weatherBackgroundColor || '#f97316'}
+                    onChange={(e) => updateDisplaySetting('weatherBackgroundColor', e.target.value)}
+                    data-testid="input-weather-bg-color"
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full h-10"
+                      onClick={() => setGradientPickers(prev => ({ ...prev, weather: true }))}
+                      data-testid="button-weather-gradient-picker"
+                      style={{
+                        background: currentSettings.weatherBackgroundGradient,
+                        color: 'white',
+                        border: '2px solid #e5e7eb'
+                      }}
+                    >
+                      <Brush className="h-4 w-4 mr-2" />
+                      Pilih Gradient
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Preview: {currentSettings.weatherBackgroundGradient}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
             <Button 
@@ -871,13 +1113,57 @@ export default function Settings() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Warna Background Senarai</Label>
-                <Input
-                  type="color"
-                  value={currentSettings.queueBackgroundColor || '#f3f4f6'}
-                  onChange={(e) => updateDisplaySetting('queueBackgroundColor', e.target.value)}
-                  data-testid="input-queue-bg-color"
-                />
+                <Label>Background Senarai</Label>
+                
+                {/* Toggle between solid and gradient */}
+                <div className="flex space-x-2 mb-2">
+                  <Button
+                    variant={currentSettings.queueBackgroundMode === 'solid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('queueBackgroundMode', 'solid')}
+                    data-testid="button-queue-solid"
+                  >
+                    Solid
+                  </Button>
+                  <Button
+                    variant={currentSettings.queueBackgroundMode === 'gradient' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('queueBackgroundMode', 'gradient')}
+                    data-testid="button-queue-gradient"
+                  >
+                    <Brush className="h-3 w-3 mr-1" />
+                    Gradient
+                  </Button>
+                </div>
+
+                {currentSettings.queueBackgroundMode === 'solid' ? (
+                  <Input
+                    type="color"
+                    value={currentSettings.queueBackgroundColor || '#f3f4f6'}
+                    onChange={(e) => updateDisplaySetting('queueBackgroundColor', e.target.value)}
+                    data-testid="input-queue-bg-color"
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full h-10"
+                      onClick={() => setGradientPickers(prev => ({ ...prev, queue: true }))}
+                      data-testid="button-queue-gradient-picker"
+                      style={{
+                        background: currentSettings.queueBackgroundGradient,
+                        color: 'white',
+                        border: '2px solid #e5e7eb'
+                      }}
+                    >
+                      <Brush className="h-4 w-4 mr-2" />
+                      Pilih Gradient
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Preview: {currentSettings.queueBackgroundGradient}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -991,13 +1277,57 @@ export default function Settings() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Warna Background Marquee</Label>
-                <Input
-                  type="color"
-                  value={currentSettings.marqueeBackgroundColor}
-                  onChange={(e) => updateDisplaySetting('marqueeBackgroundColor', e.target.value)}
-                  data-testid="input-marquee-background-color"
-                />
+                <Label>Background Marquee</Label>
+                
+                {/* Toggle between solid and gradient */}
+                <div className="flex space-x-2 mb-2">
+                  <Button
+                    variant={currentSettings.marqueeBackgroundMode === 'solid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('marqueeBackgroundMode', 'solid')}
+                    data-testid="button-marquee-solid"
+                  >
+                    Solid
+                  </Button>
+                  <Button
+                    variant={currentSettings.marqueeBackgroundMode === 'gradient' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('marqueeBackgroundMode', 'gradient')}
+                    data-testid="button-marquee-gradient"
+                  >
+                    <Brush className="h-3 w-3 mr-1" />
+                    Gradient
+                  </Button>
+                </div>
+
+                {currentSettings.marqueeBackgroundMode === 'solid' ? (
+                  <Input
+                    type="color"
+                    value={currentSettings.marqueeBackgroundColor}
+                    onChange={(e) => updateDisplaySetting('marqueeBackgroundColor', e.target.value)}
+                    data-testid="input-marquee-background-color"
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full h-10"
+                      onClick={() => setGradientPickers(prev => ({ ...prev, marquee: true }))}
+                      data-testid="button-marquee-gradient-picker"
+                      style={{
+                        background: currentSettings.marqueeBackgroundGradient,
+                        color: 'white',
+                        border: '2px solid #e5e7eb'
+                      }}
+                    >
+                      <Brush className="h-4 w-4 mr-2" />
+                      Pilih Gradient
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Preview: {currentSettings.marqueeBackgroundGradient}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1121,6 +1451,73 @@ export default function Settings() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Gradient Picker Modals */}
+      <GradientPicker
+        isOpen={gradientPickers.header}
+        onClose={() => setGradientPickers(prev => ({ ...prev, header: false }))}
+        onApply={(gradient) => {
+          updateDisplaySetting('headerBackgroundGradient', gradient);
+          setGradientPickers(prev => ({ ...prev, header: false }));
+        }}
+        title="Header Background Gradient"
+        currentValue={currentSettings.headerBackgroundGradient}
+      />
+      
+      <GradientPicker
+        isOpen={gradientPickers.call}
+        onClose={() => setGradientPickers(prev => ({ ...prev, call: false }))}
+        onApply={(gradient) => {
+          updateDisplaySetting('callBackgroundGradient', gradient);
+          setGradientPickers(prev => ({ ...prev, call: false }));
+        }}
+        title="Call Background Gradient"
+        currentValue={currentSettings.callBackgroundGradient}
+      />
+      
+      <GradientPicker
+        isOpen={gradientPickers.prayer}
+        onClose={() => setGradientPickers(prev => ({ ...prev, prayer: false }))}
+        onApply={(gradient) => {
+          updateDisplaySetting('prayerTimesBackgroundGradient', gradient);
+          setGradientPickers(prev => ({ ...prev, prayer: false }));
+        }}
+        title="Prayer Times Background Gradient"
+        currentValue={currentSettings.prayerTimesBackgroundGradient}
+      />
+      
+      <GradientPicker
+        isOpen={gradientPickers.weather}
+        onClose={() => setGradientPickers(prev => ({ ...prev, weather: false }))}
+        onApply={(gradient) => {
+          updateDisplaySetting('weatherBackgroundGradient', gradient);
+          setGradientPickers(prev => ({ ...prev, weather: false }));
+        }}
+        title="Weather Background Gradient"
+        currentValue={currentSettings.weatherBackgroundGradient}
+      />
+      
+      <GradientPicker
+        isOpen={gradientPickers.queue}
+        onClose={() => setGradientPickers(prev => ({ ...prev, queue: false }))}
+        onApply={(gradient) => {
+          updateDisplaySetting('queueBackgroundGradient', gradient);
+          setGradientPickers(prev => ({ ...prev, queue: false }));
+        }}
+        title="Queue Background Gradient"
+        currentValue={currentSettings.queueBackgroundGradient}
+      />
+      
+      <GradientPicker
+        isOpen={gradientPickers.marquee}
+        onClose={() => setGradientPickers(prev => ({ ...prev, marquee: false }))}
+        onApply={(gradient) => {
+          updateDisplaySetting('marqueeBackgroundGradient', gradient);
+          setGradientPickers(prev => ({ ...prev, marquee: false }));
+        }}
+        title="Marquee Background Gradient"
+        currentValue={currentSettings.marqueeBackgroundGradient}
+      />
     </div>
   );
 }

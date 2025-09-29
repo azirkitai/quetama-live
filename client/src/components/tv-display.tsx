@@ -112,6 +112,38 @@ export function TVDisplay({
   const marqueeText = settingsObj.marqueeText || "Selamat datang ke Klinik Kesihatan";
   const marqueeColor = settingsObj.marqueeColor || "#ffffff";
   const marqueeBackgroundColor = settingsObj.marqueeBackgroundColor || "#1e40af";
+  
+  // Helper function to get background style based on mode (solid vs gradient)
+  const getBackgroundStyle = (mode: string | undefined, solidColor: string, gradientValue: string, fallbackColor: string) => {
+    if (mode === 'gradient' && gradientValue) {
+      return { background: gradientValue };
+    }
+    return { backgroundColor: solidColor || fallbackColor };
+  };
+  
+  // Extract individual section settings
+  const headerBackgroundMode = settingsObj.headerBackgroundMode || 'solid';
+  const headerBackgroundColor = settingsObj.headerBackgroundColor || '#1e40af';
+  const headerBackgroundGradient = settingsObj.headerBackgroundGradient || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+  
+  const callBackgroundMode = settingsObj.callBackgroundMode || 'solid';
+  const callBackgroundColor = settingsObj.callBackgroundColor || '#16a34a';
+  const callBackgroundGradient = settingsObj.callBackgroundGradient || 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
+  
+  const prayerTimesBackgroundMode = settingsObj.prayerTimesBackgroundMode || 'solid';
+  const prayerTimesBackgroundColor = settingsObj.prayerTimesBackgroundColor || '#7c3aed';
+  const prayerTimesBackgroundGradient = settingsObj.prayerTimesBackgroundGradient || 'linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%)';
+  
+  const weatherBackgroundMode = settingsObj.weatherBackgroundMode || 'solid';
+  const weatherBackgroundColor = settingsObj.weatherBackgroundColor || '#f97316';
+  const weatherBackgroundGradient = settingsObj.weatherBackgroundGradient || 'linear-gradient(135deg, #fdcb6e 0%, #e84393 100%)';
+  
+  const queueBackgroundMode = settingsObj.queueBackgroundMode || 'solid';
+  const queueBackgroundColor = settingsObj.queueBackgroundColor || '#f3f4f6';
+  const queueBackgroundGradient = settingsObj.queueBackgroundGradient || 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)';
+  
+  const marqueeBackgroundMode = settingsObj.marqueeBackgroundMode || 'solid';
+  const marqueeBackgroundGradient = settingsObj.marqueeBackgroundGradient || 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)';
 
   // Helper function to get text group styles
   const getTextGroupStyles = (groupName: string) => {
@@ -443,12 +475,12 @@ export function TVDisplay({
     width: "100vw",
     margin: 0,
     padding: 0,
-    ...createGradientStyle(theme?.backgroundGradient, theme?.backgroundColor || '#ffffff')
+    ...getBackgroundStyle(headerBackgroundMode, headerBackgroundColor, headerBackgroundGradient, '#ffffff')
   } : {
     gridTemplateRows: 'auto 1fr',
     gridTemplateColumns: '65% 35%',
     gap: '0',
-    ...createGradientStyle(theme?.backgroundGradient, theme?.backgroundColor || '#ffffff')
+    ...getBackgroundStyle(headerBackgroundMode, headerBackgroundColor, headerBackgroundGradient, '#ffffff')
   };
 
   const wrapperClass = isFullscreen 
@@ -528,7 +560,7 @@ export function TVDisplay({
       {/* Top Right - Patient Names Header */}
       <div className={`text-white ${isFullscreen ? 'p-0 m-0' : 'p-4'} flex flex-col w-full`}
            style={{
-             ...createGradientStyle(theme?.callingGradient, theme?.callingColor || '#1d4ed8')
+             ...getBackgroundStyle(headerBackgroundMode, headerBackgroundColor, headerBackgroundGradient, '#1d4ed8')
            }}>
         {/* Header */}
         <div className={`text-center ${isFullscreen ? 'mb-2 pt-4 px-4' : 'mb-4'}`}>
@@ -563,8 +595,8 @@ export function TVDisplay({
           </p>
           <div className="px-4 py-2 rounded-lg mt-2"
                style={{
-                 ...createGradientStyle(theme?.callingGradient, theme?.callingColor || '#1e40af'),
-                 color: theme?.callingGradient ? '#ffffff' : '#ffffff'
+                 ...getBackgroundStyle(callBackgroundMode, callBackgroundColor, callBackgroundGradient, '#1e40af'),
+                 color: '#ffffff'
                }}>
             <h2 className="font-bold" style={{ 
               fontSize: 'clamp(1.75rem, 2.5vw, 2.5rem)',
@@ -577,7 +609,7 @@ export function TVDisplay({
         {currentPatient ? (
           <div className={`${isFullscreen ? 'p-2 mx-4 rounded-md mb-2' : 'p-3 rounded-lg mb-3'} text-center`}
                style={{
-                 ...createGradientStyle(theme?.callingGradient, theme?.callingColor || '#2563eb')
+                 ...getBackgroundStyle(callBackgroundMode, callBackgroundColor, callBackgroundGradient, '#2563eb')
                }}>
             <div className="font-bold text-yellow-400"
                  style={{ 
@@ -601,7 +633,7 @@ export function TVDisplay({
         ) : (
           <div className={`${isFullscreen ? 'p-2 mx-4 rounded-md mb-2' : 'p-3 rounded-lg mb-3'} text-center`}
                style={{
-                 ...createGradientStyle(theme?.highlightBoxGradient, theme?.highlightBoxColor || '#2563eb')
+                 ...getBackgroundStyle(callBackgroundMode, callBackgroundColor, callBackgroundGradient, '#2563eb')
                }}>
             <div className="text-white" style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)' }}>N/A</div>
           </div>
@@ -612,7 +644,7 @@ export function TVDisplay({
       {/* Second Row Left - Date & Prayer Times Expanded */}
       <div className={`${isFullscreen ? 'px-4 py-2 m-0' : 'px-4 py-2'} text-white w-full h-full flex flex-col justify-center`}
            style={{
-             ...createGradientStyle(theme?.historyNameGradient, theme?.historyNameColor || '#1e40af')
+             ...getBackgroundStyle(prayerTimesBackgroundMode, prayerTimesBackgroundColor, prayerTimesBackgroundGradient, '#1e40af')
            }}>
         {/* Date/Time Section - Larger */}
         <div className={`bg-white text-gray-900 p-6 ${isFullscreen ? 'rounded-md mb-6' : 'rounded-lg mb-6'} flex items-center justify-center space-x-6`}>
@@ -744,7 +776,7 @@ export function TVDisplay({
       {/* Second Row Right - Patient Queue */}
       <div className={`text-white ${isFullscreen ? 'p-4' : 'p-4'} flex flex-col w-full h-full`}
            style={{
-             ...createGradientStyle(theme?.historyNameGradient, theme?.historyNameColor || '#1d4ed8')
+             ...getBackgroundStyle(queueBackgroundMode, queueBackgroundColor, queueBackgroundGradient, '#1d4ed8')
            }}>
         <div className="grid grid-cols-2 gap-1 text-center mb-2">
           <div className="font-bold text-yellow-400" style={{ 
@@ -761,7 +793,7 @@ export function TVDisplay({
             queueHistory.slice(0, 4).map((item) => (
               <div key={item.id} className="p-3 rounded grid grid-cols-2 gap-1"
                    style={{
-                     ...createGradientStyle(theme?.highlightBoxGradient, theme?.highlightBoxColor || '#2563eb')
+                     ...getBackgroundStyle(queueBackgroundMode, queueBackgroundColor, queueBackgroundGradient, '#2563eb')
                    }}>
                 <div className="font-bold" 
                      style={{ 
@@ -791,7 +823,9 @@ export function TVDisplay({
       {isFullscreen && (
         <div 
           className="fixed bottom-0 left-0 w-full text-white py-2 z-50"
-          style={{ backgroundColor: marqueeBackgroundColor }}
+          style={{
+            ...getBackgroundStyle(marqueeBackgroundMode, marqueeBackgroundColor, marqueeBackgroundGradient, '#1e40af')
+          }}
         >
           <div className="overflow-hidden w-full">
             <div className="inline-flex whitespace-nowrap animate-marquee" data-testid="marquee-container" aria-hidden="false">
