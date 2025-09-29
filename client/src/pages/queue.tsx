@@ -190,6 +190,13 @@ export default function Queue() {
     const window = windows.find(w => w.id === patient.windowId);
     if (!window) return;
 
+    // Update patient's calledAt time to make them the current call
+    updatePatientStatusMutation.mutate({
+      patientId,
+      status: "called",
+      windowId: patient.windowId // Keep existing window assignment
+    });
+
     // Show toast immediately for responsive UI feedback
     toast({
       title: "Panggil Lagi",
