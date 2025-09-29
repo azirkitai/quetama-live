@@ -87,7 +87,7 @@ interface SettingsState {
 export default function Settings() {
   const { toast } = useToast();
   const [unsavedChanges, setUnsavedChanges] = useState<string[]>([]);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Gradient picker states
@@ -484,15 +484,28 @@ export default function Settings() {
 
   // Handle file selection
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Validate file type
-      if (file.type === 'image/png' || file.type === 'image/jpeg') {
-        setSelectedFile(file);
-      } else {
+    const files = Array.from(event.target.files || []);
+    if (files.length > 0) {
+      // Validate all file types
+      const validFiles: File[] = [];
+      const invalidFiles: string[] = [];
+      
+      files.forEach(file => {
+        if (file.type === 'image/png' || file.type === 'image/jpeg') {
+          validFiles.push(file);
+        } else {
+          invalidFiles.push(file.name);
+        }
+      });
+      
+      if (validFiles.length > 0) {
+        setSelectedFiles(validFiles);
+      }
+      
+      if (invalidFiles.length > 0) {
         toast({
           title: "Format tidak disokong",
-          description: "Sila pilih fail PNG atau JPEG sahaja",
+          description: `Fail berikut tidak disokong: ${invalidFiles.join(', ')}. Sila pilih fail PNG atau JPEG sahaja.`,
           variant: "destructive",
         });
       }
@@ -504,10 +517,31 @@ export default function Settings() {
     fileInputRef.current?.click();
   };
 
-  // Handle upload file
-  const handleUploadFile = () => {
-    if (selectedFile) {
-      uploadMediaMutation.mutate(selectedFile);
+  // Handle upload files
+  const handleUploadFiles = async () => {
+    if (selectedFiles.length > 0) {
+      try {
+        for (const file of selectedFiles) {
+          await uploadMediaMutation.mutateAsync(file);
+        }
+        
+        // Clear selected files after successful upload
+        setSelectedFiles([]);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        
+        toast({
+          title: "Upload Berjaya",
+          description: `${selectedFiles.length} gambar telah diupload`,
+        });
+      } catch (error) {
+        toast({
+          title: "Ralat Upload",
+          description: "Gagal mengupload beberapa gambar",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -733,36 +767,43 @@ export default function Settings() {
                       </div>
                     </div>
                     
-                    {selectedFile ? (
+                    {selectedFiles.length > 0 ? (
                       <div className="space-y-3">
-                        <div className="flex items-center justify-center space-x-2 p-3 bg-white border rounded-lg">
-                          <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
-                            <Upload className="h-4 w-4 text-blue-600" />
-                          </div>
-                          <div className="flex-1 text-left">
-                            <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
-                            <p className="text-xs text-gray-500">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                          </div>
+                        <div className="text-sm font-medium text-gray-700 text-center">
+                          {selectedFiles.length} gambar dipilih
+                        </div>
+                        <div className="max-h-32 overflow-y-auto space-y-2">
+                          {selectedFiles.map((file, index) => (
+                            <div key={index} className="flex items-center space-x-2 p-3 bg-white border rounded-lg">
+                              <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
+                                <Upload className="h-4 w-4 text-blue-600" />
+                              </div>
+                              <div className="flex-1 text-left min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
+                                <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                         
                         <div className="flex space-x-2">
                           <Button 
-                            onClick={handleUploadFile}
+                            onClick={handleUploadFiles}
                             disabled={uploadMediaMutation.isPending}
                             className="flex-1"
-                            data-testid="button-upload-file"
+                            data-testid="button-upload-files"
                           >
                             {uploadMediaMutation.isPending ? (
                               <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                             ) : (
                               <Upload className="h-4 w-4 mr-2" />
                             )}
-                            {uploadMediaMutation.isPending ? 'Mengupload...' : 'Upload Gambar'}
+                            {uploadMediaMutation.isPending ? 'Mengupload...' : `Upload ${selectedFiles.length} Gambar`}
                           </Button>
                           <Button 
                             variant="outline" 
                             onClick={() => {
-                              setSelectedFile(null);
+                              setSelectedFiles([]);
                               if (fileInputRef.current) {
                                 fileInputRef.current.value = '';
                               }
@@ -782,7 +823,7 @@ export default function Settings() {
                         data-testid="button-select-file"
                       >
                         <Plus className="h-4 w-4 mr-2" />
-                        Pilih Gambar
+                        Pilih Gambar (Banyak)
                       </Button>
                     )}
                     
@@ -790,6 +831,7 @@ export default function Settings() {
                       ref={fileInputRef}
                       type="file"
                       accept="image/png,image/jpeg"
+                      multiple
                       onChange={handleFileSelect}
                       className="hidden"
                       data-testid="input-file-upload"
