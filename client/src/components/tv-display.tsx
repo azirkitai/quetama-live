@@ -672,8 +672,8 @@ export function TVDisplay({
                }}>
             <h2 className="font-bold" style={{ 
               fontSize: 'clamp(1.75rem, 2.5vw, 2.5rem)',
-              ...getTextStyle(callNameTextMode, callNameTextColor, callNameTextGradient, '#ffffff'),
-              ...getTextGroupStyles('title')
+              ...getTextGroupStyles('title', true), // Exclude color overrides so Settings can override
+              ...getTextStyle(callNameTextMode, callNameTextColor, callNameTextGradient, '#ffffff')
             }}>CALLING</h2>
           </div>
         </div>
@@ -874,11 +874,11 @@ export function TVDisplay({
         <div className="grid grid-cols-2 gap-1 text-center mb-2">
           <div className="font-bold text-yellow-400" style={{ 
             fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
-            ...getTextGroupStyles('Token Label')
+            ...getTextGroupStyles('Token Label', true) // Exclude color overrides so Settings can override
           }}>NAME</div>
           <div className="font-bold text-yellow-400" style={{ 
             fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
-            ...getTextGroupStyles('Window Label')
+            ...getTextGroupStyles('Window Label', true) // Exclude color overrides so Settings can override
           }}>ROOM</div>
         </div>
         <div className="space-y-1 overflow-y-auto flex-1" data-testid="queue-list">
@@ -905,7 +905,7 @@ export function TVDisplay({
             <div className="text-center text-yellow-400 py-4">
               <p style={{ 
                 fontSize: 'clamp(1.25rem, 2vw, 2rem)',
-                ...getTextGroupStyles('Patient History')
+                ...getTextGroupStyles('Patient History', true) // Exclude color overrides so Settings can override
               }}>Tiada dalam barisan</p>
             </div>
           )}
