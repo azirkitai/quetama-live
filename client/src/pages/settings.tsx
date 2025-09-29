@@ -853,90 +853,90 @@ export default function Settings() {
       </div>
 
       {/* SECTION 2: THEME & COLOR SETTINGS */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="border-b pb-2">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <Palette className="h-5 w-5" />
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Palette className="h-4 w-4" />
             Theme & Color Settings
           </h2>
-          <p className="text-sm text-muted-foreground">Kustomisasi warna setiap bahagian skrin secara individu</p>
+          <p className="text-xs text-muted-foreground">Kustomisasi warna setiap bahagian skrin secara individu</p>
         </div>
         
-        {/* Clinic Name Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              Clinic Name Settings
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">Tetapkan nama klinik yang akan dipaparkan di skrin TV</p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Nama Klinik</Label>
-              <Input
-                type="text"
-                value={currentSettings.clinicName || "KLINIK UTAMA 24 JAM"}
-                onChange={(e) => updateDisplaySetting('clinicName', e.target.value)}
-                placeholder="Masukkan nama klinik"
-                data-testid="input-clinic-name"
-                className="text-lg font-medium"
-              />
-              <p className="text-xs text-muted-foreground">
-                Nama ini akan dipaparkan di header skrin TV dan sinkronisasi dengan semua paparan
-              </p>
-            </div>
-            
-            <Button 
-              onClick={handleSaveDisplay} 
-              className="w-full" 
-              data-testid="button-save-clinic-name-settings"
-              disabled={saveSettingsMutation.isPending}
-            >
-              {saveSettingsMutation.isPending ? (
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              Simpan Nama Klinik
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Grid Layout for Compact Cards - 2 columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          
+          {/* Compact 2-column cards layout enabled */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                Clinic Name Settings
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">Tetapkan nama klinik yang akan dipaparkan di skrin TV</p>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="space-y-1">
+                <Label className="text-xs">Nama Klinik</Label>
+                <Input
+                  type="text"
+                  value={currentSettings.clinicName || "KLINIK UTAMA 24 JAM"}
+                  onChange={(e) => updateDisplaySetting('clinicName', e.target.value)}
+                  placeholder="Masukkan nama klinik"
+                  data-testid="input-clinic-name"
+                  className="text-sm"
+                />
+              </div>
+              <Button 
+                onClick={handleSaveDisplay} 
+                className="w-full" 
+                size="sm"
+                data-testid="button-save-clinic-name-settings"
+                disabled={saveSettingsMutation.isPending}
+              >
+                {saveSettingsMutation.isPending ? (
+                  <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                ) : (
+                  <Save className="h-3 w-3 mr-1" />
+                )}
+                Simpan
+              </Button>
+            </CardContent>
+          </Card>
         
-        {/* Header Section Colors */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              Header Display
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">Warna untuk bahagian header skrin TV</p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Warna Text Header</Label>
+          {/* Header Section Colors */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                Header Display
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">Warna untuk bahagian header skrin TV</p>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-xs">Text Header</Label>
                 
-                {/* Toggle between solid and gradient for header text */}
-                <div className="flex space-x-2 mb-2">
-                  <Button
-                    variant={currentSettings.headerTextMode === 'solid' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => updateDisplaySetting('headerTextMode', 'solid')}
-                    data-testid="button-header-text-solid"
-                  >
-                    Solid
-                  </Button>
-                  <Button
-                    variant={currentSettings.headerTextMode === 'gradient' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => updateDisplaySetting('headerTextMode', 'gradient')}
-                    data-testid="button-header-text-gradient"
-                  >
-                    <Brush className="h-3 w-3 mr-1" />
-                    Gradient
-                  </Button>
-                </div>
+                  <div className="flex space-x-1 mb-1">
+                    <Button
+                      variant={currentSettings.headerTextMode === 'solid' ? 'default' : 'outline'}
+                      size="sm"
+                      className="text-xs px-2"
+                      onClick={() => updateDisplaySetting('headerTextMode', 'solid')}
+                      data-testid="button-header-text-solid"
+                    >
+                      Solid
+                    </Button>
+                    <Button
+                      variant={currentSettings.headerTextMode === 'gradient' ? 'default' : 'outline'}
+                      size="sm"
+                      className="text-xs px-2"
+                      onClick={() => updateDisplaySetting('headerTextMode', 'gradient')}
+                      data-testid="button-header-text-gradient"
+                    >
+                      <Brush className="h-2 w-2" />
+                    </Button>
+                  </div>
 
                 {currentSettings.headerTextMode === 'solid' ? (
                   <Input
@@ -949,7 +949,7 @@ export default function Settings() {
                   <div className="space-y-2">
                     <Button
                       variant="outline"
-                      className="w-full h-8 text-xs"
+                      className="w-full text-xs"
                       onClick={() => setGradientPickers(prev => ({ ...prev, headerText: true }))}
                       data-testid="button-header-text-gradient-picker"
                       style={{
@@ -999,7 +999,7 @@ export default function Settings() {
                   <div className="space-y-2">
                     <Button
                       variant="outline"
-                      className="w-full h-10"
+                      className="w-full"
                       onClick={() => setGradientPickers(prev => ({ ...prev, header: true }))}
                       data-testid="button-header-gradient-picker"
                       style={{
@@ -1073,14 +1073,14 @@ export default function Settings() {
                     type="color"
                     value={currentSettings.clinicNameTextColor || '#ffffff'}
                     onChange={(e) => updateDisplaySetting('clinicNameTextColor', e.target.value)}
-                    className="w-12 h-7 p-0 border-2"
+                    className="w-12 p-0 border-2"
                     data-testid="input-clinic-name-text-color"
                   />
                 ) : (
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 w-12 p-0"
+                    className="w-12 p-0"
                     onClick={() => setGradientPickers(prev => ({ ...prev, clinicNameText: true }))}
                     data-testid="button-clinic-name-text-gradient-picker"
                     style={{
@@ -1155,7 +1155,7 @@ export default function Settings() {
                   <div className="space-y-2">
                     <Button
                       variant="outline"
-                      className="w-full h-8 text-xs"
+                      className="w-full text-xs"
                       onClick={() => setGradientPickers(prev => ({ ...prev, callNameText: true }))}
                       data-testid="button-call-name-text-gradient-picker"
                       style={{
@@ -1205,7 +1205,7 @@ export default function Settings() {
                   <div className="space-y-2">
                     <Button
                       variant="outline"
-                      className="w-full h-10"
+                      className="w-full"
                       onClick={() => setGradientPickers(prev => ({ ...prev, call: true }))}
                       data-testid="button-call-gradient-picker"
                       style={{
@@ -1260,7 +1260,7 @@ export default function Settings() {
                   <div className="space-y-2">
                     <Button
                       variant="outline"
-                      className="w-full h-8 text-xs"
+                      className="w-full text-xs"
                       onClick={() => setGradientPickers(prev => ({ ...prev, windowText: true }))}
                       data-testid="button-window-text-gradient-picker"
                       style={{
@@ -1347,7 +1347,7 @@ export default function Settings() {
                   <div className="space-y-2">
                     <Button
                       variant="outline"
-                      className="w-full h-8 text-xs"
+                      className="w-full text-xs"
                       onClick={() => setGradientPickers(prev => ({ ...prev, prayerText: true }))}
                       data-testid="button-prayer-text-gradient-picker"
                       style={{
@@ -1397,7 +1397,7 @@ export default function Settings() {
                   <div className="space-y-2">
                     <Button
                       variant="outline"
-                      className="w-full h-10"
+                      className="w-full"
                       onClick={() => setGradientPickers(prev => ({ ...prev, prayer: true }))}
                       data-testid="button-prayer-gradient-picker"
                       style={{
@@ -1478,7 +1478,7 @@ export default function Settings() {
                   <div className="space-y-2">
                     <Button
                       variant="outline"
-                      className="w-full h-8 text-xs"
+                      className="w-full text-xs"
                       onClick={() => setGradientPickers(prev => ({ ...prev, weatherText: true }))}
                       data-testid="button-weather-text-gradient-picker"
                       style={{
@@ -1528,7 +1528,7 @@ export default function Settings() {
                   <div className="space-y-2">
                     <Button
                       variant="outline"
-                      className="w-full h-10"
+                      className="w-full"
                       onClick={() => setGradientPickers(prev => ({ ...prev, weather: true }))}
                       data-testid="button-weather-gradient-picker"
                       style={{
@@ -1604,14 +1604,14 @@ export default function Settings() {
                       type="color"
                       value={currentSettings.queueTextColor || '#1f2937'}
                       onChange={(e) => updateDisplaySetting('queueTextColor', e.target.value)}
-                      className="w-12 h-7 p-0 border-2"
+                      className="w-12 p-0 border-2"
                       data-testid="input-queue-text-color"
                     />
                   ) : (
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-7 w-12 p-0"
+                      className="w-12 p-0"
                       onClick={() => setGradientPickers(prev => ({ ...prev, queueText: true }))}
                       data-testid="button-queue-text-gradient-picker"
                       style={{
@@ -1653,14 +1653,14 @@ export default function Settings() {
                       type="color"
                       value={currentSettings.queueBackgroundColor || '#f3f4f6'}
                       onChange={(e) => updateDisplaySetting('queueBackgroundColor', e.target.value)}
-                      className="w-12 h-7 p-0 border-2"
+                      className="w-12 p-0 border-2"
                       data-testid="input-queue-bg-color"
                     />
                   ) : (
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-7 w-12 p-0"
+                      className="w-12 p-0"
                       onClick={() => setGradientPickers(prev => ({ ...prev, queue: true }))}
                       data-testid="button-queue-gradient-picker"
                       style={{
@@ -1710,7 +1710,7 @@ export default function Settings() {
                 <div className="space-y-2">
                   <Button
                     variant="outline"
-                    className="w-full h-10"
+                    className="w-full"
                     onClick={() => setGradientPickers(prev => ({ ...prev, queueItem: true }))}
                     data-testid="button-queue-item-gradient-picker"
                     style={{
@@ -1771,7 +1771,7 @@ export default function Settings() {
                     <div className="space-y-2">
                       <Button
                         variant="outline"
-                        className="w-full h-8 text-xs"
+                        className="w-full text-xs"
                         onClick={() => setGradientPickers(prev => ({ ...prev, historyName: true }))}
                         data-testid="button-history-name-gradient-picker"
                         style={{
@@ -1925,7 +1925,7 @@ export default function Settings() {
                   <div className="space-y-2">
                     <Button
                       variant="outline"
-                      className="w-full h-8 text-xs"
+                      className="w-full text-xs"
                       onClick={() => setGradientPickers(prev => ({ ...prev, marqueeText: true }))}
                       data-testid="button-marquee-text-gradient-picker"
                       style={{
@@ -1975,7 +1975,7 @@ export default function Settings() {
                   <div className="space-y-2">
                     <Button
                       variant="outline"
-                      className="w-full h-10"
+                      className="w-full"
                       onClick={() => setGradientPickers(prev => ({ ...prev, marquee: true }))}
                       data-testid="button-marquee-gradient-picker"
                       style={{
@@ -2114,8 +2114,17 @@ export default function Settings() {
             </Button>
           </CardContent>
         </Card>
+        
+        {/* Simple test card */}
+        <Card>
+          <CardContent className="p-4">
+            <p>Test Card - Grid Structure</p>
+          </CardContent>
+        </Card>
+        
       </div>
-
+      </div>
+      
       {/* Gradient Picker Modals */}
       <GradientPicker
         isOpen={gradientPickers.header}
@@ -2293,6 +2302,5 @@ export default function Settings() {
         title="Clinic Name Text Gradient"
         currentValue={currentSettings.clinicNameTextGradient}
       />
-    </div>
   );
 }
