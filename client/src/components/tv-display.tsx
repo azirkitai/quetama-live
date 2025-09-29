@@ -812,23 +812,85 @@ export function TVDisplay({
         <div className="fixed inset-0 flex items-center justify-center z-[100]" 
              style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
              data-testid="highlight-overlay">
-          <div className="px-16 py-8 shadow-2xl border-4"
+          {/* Modal Container with Lines Design */}
+          <div className="relative p-8 rounded-lg shadow-2xl"
                style={{
-                 ...createGradientStyle(theme?.highlightBoxGradient, theme?.highlightBoxColor || '#2563eb'),
-                 borderColor: theme?.highlightBoxColor || '#facc15'
+                 backgroundColor: theme?.modalBackgroundColor || '#1e293b',
+                 minWidth: '500px',
+                 maxWidth: '800px'
                }}>
-            <div className="text-center space-y-4">
-              <div className="text-white font-bold" style={{ fontSize: 'clamp(3rem, 8vw, 6rem)' }}
-                   data-testid="highlight-patient-name">
-                {currentPatient.name}
+            
+            {/* Corner Lines Design */}
+            <div className="absolute inset-0 pointer-events-none">
+              {/* Top-left corner */}
+              <div className="absolute top-0 left-0 w-20 h-0.5" 
+                   style={{ backgroundColor: theme?.modalBorderColor || '#fbbf24' }}></div>
+              <div className="absolute top-0 left-0 w-0.5 h-20" 
+                   style={{ backgroundColor: theme?.modalBorderColor || '#fbbf24' }}></div>
+              
+              {/* Top-right corner */}
+              <div className="absolute top-0 right-0 w-20 h-0.5" 
+                   style={{ backgroundColor: theme?.modalBorderColor || '#fbbf24' }}></div>
+              <div className="absolute top-0 right-0 w-0.5 h-20" 
+                   style={{ backgroundColor: theme?.modalBorderColor || '#fbbf24' }}></div>
+              
+              {/* Bottom-left corner */}
+              <div className="absolute bottom-0 left-0 w-20 h-0.5" 
+                   style={{ backgroundColor: theme?.modalBorderColor || '#fbbf24' }}></div>
+              <div className="absolute bottom-0 left-0 w-0.5 h-20" 
+                   style={{ backgroundColor: theme?.modalBorderColor || '#fbbf24' }}></div>
+              
+              {/* Bottom-right corner */}
+              <div className="absolute bottom-0 right-0 w-20 h-0.5" 
+                   style={{ backgroundColor: theme?.modalBorderColor || '#fbbf24' }}></div>
+              <div className="absolute bottom-0 right-0 w-0.5 h-20" 
+                   style={{ backgroundColor: theme?.modalBorderColor || '#fbbf24' }}></div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="text-center space-y-6 relative z-10">
+              {/* NAME Label */}
+              <div className="text-sm font-semibold tracking-wider mb-2" 
+                   style={{ color: theme?.modalTextColor || '#ffffff', opacity: 0.8 }}>
+                NAME
               </div>
-              <div className="font-bold" 
-                   style={{ 
-                     fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-                     color: theme?.highlightBoxGradient ? '#ffffff' : '#ffffff'
-                   }}
-                   data-testid="highlight-patient-room">
-                {currentPatient.room}
+              
+              {/* Patient Name */}
+              <div className="px-8 py-4 rounded border-2"
+                   style={{
+                     borderColor: theme?.modalBorderColor || '#fbbf24',
+                     backgroundColor: 'rgba(0, 0, 0, 0.2)'
+                   }}>
+                <div className="font-bold" 
+                     style={{ 
+                       fontSize: 'clamp(2.5rem, 6vw, 4rem)',
+                       color: theme?.modalTextColor || '#ffffff'
+                     }}
+                     data-testid="highlight-patient-name">
+                  {currentPatient.name}
+                </div>
+              </div>
+
+              {/* ROOM Label */}
+              <div className="text-sm font-semibold tracking-wider mb-2" 
+                   style={{ color: theme?.modalTextColor || '#ffffff', opacity: 0.8 }}>
+                ROOM
+              </div>
+
+              {/* Room Name */}
+              <div className="px-8 py-4 rounded border-2"
+                   style={{
+                     borderColor: theme?.modalBorderColor || '#fbbf24',
+                     backgroundColor: 'rgba(0, 0, 0, 0.2)'
+                   }}>
+                <div className="font-bold" 
+                     style={{ 
+                       fontSize: 'clamp(2rem, 4vw, 3rem)',
+                       color: theme?.modalTextColor || '#ffffff'
+                     }}
+                     data-testid="highlight-patient-room">
+                  {currentPatient.room}
+                </div>
               </div>
             </div>
           </div>
