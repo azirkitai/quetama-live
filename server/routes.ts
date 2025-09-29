@@ -1617,6 +1617,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin endpoint to get TV token for current user
+  app.get("/api/users/me/tv-token", async (req, res) => {
+    try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const tvToken = storage.generateTvToken(req.session.userId);
+      
+      res.json({
+        tvToken: tvToken,
+        tvUrl: `/tv?token=${tvToken}`,
+        message: "Token TV untuk paparan klinik anda"
+      });
+    } catch (error) {
+      console.error("Error generating TV token:", error);
+      res.status(500).json({ error: "Gagal menjana token TV" });
+    }
+  });
+
   // ===== TV DISPLAY TOKEN ROUTES =====
   // These routes serve authenticated TV displays using clinic tokens
   

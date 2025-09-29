@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Volume2, Calendar } from "lucide-react";
-import { useActiveTheme, createGradientStyle, createTextGradientStyle } from "@/hooks/useActiveTheme";
+import { createGradientStyle, createTextGradientStyle } from "@/hooks/useActiveTheme";
 import { useQuery } from "@tanstack/react-query";
 
 interface QueueItem {
@@ -70,6 +70,8 @@ interface TVDisplayProps {
   isFullscreen?: boolean;
   showPrayerTimes?: boolean;
   showWeather?: boolean;
+  // Token for unauthenticated TV display access
+  tvToken?: string;
 }
 
 export function TVDisplay({ 
@@ -80,22 +82,45 @@ export function TVDisplay({
   prayerTimes = [],
   isFullscreen = false,
   showPrayerTimes = false,
-  showWeather = false
+  showWeather = false,
+  tvToken
 }: TVDisplayProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
   
-  // Fetch active theme
-  const { data: theme } = useActiveTheme();
+  // Fetch active theme - use token-based endpoint if tvToken provided
+  const { data: theme } = useQuery({
+    queryKey: tvToken ? [`/api/tv/${tvToken}/themes/active`, 'tv-theme'] : ['/api/themes/active'],
+    queryFn: async () => {
+      const endpoint = tvToken ? `/api/tv/${tvToken}/themes/active` : '/api/themes/active';
+      const response = await fetch(endpoint);
+      if (!response.ok) throw new Error('Failed to fetch theme');
+      return response.json();
+    },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    retry: 1,
+  });
 
-  // Fetch text groups for styling
+  // Fetch text groups - use token-based endpoint if tvToken provided
   const { data: textGroups = [] } = useQuery({
-    queryKey: ['/api/text-groups/active'],
+    queryKey: tvToken ? [`/api/tv/${tvToken}/text-groups/active`, 'tv-text-groups'] : ['/api/text-groups/active'],
+    queryFn: async () => {
+      const endpoint = tvToken ? `/api/tv/${tvToken}/text-groups/active` : '/api/text-groups/active';
+      const response = await fetch(endpoint);
+      if (!response.ok) throw new Error('Failed to fetch text groups');
+      return response.json();
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Fetch settings for marquee and other display settings
+  // Fetch settings - use token-based endpoint if tvToken provided
   const { data: settings = [] } = useQuery<Array<{key: string; value: string}>>({
-    queryKey: ['/api/settings'],
+    queryKey: tvToken ? [`/api/tv/${tvToken}/settings`, 'tv-settings'] : ['/api/settings'],
+    queryFn: async () => {
+      const endpoint = tvToken ? `/api/tv/${tvToken}/settings` : '/api/settings';
+      const response = await fetch(endpoint);
+      if (!response.ok) throw new Error('Failed to fetch settings');
+      return response.json();
+    },
     staleTime: 30 * 1000, // 30 seconds - shorter for real-time marquee updates
     refetchInterval: 30 * 1000, // Refetch every 30 seconds for live updates
   });
