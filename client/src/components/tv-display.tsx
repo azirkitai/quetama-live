@@ -111,6 +111,7 @@ export function TVDisplay({
   // Extract marquee settings with fallbacks
   const marqueeText = settingsObj.marqueeText || "Selamat datang ke Klinik Kesihatan";
   const marqueeColor = settingsObj.marqueeColor || "#ffffff";
+  const marqueeBackgroundColor = settingsObj.marqueeBackgroundColor || "#1e40af";
 
   // Helper function to get text group styles
   const getTextGroupStyles = (groupName: string) => {
@@ -774,7 +775,10 @@ export function TVDisplay({
       
       {/* Floating Marquee Overlay */}
       {isFullscreen && (
-        <div className="fixed bottom-0 left-0 w-full bg-blue-800 bg-opacity-90 text-white py-2 z-50">
+        <div 
+          className="fixed bottom-0 left-0 w-full text-white py-2 z-50"
+          style={{ backgroundColor: marqueeBackgroundColor }}
+        >
           <div className="overflow-hidden w-full">
             <div className="inline-flex whitespace-nowrap animate-marquee" data-testid="marquee-container" aria-hidden="false">
               <span 
