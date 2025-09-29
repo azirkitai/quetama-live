@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -100,22 +100,81 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
     { color: "#00ff00", position: 100 }
   ]);
 
+  // Helper functions defined first
+  const generateGradientCSS = (stops = colorStops, direction = gradientDirection) => {
+    const sortedStops = [...stops].sort((a, b) => a.position - b.position);
+    const stopStrings = sortedStops.map(stop => `${stop.color} ${stop.position}%`);
+    return `linear-gradient(${direction}, ${stopStrings.join(", ")})`;
+  };
+
+  const updateCustomGradientFromVisual = (stops = colorStops, direction = gradientDirection) => {
+    const generatedCSS = generateGradientCSS(stops, direction);
+    setCustomGradient(generatedCSS);
+  };
+
+  // Parse CSS gradient to populate visual builder (basic implementation)
+  const parseGradientToVisual = (gradient: string) => {
+    try {
+      // Simple regex to extract direction and colors from linear-gradient
+      const directionMatch = gradient.match(/linear-gradient\(([^,]+),/);
+      const colorMatches = gradient.match(/#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|rgb\([^)]+\)|rgba\([^)]+\)/g);
+      
+      if (directionMatch) {
+        const direction = directionMatch[1].trim();
+        if (direction.includes('deg')) {
+          setGradientDirection(direction);
+        }
+      }
+      
+      if (colorMatches && colorMatches.length >= 2) {
+        const newStops = colorMatches.map((color, index) => ({
+          color: color,
+          position: Math.round((index / (colorMatches.length - 1)) * 100)
+        }));
+        setColorStops(newStops);
+      }
+    } catch (error) {
+      console.log('Could not parse gradient for visual builder:', error);
+      // Keep default visual builder state if parsing fails
+    }
+  };
+
   if (!isOpen) return null;
+
+  // Initialize visual builder from current value when dialog opens
+  useEffect(() => {
+    if (isOpen && currentValue) {
+      setCustomGradient(currentValue);
+      parseGradientToVisual(currentValue);
+    }
+  }, [isOpen, currentValue]);
+
+  // Initialize custom gradient from visual builder on mount
+  useEffect(() => {
+    updateCustomGradientFromVisual();
+  }, []);
 
   const handlePresetSelect = (gradient: string) => {
     setSelectedPreset(gradient);
     setCustomGradient(gradient);
+    parseGradientToVisual(gradient);
   };
 
   // Visual gradient builder functions
   const addColorStop = () => {
     const newPosition = colorStops.length > 0 ? Math.max(...colorStops.map(s => s.position)) + 20 : 50;
-    setColorStops([...colorStops, { color: "#0000ff", position: Math.min(newPosition, 100) }]);
+    const updated = [...colorStops, { color: "#0000ff", position: Math.min(newPosition, 100) }];
+    setColorStops(updated);
+    // Auto-sync to CSS tab
+    updateCustomGradientFromVisual(updated, gradientDirection);
   };
 
   const removeColorStop = (index: number) => {
     if (colorStops.length > 2) { // Keep at least 2 color stops
-      setColorStops(colorStops.filter((_, i) => i !== index));
+      const updated = colorStops.filter((_, i) => i !== index);
+      setColorStops(updated);
+      // Auto-sync to CSS tab
+      updateCustomGradientFromVisual(updated, gradientDirection);
     }
   };
 
@@ -124,20 +183,16 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
       i === index ? { ...stop, [field]: value } : stop
     );
     setColorStops(updated);
+    // Auto-sync to CSS tab
+    updateCustomGradientFromVisual(updated, gradientDirection);
   };
 
-  const generateGradientCSS = () => {
-    const sortedStops = [...colorStops].sort((a, b) => a.position - b.position);
-    const stopStrings = sortedStops.map(stop => `${stop.color} ${stop.position}%`);
-    return `linear-gradient(${gradientDirection}, ${stopStrings.join(", ")})`;
+  // Update CSS when direction changes
+  const handleDirectionChange = (newDirection: string) => {
+    setGradientDirection(newDirection);
+    updateCustomGradientFromVisual(colorStops, newDirection);
   };
 
-  const applyVisualGradient = () => {
-    const generatedCSS = generateGradientCSS();
-    setCustomGradient(generatedCSS);
-    onApply(generatedCSS);
-    onClose();
-  };
 
   const handleApply = () => {
     onApply(customGradient);
@@ -152,6 +207,9 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
             <Palette className="h-5 w-5" />
             {title}
           </DialogTitle>
+          <DialogDescription>
+            Choose from preset gradients or create custom gradients using the visual builder or CSS code.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4 overflow-y-auto">
@@ -199,7 +257,7 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
                   {/* Direction Selector */}
                   <div className="space-y-2">
                     <Label>Gradient Direction</Label>
-                    <Select value={gradientDirection} onValueChange={setGradientDirection}>
+                    <Select value={gradientDirection} onValueChange={handleDirectionChange}>
                       <SelectTrigger data-testid="select-gradient-direction">
                         <SelectValue />
                       </SelectTrigger>
@@ -272,10 +330,10 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
                     </div>
                   </div>
 
-                  {/* Apply Visual Gradient */}
-                  <Button onClick={applyVisualGradient} className="w-full" data-testid="button-apply-visual-gradient">
-                    Apply Visual Gradient
-                  </Button>
+                  {/* Visual builder automatically syncs to CSS tab */}
+                  <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded">
+                    💡 Changes are automatically synced to CSS tab. Use the Apply button below to save your gradient.
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="css" className="space-y-4">
