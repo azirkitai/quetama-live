@@ -368,24 +368,36 @@ export default function Settings() {
       { key: 'youtubeUrl', value: currentSettings.youtubeUrl, category: 'display' },
       // Individual section colors with gradient support
       { key: 'headerTextColor', value: currentSettings.headerTextColor, category: 'display' },
+      { key: 'headerTextMode', value: currentSettings.headerTextMode, category: 'display' },
+      { key: 'headerTextGradient', value: currentSettings.headerTextGradient, category: 'display' },
       { key: 'headerBackgroundColor', value: currentSettings.headerBackgroundColor, category: 'display' },
       { key: 'headerBackgroundMode', value: currentSettings.headerBackgroundMode, category: 'display' },
       { key: 'headerBackgroundGradient', value: currentSettings.headerBackgroundGradient, category: 'display' },
       { key: 'callNameTextColor', value: currentSettings.callNameTextColor, category: 'display' },
+      { key: 'callNameTextMode', value: currentSettings.callNameTextMode, category: 'display' },
+      { key: 'callNameTextGradient', value: currentSettings.callNameTextGradient, category: 'display' },
       { key: 'callBackgroundColor', value: currentSettings.callBackgroundColor, category: 'display' },
       { key: 'callBackgroundMode', value: currentSettings.callBackgroundMode, category: 'display' },
       { key: 'callBackgroundGradient', value: currentSettings.callBackgroundGradient, category: 'display' },
       { key: 'windowTextColor', value: currentSettings.windowTextColor, category: 'display' },
+      { key: 'windowTextMode', value: currentSettings.windowTextMode, category: 'display' },
+      { key: 'windowTextGradient', value: currentSettings.windowTextGradient, category: 'display' },
       { key: 'callBorderColor', value: currentSettings.callBorderColor, category: 'display' },
       { key: 'prayerTimesTextColor', value: currentSettings.prayerTimesTextColor, category: 'display' },
+      { key: 'prayerTimesTextMode', value: currentSettings.prayerTimesTextMode, category: 'display' },
+      { key: 'prayerTimesTextGradient', value: currentSettings.prayerTimesTextGradient, category: 'display' },
       { key: 'prayerTimesBackgroundColor', value: currentSettings.prayerTimesBackgroundColor, category: 'display' },
       { key: 'prayerTimesBackgroundMode', value: currentSettings.prayerTimesBackgroundMode, category: 'display' },
       { key: 'prayerTimesBackgroundGradient', value: currentSettings.prayerTimesBackgroundGradient, category: 'display' },
       { key: 'weatherTextColor', value: currentSettings.weatherTextColor, category: 'display' },
+      { key: 'weatherTextMode', value: currentSettings.weatherTextMode, category: 'display' },
+      { key: 'weatherTextGradient', value: currentSettings.weatherTextGradient, category: 'display' },
       { key: 'weatherBackgroundColor', value: currentSettings.weatherBackgroundColor, category: 'display' },
       { key: 'weatherBackgroundMode', value: currentSettings.weatherBackgroundMode, category: 'display' },
       { key: 'weatherBackgroundGradient', value: currentSettings.weatherBackgroundGradient, category: 'display' },
       { key: 'queueTextColor', value: currentSettings.queueTextColor, category: 'display' },
+      { key: 'queueTextMode', value: currentSettings.queueTextMode, category: 'display' },
+      { key: 'queueTextGradient', value: currentSettings.queueTextGradient, category: 'display' },
       { key: 'queueBackgroundColor', value: currentSettings.queueBackgroundColor, category: 'display' },
       { key: 'queueBackgroundMode', value: currentSettings.queueBackgroundMode, category: 'display' },
       { key: 'queueBackgroundGradient', value: currentSettings.queueBackgroundGradient, category: 'display' },
@@ -396,6 +408,11 @@ export default function Settings() {
       { key: 'queueBorderColor', value: currentSettings.queueBorderColor, category: 'display' },
       { key: 'marqueeBackgroundMode', value: currentSettings.marqueeBackgroundMode, category: 'display' },
       { key: 'marqueeBackgroundGradient', value: currentSettings.marqueeBackgroundGradient, category: 'display' },
+      { key: 'marqueeTextMode', value: currentSettings.marqueeTextMode, category: 'display' },
+      { key: 'marqueeTextGradient', value: currentSettings.marqueeTextGradient, category: 'display' },
+      { key: 'historyNameColor', value: currentSettings.historyNameColor, category: 'display' },
+      { key: 'historyNameMode', value: currentSettings.historyNameMode, category: 'display' },
+      { key: 'historyNameGradient', value: currentSettings.historyNameGradient, category: 'display' },
     ];
     
     await saveSettingsMutation.mutateAsync(settingsToSave);
@@ -2060,11 +2077,11 @@ export default function Settings() {
       />
       
       <GradientPicker
-        isOpen={gradientPickers.prayerTimesText}
-        onClose={() => setGradientPickers(prev => ({ ...prev, prayerTimesText: false }))}
+        isOpen={gradientPickers.prayerText}
+        onClose={() => setGradientPickers(prev => ({ ...prev, prayerText: false }))}
         onApply={(gradient) => {
           updateDisplaySetting('prayerTimesTextGradient', gradient);
-          setGradientPickers(prev => ({ ...prev, prayerTimesText: false }));
+          setGradientPickers(prev => ({ ...prev, prayerText: false }));
         }}
         title="Prayer Times Text Gradient"
         currentValue={currentSettings.prayerTimesTextGradient}
