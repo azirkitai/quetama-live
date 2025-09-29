@@ -50,6 +50,62 @@ export default function Queue() {
       const response = await apiRequest("PATCH", `/api/patients/${patientId}/status`, { status, windowId, requeueReason });
       return response.json();
     },
+    onMutate: async ({ patientId, status, windowId }) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['/api/patients/today'] });
+      await queryClient.cancelQueries({ queryKey: ['/api/windows'] });
+
+      // Snapshot the previous values
+      const previousPatients = queryClient.getQueryData(['/api/patients/today']);
+      const previousWindows = queryClient.getQueryData(['/api/windows']);
+
+      // Optimistically update patients
+      queryClient.setQueryData(['/api/patients/today'], (old: any) => {
+        if (!old) return old;
+        return old.map((patient: any) => 
+          patient.id === patientId 
+            ? { ...patient, status, windowId: windowId || patient.windowId, calledAt: status === 'called' ? new Date().toISOString() : patient.calledAt }
+            : patient
+        );
+      });
+
+      // Optimistically update windows - clear currentPatientId if patient completed
+      if (status === 'completed') {
+        queryClient.setQueryData(['/api/windows'], (old: any) => {
+          if (!old) return old;
+          return old.map((window: any) => 
+            window.currentPatientId === patientId 
+              ? { ...window, currentPatientId: null }
+              : window
+          );
+        });
+      }
+      // Or set currentPatientId if patient called to new window
+      else if (status === 'called' && windowId) {
+        queryClient.setQueryData(['/api/windows'], (old: any) => {
+          if (!old) return old;
+          return old.map((window: any) => 
+            window.id === windowId 
+              ? { ...window, currentPatientId: patientId }
+              : window.currentPatientId === patientId 
+                ? { ...window, currentPatientId: null }
+                : window
+          );
+        });
+      }
+
+      // Return a context object with the snapshotted values
+      return { previousPatients, previousWindows };
+    },
+    onError: (err, { patientId, status, windowId }, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousPatients) {
+        queryClient.setQueryData(['/api/patients/today'], context.previousPatients);
+      }
+      if (context?.previousWindows) {
+        queryClient.setQueryData(['/api/windows'], context.previousWindows);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/patients/today'] });
       queryClient.invalidateQueries({ queryKey: ['/api/windows'] });
@@ -61,13 +117,10 @@ export default function Queue() {
         description: "Pesakit berjaya dipanggil",
       });
     },
-    onError: (error) => {
-      console.error("Error updating patient status:", error);
-      toast({
-        title: "Ralat",
-        description: "Gagal mengemas kini status pesakit",
-        variant: "destructive",
-      });
+    onSettled: () => {
+      // Always refetch after mutation settles, whether success or error
+      queryClient.invalidateQueries({ queryKey: ['/api/patients/today'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/windows'] });
     },
   });
 
