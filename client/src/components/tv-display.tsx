@@ -647,8 +647,8 @@ export function TVDisplay({
         <div className={`text-center ${isFullscreen ? 'mb-2 pt-4 px-4' : 'mb-4'}`}>
           {/* Logo Display - Use uploaded logo if enabled */}
           {showClinicLogo && settingsClinicLogo && (
-            <div className="flex items-center justify-center mb-4">
-              <div className="bg-white rounded-lg p-4 shadow-lg">
+            <div className="mb-4">
+              <div className="bg-white rounded-lg p-4 shadow-lg w-full flex items-center justify-center">
                 <img 
                   src={settingsClinicLogo} 
                   alt="Logo Klinik" 
