@@ -122,6 +122,39 @@ export default function Settings() {
     }
   });
 
+  // Save settings mutation
+  const saveSettingsMutation = useMutation({
+    mutationFn: async (settings: SettingsState) => {
+      // Convert settings object to array format for API
+      const settingsArray = Object.entries(settings).map(([key, value]) => ({
+        key,
+        value: typeof value === 'boolean' ? value.toString() : value.toString(),
+        category: 'general' // Default category for all settings
+      }));
+
+      return apiRequest('/api/settings', {
+        method: 'PUT',
+        body: JSON.stringify({ settings: settingsArray }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/settings'] });
+      setUnsavedChanges([]);
+      toast({
+        title: "Settings Saved",
+        description: "All settings have been saved successfully.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error saving settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save settings. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Upload image mutation
   const uploadImageMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -163,23 +196,41 @@ export default function Settings() {
   // Initialize settings from database when data loads
   useEffect(() => {
     if (settings.length > 0) {
-      setCurrentSettings(prev => ({
-        ...prev,
-        mediaType: settingsObj.mediaType || prev.mediaType,
-        dashboardMediaType: settingsObj.dashboardMediaType || prev.dashboardMediaType,
-        youtubeUrl: settingsObj.youtubeUrl || prev.youtubeUrl,
-        theme: settingsObj.theme || prev.theme,
+      const newSettings = {
+        mediaType: settingsObj.mediaType || "image",
+        dashboardMediaType: settingsObj.dashboardMediaType || "own",
+        youtubeUrl: settingsObj.youtubeUrl || "",
+        theme: settingsObj.theme || "blue",
         showPrayerTimes: settingsObj.showPrayerTimes === 'true',
         showWeather: settingsObj.showWeather === 'true',
-        marqueeText: settingsObj.marqueeText || prev.marqueeText,
-        marqueeColor: settingsObj.marqueeColor || prev.marqueeColor,
-        marqueeBackgroundColor: settingsObj.marqueeBackgroundColor || prev.marqueeBackgroundColor,
+        marqueeText: settingsObj.marqueeText || "Selamat datang ke Klinik Kesihatan",
+        marqueeColor: settingsObj.marqueeColor || "#ffffff",
+        marqueeBackgroundColor: settingsObj.marqueeBackgroundColor || "#1e40af",
         enableSound: settingsObj.enableSound !== 'false',
-        volume: parseInt(settingsObj.volume) || prev.volume,
-        presetKey: (settingsObj.presetKey as PresetSoundKeyType) || prev.presetKey,
-      }));
+        volume: parseInt(settingsObj.volume) || 70,
+        soundMode: 'preset' as const,
+        presetKey: (settingsObj.presetKey as PresetSoundKeyType) || 'airport_call',
+      };
+      
+      setCurrentSettings(newSettings);
     }
-  }, [settings, settingsObj]);
+  }, [settings.length]);
+
+  // Helper function to update settings and track changes
+  const updateSetting = useCallback((key: keyof SettingsState, value: any) => {
+    setCurrentSettings(prev => ({ ...prev, [key]: value }));
+    setUnsavedChanges(prev => {
+      if (!prev.includes(key)) {
+        return [...prev, key];
+      }
+      return prev;
+    });
+  }, []);
+
+  // Save all settings
+  const handleSaveSettings = () => {
+    saveSettingsMutation.mutate(currentSettings);
+  };
 
   // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -234,6 +285,26 @@ export default function Settings() {
         <div>
           <h1 className="text-3xl font-bold" data-testid="page-title">Settings</h1>
           <p className="text-muted-foreground">Customize your clinic display system</p>
+        </div>
+        <div className="flex items-center space-x-4">
+          {unsavedChanges.length > 0 && (
+            <div className="text-amber-600 bg-amber-50 px-3 py-1 rounded-md text-sm">
+              {unsavedChanges.length} unsaved changes
+            </div>
+          )}
+          <Button 
+            onClick={handleSaveSettings}
+            disabled={unsavedChanges.length === 0 || saveSettingsMutation.isPending}
+            className="bg-blue-600 hover:bg-blue-700"
+            data-testid="button-save-settings"
+          >
+            {saveSettingsMutation.isPending ? (
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
+            Save Settings
+          </Button>
         </div>
       </div>
 
@@ -517,10 +588,7 @@ export default function Settings() {
                     <Switch
                       id="show-prayer-times"
                       checked={currentSettings.showPrayerTimes}
-                      onCheckedChange={(checked) => {
-                        setCurrentSettings(prev => ({ ...prev, showPrayerTimes: checked }));
-                        // Save to database
-                      }}
+                      onCheckedChange={(checked) => updateSetting('showPrayerTimes', checked)}
                       data-testid="switch-prayer-times"
                     />
                     <Label htmlFor="show-prayer-times">Show Prayer Times</Label>
@@ -529,10 +597,7 @@ export default function Settings() {
                     <Switch
                       id="show-weather"
                       checked={currentSettings.showWeather}
-                      onCheckedChange={(checked) => {
-                        setCurrentSettings(prev => ({ ...prev, showWeather: checked }));
-                        // Save to database
-                      }}
+                      onCheckedChange={(checked) => updateSetting('showWeather', checked)}
                       data-testid="switch-weather"
                     />
                     <Label htmlFor="show-weather">Show Weather</Label>
@@ -729,7 +794,7 @@ export default function Settings() {
                   <Label>Marquee Text</Label>
                   <Textarea
                     value={currentSettings.marqueeText}
-                    onChange={(e) => setCurrentSettings(prev => ({ ...prev, marqueeText: e.target.value }))}
+                    onChange={(e) => updateSetting('marqueeText', e.target.value)}
                     placeholder="Enter scrolling text message..."
                     className="min-h-[80px]"
                     data-testid="textarea-marquee-text"
@@ -745,7 +810,7 @@ export default function Settings() {
                     <Input
                       type="color"
                       value={currentSettings.marqueeColor}
-                      onChange={(e) => setCurrentSettings(prev => ({ ...prev, marqueeColor: e.target.value }))}
+                      onChange={(e) => updateSetting('marqueeColor', e.target.value)}
                       className="w-full h-10"
                       data-testid="input-marquee-text-color"
                     />
@@ -755,7 +820,7 @@ export default function Settings() {
                     <Input
                       type="color"
                       value={currentSettings.marqueeBackgroundColor}
-                      onChange={(e) => setCurrentSettings(prev => ({ ...prev, marqueeBackgroundColor: e.target.value }))}
+                      onChange={(e) => updateSetting('marqueeBackgroundColor', e.target.value)}
                       className="w-full h-10"
                       data-testid="input-marquee-bg-color"
                     />
@@ -782,7 +847,7 @@ export default function Settings() {
                   <Switch
                     id="enable-sound"
                     checked={currentSettings.enableSound}
-                    onCheckedChange={(checked) => setCurrentSettings(prev => ({ ...prev, enableSound: checked }))}
+                    onCheckedChange={(checked) => updateSetting('enableSound', checked)}
                     data-testid="switch-enable-sound"
                   />
                   <Label htmlFor="enable-sound">Enable Sound</Label>
@@ -798,7 +863,7 @@ export default function Settings() {
                         max={100}
                         step={5}
                         value={currentSettings.volume}
-                        onChange={(e) => setCurrentSettings(prev => ({ ...prev, volume: parseInt(e.target.value) }))}
+                        onChange={(e) => updateSetting('volume', parseInt(e.target.value))}
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                         data-testid="slider-volume"
                       />
@@ -808,7 +873,7 @@ export default function Settings() {
                       <Label>Sound Type</Label>
                       <Select
                         value={currentSettings.presetKey}
-                        onValueChange={(value: PresetSoundKeyType) => setCurrentSettings(prev => ({ ...prev, presetKey: value }))}
+                        onValueChange={(value: PresetSoundKeyType) => updateSetting('presetKey', value)}
                       >
                         <SelectTrigger data-testid="select-sound-type">
                           <SelectValue />
