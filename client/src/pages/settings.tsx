@@ -50,6 +50,8 @@ interface SettingsState {
 export default function Settings() {
   const { toast } = useToast();
   const [unsavedChanges, setUnsavedChanges] = useState<string[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Fetch current settings from database
   const { data: settings = [], isLoading, refetch } = useQuery<Setting[]>({
@@ -161,6 +163,46 @@ export default function Settings() {
     }
   };
 
+  // Upload media mutation
+  const uploadMediaMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('name', file.name);
+      formData.append('type', 'image');
+      
+      const response = await fetch('/api/media/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Upload gagal');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/media'] });
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      toast({
+        title: "Berjaya",
+        description: "Gambar telah diupload dengan berjaya",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Ralat",
+        description: error.message || "Gagal upload gambar",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Save settings mutation
   const saveSettingsMutation = useMutation({
     mutationFn: async (settings: Array<{key: string, value: string, category: string}>) => {
@@ -222,6 +264,35 @@ export default function Settings() {
     
     await saveSettingsMutation.mutateAsync(settingsToSave);
     setUnsavedChanges(prev => prev.filter(item => item !== 'sound'));
+  };
+
+  // Handle file selection
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (file.type === 'image/png' || file.type === 'image/jpeg') {
+        setSelectedFile(file);
+      } else {
+        toast({
+          title: "Format tidak disokong",
+          description: "Sila pilih fail PNG atau JPEG sahaja",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  // Handle upload button click
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Handle upload file
+  const handleUploadFile = () => {
+    if (selectedFile) {
+      uploadMediaMutation.mutate(selectedFile);
+    }
   };
 
   // Media files query
@@ -406,12 +477,77 @@ export default function Settings() {
               <div className="space-y-4">
                 <Label className="text-base font-semibold">Galeri Media:</Label>
                 
-                <div className="space-y-4 p-4 border-2 border-dashed border-gray-300 rounded-lg">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600">
-                      Upload gambar melalui Object Storage pane di sebelah kanan →
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Format yang disokong: PNG, JPEG, GIF</p>
+                <div className="space-y-4 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                  <div className="text-center space-y-4">
+                    <div className="flex flex-col items-center space-y-2">
+                      <Upload className="h-12 w-12 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-600 font-medium">Upload Gambar Baru</p>
+                        <p className="text-xs text-gray-500 mt-1">Format yang disokong: PNG, JPEG sahaja (Maks 10MB)</p>
+                      </div>
+                    </div>
+                    
+                    {selectedFile ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-center space-x-2 p-3 bg-white border rounded-lg">
+                          <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
+                            <Upload className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
+                            <p className="text-xs text-gray-500">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex space-x-2">
+                          <Button 
+                            onClick={handleUploadFile}
+                            disabled={uploadMediaMutation.isPending}
+                            className="flex-1"
+                            data-testid="button-upload-file"
+                          >
+                            {uploadMediaMutation.isPending ? (
+                              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <Upload className="h-4 w-4 mr-2" />
+                            )}
+                            {uploadMediaMutation.isPending ? 'Mengupload...' : 'Upload Gambar'}
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            onClick={() => {
+                              setSelectedFile(null);
+                              if (fileInputRef.current) {
+                                fileInputRef.current.value = '';
+                              }
+                            }}
+                            disabled={uploadMediaMutation.isPending}
+                            data-testid="button-cancel-upload"
+                          >
+                            Batal
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button 
+                        onClick={handleUploadClick}
+                        variant="outline"
+                        className="w-full"
+                        data-testid="button-select-file"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Pilih Gambar
+                      </Button>
+                    )}
+                    
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                      data-testid="input-file-upload"
+                    />
                   </div>
                 </div>
 
@@ -491,7 +627,7 @@ export default function Settings() {
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <Upload className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p>Tiada media ditemui. Upload gambar melalui Object Storage pane.</p>
+                    <p>Tiada media ditemui. Gunakan butang "Pilih Gambar" di atas untuk upload gambar.</p>
                   </div>
                 )}
               </div>
