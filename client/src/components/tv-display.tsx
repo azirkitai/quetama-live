@@ -644,8 +644,8 @@ export function TVDisplay({
               <img 
                 src={settingsClinicLogo} 
                 alt="Logo Klinik" 
-                className="h-20 w-auto object-contain bg-white rounded-lg p-2 shadow-lg"
-                style={{ maxWidth: '200px' }}
+                className="h-32 w-auto object-contain bg-white rounded-lg p-2 shadow-lg"
+                style={{ maxWidth: '350px' }}
                 data-testid="clinic-logo"
               />
             </div>
