@@ -146,22 +146,29 @@ export function AppSidebar() {
         <div className="mt-8">
           <div className="sidebar-section-header">ADMINISTRATION</div>
           <SidebarMenu className="space-y-1">
-            {administrationItems.map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton 
-                  asChild 
-                  isActive={location === item.url}
-                  data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="sidebar-nav-item"
-                  data-active={location === item.url}
-                >
-                  <Link href={item.url}>
-                    <item.icon className="w-5 h-5" />
-                    <span className="sidebar-nav-text">{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
+            {administrationItems.map((item) => {
+              // Only show User Management for admin users
+              if (item.title === "User Management" && user?.role !== "admin") {
+                return null;
+              }
+              
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={location === item.url}
+                    data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                    className="sidebar-nav-item"
+                    data-active={location === item.url}
+                  >
+                    <Link href={item.url}>
+                      <item.icon className="w-5 h-5" />
+                      <span className="sidebar-nav-text">{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
           </SidebarMenu>
         </div>
       </SidebarContent>
