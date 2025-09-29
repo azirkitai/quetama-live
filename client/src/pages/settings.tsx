@@ -23,6 +23,7 @@ interface SettingsState {
   theme: string;
   showPrayerTimes: boolean;
   showWeather: boolean;
+  enableMarquee: boolean;
   marqueeText: string;
   marqueeColor: string;
   marqueeTextMode: 'solid' | 'gradient';
@@ -147,6 +148,7 @@ export default function Settings() {
     theme: 'blue',
     showPrayerTimes: false,
     showWeather: false,
+    enableMarquee: false,
     marqueeText: '',
     marqueeColor: '#ffffff',
     marqueeTextMode: 'solid' as 'solid' | 'gradient',
@@ -217,6 +219,7 @@ export default function Settings() {
         theme: settingsObj.theme || 'blue',
         showPrayerTimes: settingsObj.showPrayerTimes === 'true',
         showWeather: settingsObj.showWeather === 'true',
+        enableMarquee: settingsObj.enableMarquee === 'true',
         marqueeText: settingsObj.marqueeText || '',
         marqueeColor: settingsObj.marqueeColor || '#ffffff',
         marqueeTextMode: (settingsObj.marqueeTextMode as 'solid' | 'gradient') || 'solid',
@@ -288,7 +291,7 @@ export default function Settings() {
   }, [settings.length, 
     // Basic settings
     settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, 
-    settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, 
+    settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.enableMarquee, settingsObj.marqueeText, settingsObj.marqueeColor, 
     settingsObj.marqueeBackgroundColor, settingsObj.clinicName, settingsObj.enableSound, settingsObj.volume, settingsObj.presetKey,
     // Header text and background
     settingsObj.headerTextColor, settingsObj.headerTextMode, settingsObj.headerTextGradient,
@@ -431,6 +434,7 @@ export default function Settings() {
       { key: 'theme', value: currentSettings.theme, category: 'display' },
       { key: 'showPrayerTimes', value: currentSettings.showPrayerTimes.toString(), category: 'display' },
       { key: 'showWeather', value: currentSettings.showWeather.toString(), category: 'display' },
+      { key: 'enableMarquee', value: currentSettings.enableMarquee.toString(), category: 'display' },
       { key: 'marqueeText', value: currentSettings.marqueeText, category: 'display' },
       { key: 'marqueeColor', value: currentSettings.marqueeColor, category: 'display' },
       { key: 'marqueeBackgroundColor', value: currentSettings.marqueeBackgroundColor, category: 'display' },
@@ -1984,13 +1988,30 @@ export default function Settings() {
 
             {/* Marquee Settings */}
             <div className="space-y-4">
-              <Label>Marquee Text</Label>
-              <Textarea
-                value={currentSettings.marqueeText}
-                onChange={(e) => updateDisplaySetting('marqueeText', e.target.value)}
-                placeholder="Masukkan teks yang akan bergerak di bahagian bawah skrin"
-                data-testid="textarea-marquee-text"
-              />
+              {/* Enable Marquee Switch */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Enable Marquee</Label>
+                  <div className="text-sm text-muted-foreground">
+                    Aktifkan paparan teks bergerak di bahagian bawah skrin
+                  </div>
+                </div>
+                <Switch
+                  checked={currentSettings.enableMarquee}
+                  onCheckedChange={(checked) => updateDisplaySetting('enableMarquee', checked)}
+                  data-testid="switch-enable-marquee"
+                />
+              </div>
+
+              {currentSettings.enableMarquee && (
+                <div className="space-y-4">
+                  <Label>Marquee Text</Label>
+                  <Textarea
+                    value={currentSettings.marqueeText}
+                    onChange={(e) => updateDisplaySetting('marqueeText', e.target.value)}
+                    placeholder="Masukkan teks yang akan bergerak di bahagian bawah skrin"
+                    data-testid="textarea-marquee-text"
+                  />
               <div className="space-y-2">
                 <Label>Warna Text Marquee</Label>
                 
@@ -2094,6 +2115,8 @@ export default function Settings() {
                   </div>
                 )}
               </div>
+                </div>
+              )}
             </div>
 
             <Button 
