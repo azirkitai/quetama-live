@@ -1059,8 +1059,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPatient(id: string): Promise<Patient | undefined> {
-    const patients = await this.memStorage.getPatients();
-    return patients.find(p => p.id === id);
+    const [patient] = await db.select().from(schema.patients).where(eq(schema.patients.id, id));
+    return patient;
   }
 
   async getPatientsByDate(date: string): Promise<Patient[]> {
@@ -1225,15 +1225,56 @@ export class DatabaseStorage implements IStorage {
     activeWindows: number;
     totalWindows: number;
   }> {
-    return this.memStorage.getDashboardStats();
+    const today = new Date().toISOString().split('T')[0];
+    const startOfDay = new Date(today);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(today);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const patients = await db.select().from(schema.patients)
+      .where(
+        and(
+          sql`${schema.patients.registeredAt} >= ${startOfDay.toISOString()}`,
+          sql`${schema.patients.registeredAt} <= ${endOfDay.toISOString()}`
+        )
+      );
+
+    const windows = await this.getWindows();
+
+    return {
+      totalWaiting: patients.filter(p => p.status === "waiting").length,
+      totalCalled: patients.filter(p => p.status === "called").length,
+      totalCompleted: patients.filter(p => p.status === "completed").length,
+      activeWindows: windows.filter(w => w.isActive && w.currentPatientId).length,
+      totalWindows: windows.filter(w => w.isActive).length
+    };
   }
 
   async getCurrentCall(): Promise<Patient | undefined> {
-    return this.memStorage.getCurrentCall();
+    const [currentCall] = await db.select().from(schema.patients)
+      .where(eq(schema.patients.status, "called"))
+      .orderBy(sql`${schema.patients.calledAt} DESC`)
+      .limit(1);
+    return currentCall;
   }
 
-  async getRecentHistory(limit?: number): Promise<Patient[]> {
-    return this.memStorage.getRecentHistory(limit);
+  async getRecentHistory(limit: number = 10): Promise<Patient[]> {
+    const today = new Date().toISOString().split('T')[0];
+    const startOfDay = new Date(today);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(today);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    return await db.select().from(schema.patients)
+      .where(
+        and(
+          eq(schema.patients.status, "completed"),
+          sql`${schema.patients.registeredAt} >= ${startOfDay.toISOString()}`,
+          sql`${schema.patients.registeredAt} <= ${endOfDay.toISOString()}`
+        )
+      )
+      .orderBy(sql`${schema.patients.completedAt} DESC`)
+      .limit(limit);
   }
 }
 
