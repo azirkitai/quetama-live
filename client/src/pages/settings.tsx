@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Monitor, Volume2, Palette, Upload, Save, RefreshCw, CheckCircle, Plus, ChevronLeft, ChevronRight, Eye, Trash2, Edit, Star, Upload as UploadIcon, Brush } from "lucide-react";
+import { Monitor, Volume2, Palette, Upload, Save, RefreshCw, CheckCircle, Plus, ChevronLeft, ChevronRight, Eye, Trash2, Edit, Star, Upload as UploadIcon, Brush, X } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +25,9 @@ interface SettingsState {
   showWeather: boolean;
   enableMarquee: boolean;
   marqueeText: string;
+  // Clinic logo settings
+  clinicLogo: string;
+  showClinicLogo: string;
   marqueeColor: string;
   marqueeTextMode: 'solid' | 'gradient';
   marqueeTextGradient: string;
@@ -154,6 +157,9 @@ export default function Settings() {
     showWeather: false,
     enableMarquee: false,
     marqueeText: '',
+    // Clinic logo defaults
+    clinicLogo: '',
+    showClinicLogo: 'false',
     marqueeColor: '#ffffff',
     marqueeTextMode: 'solid' as 'solid' | 'gradient',
     marqueeTextGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
@@ -229,6 +235,9 @@ export default function Settings() {
         showWeather: settingsObj.showWeather === 'true',
         enableMarquee: settingsObj.enableMarquee === 'true',
         marqueeText: settingsObj.marqueeText || '',
+        // Clinic logo settings
+        clinicLogo: settingsObj.clinicLogo || '',
+        showClinicLogo: settingsObj.showClinicLogo || 'false',
         marqueeColor: settingsObj.marqueeColor || '#ffffff',
         marqueeTextMode: (settingsObj.marqueeTextMode as 'solid' | 'gradient') || 'solid',
         marqueeTextGradient: settingsObj.marqueeTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
@@ -303,7 +312,9 @@ export default function Settings() {
   }, [settings.length, 
     // Basic settings
     settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, 
-    settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.enableMarquee, settingsObj.marqueeText, settingsObj.marqueeColor, 
+    settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.enableMarquee, settingsObj.marqueeText, settingsObj.marqueeColor,
+    // Logo dependencies
+    settingsObj.clinicLogo, settingsObj.showClinicLogo, 
     settingsObj.marqueeBackgroundColor, settingsObj.clinicName, settingsObj.enableSound, settingsObj.volume, settingsObj.presetKey,
     // Header text and background
     settingsObj.headerTextColor, settingsObj.headerTextMode, settingsObj.headerTextGradient,
@@ -450,6 +461,9 @@ export default function Settings() {
       { key: 'showWeather', value: currentSettings.showWeather.toString(), category: 'display' },
       { key: 'enableMarquee', value: currentSettings.enableMarquee.toString(), category: 'display' },
       { key: 'marqueeText', value: currentSettings.marqueeText, category: 'display' },
+      // Clinic logo settings
+      { key: 'clinicLogo', value: currentSettings.clinicLogo, category: 'display' },
+      { key: 'showClinicLogo', value: currentSettings.showClinicLogo, category: 'display' },
       { key: 'marqueeColor', value: currentSettings.marqueeColor, category: 'display' },
       { key: 'marqueeBackgroundColor', value: currentSettings.marqueeBackgroundColor, category: 'display' },
       { key: 'clinicName', value: currentSettings.clinicName, category: 'display' },
@@ -1027,6 +1041,89 @@ export default function Settings() {
                   <Save className="h-3 w-3 mr-1" />
                 )}
                 Simpan
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Clinic Logo Upload */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="h-4 w-4" />
+                Clinic Logo
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">Upload logo klinik untuk dipaparkan di skrin TV</p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {/* Logo Preview */}
+              <div className="flex items-center justify-center">
+                {currentSettings.clinicLogo ? (
+                  <div className="relative group">
+                    <img 
+                      src={currentSettings.clinicLogo} 
+                      alt="Clinic Logo" 
+                      className="h-16 w-16 object-contain rounded-lg border-2 border-border"
+                      data-testid="img-clinic-logo-preview"
+                    />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute -top-2 -right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => updateDisplaySetting('clinicLogo', '')}
+                      data-testid="button-remove-clinic-logo"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="h-16 w-16 border-2 border-dashed border-border rounded-lg flex items-center justify-center">
+                    <Upload className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+              
+              {/* Upload Button */}
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const result = event.target?.result as string;
+                      updateDisplaySetting('clinicLogo', result);
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                className="text-xs"
+                data-testid="input-clinic-logo-upload"
+              />
+              
+              {/* Enable/Disable Logo Toggle */}
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Show Logo on TV</Label>
+                <Switch
+                  checked={currentSettings.showClinicLogo === 'true'}
+                  onCheckedChange={(checked) => updateDisplaySetting('showClinicLogo', checked.toString())}
+                  data-testid="switch-show-clinic-logo"
+                />
+              </div>
+
+              <Button 
+                onClick={handleSaveDisplay} 
+                className="w-full" 
+                size="sm"
+                data-testid="button-save-clinic-logo"
+                disabled={saveSettingsMutation.isPending}
+              >
+                {saveSettingsMutation.isPending ? (
+                  <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                ) : (
+                  <Save className="h-3 w-3 mr-1" />
+                )}
+                Simpan Logo
               </Button>
             </CardContent>
           </Card>

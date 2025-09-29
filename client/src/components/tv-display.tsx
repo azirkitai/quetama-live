@@ -65,7 +65,6 @@ interface TVDisplayProps {
   currentPatient?: QueueItem;
   queueHistory?: QueueItem[];
   clinicName?: string;
-  clinicLogo?: string;
   mediaItems?: MediaItem[];
   prayerTimes?: PrayerTime[];
   isFullscreen?: boolean;
@@ -77,7 +76,6 @@ export function TVDisplay({
   currentPatient,
   queueHistory = [],
   clinicName = "KLINIK UTAMA 24 JAM",
-  clinicLogo,
   mediaItems = [],
   prayerTimes = [],
   isFullscreen = false,
@@ -118,6 +116,10 @@ export function TVDisplay({
   const modalBackgroundColor = settingsObj.modalBackgroundColor || '#1e293b';
   const modalBorderColor = settingsObj.modalBorderColor || '#fbbf24';
   const modalTextColor = settingsObj.modalTextColor || '#ffffff';
+
+  // Extract clinic logo settings from settings
+  const settingsClinicLogo = settingsObj.clinicLogo || '';
+  const showClinicLogo = settingsObj.showClinicLogo === 'true';
   
   // Helper function to get background style based on mode (solid vs gradient)
   const getBackgroundStyle = (mode: string | undefined, solidColor: string, gradientValue: string, fallbackColor: string) => {
@@ -636,20 +638,18 @@ export function TVDisplay({
            }}>
         {/* Header */}
         <div className={`text-center ${isFullscreen ? 'mb-2 pt-4 px-4' : 'mb-4'}`}>
-          <div className="flex items-center justify-center space-x-3 mb-2">
-            {clinicLogo ? (
+          {/* Logo Display - Use uploaded logo if enabled */}
+          {showClinicLogo && settingsClinicLogo && (
+            <div className="flex items-center justify-center space-x-3 mb-4">
               <img 
-                src={clinicLogo} 
+                src={settingsClinicLogo} 
                 alt="Logo Klinik" 
-                className="h-16 w-auto object-contain bg-white rounded p-1"
+                className="h-20 w-auto object-contain bg-white rounded-lg p-2 shadow-lg"
+                style={{ maxWidth: '200px' }}
                 data-testid="clinic-logo"
               />
-            ) : (
-              <div className="w-16 h-16 bg-white rounded flex items-center justify-center">
-                <span className="text-blue-600 font-bold text-sm">KLINIK</span>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
           <h1 className="font-bold text-[30px]" 
               style={{ 
                 fontSize: 'clamp(2rem, 3.5vw, 3.5rem)',
