@@ -1251,6 +1251,56 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePatientStatus(id: string, status: string, userId: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined> {
+    console.log(`🔍 updatePatientStatus called - ID: ${id}, Status: ${status}, UserId: ${userId}, WindowId: ${windowId}`);
+    
+    // Special handling for "completed" status - preserve current room to lastWindowId
+    if (status === "completed") {
+      console.log(`🎯 Handling COMPLETED status for patient ${id}`);
+      
+      // First get the current patient to preserve their windowId to lastWindowId
+      const [currentPatient] = await db.select()
+        .from(schema.patients)
+        .where(and(eq(schema.patients.id, id), eq(schema.patients.userId, userId)));
+      
+      if (!currentPatient) {
+        console.log(`❌ Patient ${id} not found for user ${userId}`);
+        return undefined;
+      }
+      
+      console.log(`📋 Current patient before completion:`, {
+        id: currentPatient.id,
+        name: currentPatient.name,
+        currentWindowId: currentPatient.windowId,
+        currentLastWindowId: currentPatient.lastWindowId
+      });
+      
+      const updateData: any = { 
+        status,
+        windowId: null, // Clear current room
+        lastWindowId: currentPatient.windowId, // Preserve current room as last room
+        requeueReason: requeueReason || null,
+        completedAt: new Date()
+      };
+      
+      console.log(`💾 Update data for completion:`, updateData);
+
+      const [updatedPatient] = await db.update(schema.patients)
+        .set(updateData)
+        .where(and(eq(schema.patients.id, id), eq(schema.patients.userId, userId)))
+        .returning();
+
+      console.log(`✅ Patient completed - Result:`, {
+        id: updatedPatient?.id,
+        name: updatedPatient?.name,
+        status: updatedPatient?.status,
+        windowId: updatedPatient?.windowId,
+        lastWindowId: updatedPatient?.lastWindowId
+      });
+
+      return updatedPatient;
+    }
+    
+    // Normal handling for other statuses
     const updateData: any = { 
       status,
       windowId: windowId || null,
@@ -1259,8 +1309,6 @@ export class DatabaseStorage implements IStorage {
 
     if (status === "called") {
       updateData.calledAt = new Date();
-    } else if (status === "completed") {
-      updateData.completedAt = new Date();
     }
 
     const [updatedPatient] = await db.update(schema.patients)

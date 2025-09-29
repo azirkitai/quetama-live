@@ -236,8 +236,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { status, windowId, requeueReason } = req.body;
       
-      // Clear windowId for completed or requeue status
-      const finalWindowId = (status === "completed" || status === "requeue") ? null : windowId;
+      // Only clear windowId for requeue status (completed status handled by storage layer)
+      const finalWindowId = (status === "requeue") ? null : windowId;
       
       const patient = await storage.updatePatientStatus(id, status, req.session.userId, finalWindowId, requeueReason);
       if (!patient) {
