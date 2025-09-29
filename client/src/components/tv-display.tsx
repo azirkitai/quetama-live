@@ -647,8 +647,8 @@ export function TVDisplay({
           <h1 className="font-bold text-[30px]" 
               style={{ 
                 fontSize: 'clamp(2rem, 3.5vw, 3.5rem)',
-                ...getTextStyle(clinicNameTextMode, clinicNameTextColor, clinicNameTextGradient, '#ffffff'),
-                ...getTextGroupStyles('clinic_name')
+                ...getTextGroupStyles('clinic_name'),
+                ...getTextStyle(clinicNameTextMode, clinicNameTextColor, clinicNameTextGradient, '#ffffff')
               }} 
               data-testid="clinic-name">
             {clinicName}
