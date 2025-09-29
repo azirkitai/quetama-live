@@ -12,15 +12,6 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { User, InsertUser } from "@shared/schema";
 
-interface User {
-  id: string;
-  username: string;
-  role: "admin" | "user";
-  isActive: boolean;
-  lastLogin?: string;
-  createdAt: string;
-}
-
 export default function Administration() {
   const { toast } = useToast();
   const [newUser, setNewUser] = useState({
@@ -274,7 +265,7 @@ export default function Administration() {
                             {user.lastLogin ? `Last login: ${user.lastLogin}` : "Never logged in"}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            Created: {user.createdAt}
+                            Created: {new Date(user.createdAt).toLocaleDateString()}
                           </div>
                         </div>
                       </div>

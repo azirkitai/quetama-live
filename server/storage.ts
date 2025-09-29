@@ -93,6 +93,7 @@ export class MemStorage implements IStorage {
   private media: Map<string, Media>;
   private themes: Map<string, Theme>;
   private textGroups: Map<string, TextGroup>;
+  private systemUserId: string;
 
   constructor() {
     this.users = new Map();
@@ -103,10 +104,30 @@ export class MemStorage implements IStorage {
     this.themes = new Map();
     this.textGroups = new Map();
     
+    // Create default system user first
+    this.systemUserId = this.initializeSystemUser();
+    
     // Initialize default settings, theme, and text groups
     this.initializeDefaultSettings();
     this.initializeDefaultTheme();
     this.initializeDefaultTextGroups();
+  }
+
+  private initializeSystemUser(): string {
+    const systemUser: User = {
+      id: randomUUID(),
+      username: "system",
+      password: "",
+      role: "admin",
+      isActive: true,
+      clinicName: "Klinik Utama 24 Jam",
+      clinicLocation: "Tropicana Aman",
+      createdAt: new Date(),
+      lastLogin: null,
+    };
+    
+    this.users.set(systemUser.id, systemUser);
+    return systemUser.id;
   }
   
   private async initializeDefaultSettings() {
@@ -127,7 +148,7 @@ export class MemStorage implements IStorage {
     for (const setting of defaultSettings) {
       // Only set if the setting doesn't already exist
       if (!this.settings.has(setting.key)) {
-        await this.setSetting(setting.key, setting.value, setting.category);
+        await this.setSetting(setting.key, setting.value, setting.category, this.systemUserId);
       }
     }
   }
@@ -151,6 +172,7 @@ export class MemStorage implements IStorage {
       accentColor: "#f3f4f6",
       createdAt: new Date(),
       updatedAt: new Date(),
+      userId: this.systemUserId,
     };
     this.themes.set(defaultTheme.id, defaultTheme);
   }
@@ -171,6 +193,7 @@ export class MemStorage implements IStorage {
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
+        userId: this.systemUserId,
       }
     ];
     
@@ -245,7 +268,8 @@ export class MemStorage implements IStorage {
       calledAt: null,
       completedAt: null,
       requeueReason: null,
-      trackingHistory: []
+      trackingHistory: [],
+      userId: insertPatient.userId
     };
     this.patients.set(id, patient);
     return patient;
@@ -492,12 +516,13 @@ export class MemStorage implements IStorage {
     );
   }
 
-  async setSetting(key: string, value: string, category: string): Promise<Setting> {
+  async setSetting(key: string, value: string, category: string, userId?: string): Promise<Setting> {
     const setting: Setting = {
       id: randomUUID(),
       key,
       value,
       category,
+      userId: userId || this.systemUserId,
     };
     this.settings.set(key, setting);
     return setting;
@@ -670,6 +695,7 @@ export class MemStorage implements IStorage {
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
+      userId: insertTextGroup.userId
     };
     this.textGroups.set(id, textGroup);
     return textGroup;
