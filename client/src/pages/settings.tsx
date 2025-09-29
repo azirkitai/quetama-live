@@ -997,7 +997,7 @@ export default function Settings() {
           {/* Compact 2-column cards layout enabled */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-sm">
+              <CardTitle className="flex items-center gap-2">
                 Clinic Name Settings
               </CardTitle>
               <p className="text-xs text-muted-foreground">Tetapkan nama klinik yang akan dipaparkan di skrin TV</p>
@@ -1034,7 +1034,7 @@ export default function Settings() {
           {/* Header Section Colors */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-sm">
+              <CardTitle className="flex items-center gap-2">
                 Header Display
               </CardTitle>
               <p className="text-xs text-muted-foreground">Warna untuk bahagian header skrin TV</p>
@@ -1164,8 +1164,7 @@ export default function Settings() {
         {/* Clinic Name Text Colors - Compact Layout */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+            <CardTitle className="flex items-center gap-2">
               Clinic Name Text
             </CardTitle>
             <p className="text-sm text-muted-foreground">Warna untuk teks nama klinik di skrin TV</p>
@@ -1744,7 +1743,7 @@ export default function Settings() {
         {/* Queue List Colors - Compact Layout */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
+            <CardTitle className="flex items-center gap-2">
               Queue List Display
             </CardTitle>
             <p className="text-sm text-muted-foreground">Warna untuk senarai giliran pesakit</p>
