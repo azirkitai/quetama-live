@@ -30,6 +30,21 @@ interface SettingsState {
   // Simplified audio system - preset only
   soundMode: 'preset';
   presetKey: PresetSoundKeyType;
+  // Individual section colors
+  headerTextColor: string;
+  headerBackgroundColor: string;
+  callNameTextColor: string;
+  callBackgroundColor: string;
+  windowTextColor: string;
+  callBorderColor: string;
+  prayerTimesTextColor: string;
+  prayerTimesBackgroundColor: string;
+  weatherTextColor: string;
+  weatherBackgroundColor: string;
+  queueTextColor: string;
+  queueBackgroundColor: string;
+  queueHighlightColor: string;
+  queueBorderColor: string;
 }
 
 export default function Settings() {
@@ -63,6 +78,21 @@ export default function Settings() {
     volume: 50,
     soundMode: 'preset',
     presetKey: 'notification_sound',
+    // Individual section colors with defaults
+    headerTextColor: '#ffffff',
+    headerBackgroundColor: '#1e40af',
+    callNameTextColor: '#ffffff',
+    callBackgroundColor: '#16a34a',
+    windowTextColor: '#ffffff',
+    callBorderColor: '#22c55e',
+    prayerTimesTextColor: '#ffffff',
+    prayerTimesBackgroundColor: '#7c3aed',
+    weatherTextColor: '#ffffff',
+    weatherBackgroundColor: '#f97316',
+    queueTextColor: '#1f2937',
+    queueBackgroundColor: '#f3f4f6',
+    queueHighlightColor: '#ef4444',
+    queueBorderColor: '#d1d5db',
   });
 
   // Update settings state when data is loaded
@@ -82,6 +112,21 @@ export default function Settings() {
         volume: parseInt(settingsObj.volume || '50'),
         soundMode: 'preset' as const,
         presetKey: (settingsObj.presetKey as PresetSoundKeyType) || 'notification_sound',
+        // Individual section colors with defaults
+        headerTextColor: settingsObj.headerTextColor || '#ffffff',
+        headerBackgroundColor: settingsObj.headerBackgroundColor || '#1e40af',
+        callNameTextColor: settingsObj.callNameTextColor || '#ffffff',
+        callBackgroundColor: settingsObj.callBackgroundColor || '#16a34a',
+        windowTextColor: settingsObj.windowTextColor || '#ffffff',
+        callBorderColor: settingsObj.callBorderColor || '#22c55e',
+        prayerTimesTextColor: settingsObj.prayerTimesTextColor || '#ffffff',
+        prayerTimesBackgroundColor: settingsObj.prayerTimesBackgroundColor || '#7c3aed',
+        weatherTextColor: settingsObj.weatherTextColor || '#ffffff',
+        weatherBackgroundColor: settingsObj.weatherBackgroundColor || '#f97316',
+        queueTextColor: settingsObj.queueTextColor || '#1f2937',
+        queueBackgroundColor: settingsObj.queueBackgroundColor || '#f3f4f6',
+        queueHighlightColor: settingsObj.queueHighlightColor || '#ef4444',
+        queueBorderColor: settingsObj.queueBorderColor || '#d1d5db',
       };
       
       setCurrentSettings(prev => {
@@ -92,7 +137,7 @@ export default function Settings() {
         return hasChanges ? { ...prev, ...newSettings } : prev;
       });
     }
-  }, [settings.length, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.marqueeBackgroundColor, settingsObj.enableSound, settingsObj.volume, settingsObj.presetKey]);
+  }, [settings.length, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.marqueeBackgroundColor, settingsObj.enableSound, settingsObj.volume, settingsObj.presetKey, settingsObj.headerTextColor, settingsObj.headerBackgroundColor, settingsObj.callNameTextColor, settingsObj.callBackgroundColor, settingsObj.windowTextColor, settingsObj.callBorderColor, settingsObj.prayerTimesTextColor, settingsObj.prayerTimesBackgroundColor, settingsObj.weatherTextColor, settingsObj.weatherBackgroundColor, settingsObj.queueTextColor, settingsObj.queueBackgroundColor, settingsObj.queueHighlightColor, settingsObj.queueBorderColor]);
 
   const handleRefresh = () => {
     refetch();
@@ -118,8 +163,8 @@ export default function Settings() {
 
   // Save settings mutation
   const saveSettingsMutation = useMutation({
-    mutationFn: async (settings: Array<{key: string, value: string}>) => {
-      return apiRequest('/api/settings', 'POST', { settings });
+    mutationFn: async (settings: Array<{key: string, value: string, category: string}>) => {
+      return apiRequest('/api/settings', 'PUT', { settings });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/settings'] });
@@ -139,14 +184,29 @@ export default function Settings() {
 
   const handleSaveDisplay = async () => {
     const settingsToSave = [
-      { key: 'theme', value: currentSettings.theme },
-      { key: 'showPrayerTimes', value: currentSettings.showPrayerTimes.toString() },
-      { key: 'showWeather', value: currentSettings.showWeather.toString() },
-      { key: 'marqueeText', value: currentSettings.marqueeText },
-      { key: 'marqueeColor', value: currentSettings.marqueeColor },
-      { key: 'marqueeBackgroundColor', value: currentSettings.marqueeBackgroundColor },
-      { key: 'dashboardMediaType', value: currentSettings.dashboardMediaType },
-      { key: 'youtubeUrl', value: currentSettings.youtubeUrl },
+      { key: 'theme', value: currentSettings.theme, category: 'display' },
+      { key: 'showPrayerTimes', value: currentSettings.showPrayerTimes.toString(), category: 'display' },
+      { key: 'showWeather', value: currentSettings.showWeather.toString(), category: 'display' },
+      { key: 'marqueeText', value: currentSettings.marqueeText, category: 'display' },
+      { key: 'marqueeColor', value: currentSettings.marqueeColor, category: 'display' },
+      { key: 'marqueeBackgroundColor', value: currentSettings.marqueeBackgroundColor, category: 'display' },
+      { key: 'dashboardMediaType', value: currentSettings.dashboardMediaType, category: 'display' },
+      { key: 'youtubeUrl', value: currentSettings.youtubeUrl, category: 'display' },
+      // Individual section colors
+      { key: 'headerTextColor', value: currentSettings.headerTextColor, category: 'display' },
+      { key: 'headerBackgroundColor', value: currentSettings.headerBackgroundColor, category: 'display' },
+      { key: 'callNameTextColor', value: currentSettings.callNameTextColor, category: 'display' },
+      { key: 'callBackgroundColor', value: currentSettings.callBackgroundColor, category: 'display' },
+      { key: 'windowTextColor', value: currentSettings.windowTextColor, category: 'display' },
+      { key: 'callBorderColor', value: currentSettings.callBorderColor, category: 'display' },
+      { key: 'prayerTimesTextColor', value: currentSettings.prayerTimesTextColor, category: 'display' },
+      { key: 'prayerTimesBackgroundColor', value: currentSettings.prayerTimesBackgroundColor, category: 'display' },
+      { key: 'weatherTextColor', value: currentSettings.weatherTextColor, category: 'display' },
+      { key: 'weatherBackgroundColor', value: currentSettings.weatherBackgroundColor, category: 'display' },
+      { key: 'queueTextColor', value: currentSettings.queueTextColor, category: 'display' },
+      { key: 'queueBackgroundColor', value: currentSettings.queueBackgroundColor, category: 'display' },
+      { key: 'queueHighlightColor', value: currentSettings.queueHighlightColor, category: 'display' },
+      { key: 'queueBorderColor', value: currentSettings.queueBorderColor, category: 'display' },
     ];
     
     await saveSettingsMutation.mutateAsync(settingsToSave);
@@ -155,9 +215,9 @@ export default function Settings() {
 
   const handleSaveSound = async () => {
     const settingsToSave = [
-      { key: 'enableSound', value: currentSettings.enableSound.toString() },
-      { key: 'volume', value: currentSettings.volume.toString() },
-      { key: 'presetKey', value: currentSettings.presetKey },
+      { key: 'enableSound', value: currentSettings.enableSound.toString(), category: 'audio' },
+      { key: 'volume', value: currentSettings.volume.toString(), category: 'audio' },
+      { key: 'presetKey', value: currentSettings.presetKey, category: 'audio' },
     ];
     
     await saveSettingsMutation.mutateAsync(settingsToSave);
@@ -447,36 +507,43 @@ export default function Settings() {
             <Palette className="h-5 w-5" />
             Theme & Color Settings
           </h2>
-          <p className="text-sm text-muted-foreground">Kustomisasi warna dan tema visual</p>
+          <p className="text-sm text-muted-foreground">Kustomisasi warna setiap bahagian skrin secara individu</p>
         </div>
         
+        {/* Header Section Colors */}
         <Card>
           <CardHeader>
-            <CardTitle>Tetapan Tema dan Warna</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              Header Display
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Warna untuk bahagian header skrin TV</p>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label className="text-base font-semibold">Tema Utama:</Label>
-              <Select 
-                value={currentSettings.theme} 
-                onValueChange={(value) => updateDisplaySetting('theme', value)}
-              >
-                <SelectTrigger data-testid="select-theme">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="blue">Biru (Default)</SelectItem>
-                  <SelectItem value="green">Hijau</SelectItem>
-                  <SelectItem value="purple">Ungu</SelectItem>
-                  <SelectItem value="red">Merah</SelectItem>
-                </SelectContent>
-              </Select>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Warna Text Header</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.headerTextColor || '#ffffff'}
+                  onChange={(e) => updateDisplaySetting('headerTextColor', e.target.value)}
+                  data-testid="input-header-text-color"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Warna Background Header</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.headerBackgroundColor || '#1e40af'}
+                  onChange={(e) => updateDisplaySetting('headerBackgroundColor', e.target.value)}
+                  data-testid="input-header-bg-color"
+                />
+              </div>
             </div>
-
             <Button 
               onClick={handleSaveDisplay} 
               className="w-full" 
-              data-testid="button-save-theme"
+              data-testid="button-save-header-colors"
               disabled={saveSettingsMutation.isPending}
             >
               {saveSettingsMutation.isPending ? (
@@ -484,7 +551,231 @@ export default function Settings() {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Simpan Tetapan Tema
+              Simpan Warna Header
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Current Call Display Colors */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              Current Call Display
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Warna untuk paparan panggilan semasa</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Warna Nama Pesakit</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.callNameTextColor || '#ffffff'}
+                  onChange={(e) => updateDisplaySetting('callNameTextColor', e.target.value)}
+                  data-testid="input-call-name-color"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Warna Background Panggilan</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.callBackgroundColor || '#16a34a'}
+                  onChange={(e) => updateDisplaySetting('callBackgroundColor', e.target.value)}
+                  data-testid="input-call-bg-color"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Warna Window/Counter</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.windowTextColor || '#ffffff'}
+                  onChange={(e) => updateDisplaySetting('windowTextColor', e.target.value)}
+                  data-testid="input-window-text-color"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Warna Border</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.callBorderColor || '#22c55e'}
+                  onChange={(e) => updateDisplaySetting('callBorderColor', e.target.value)}
+                  data-testid="input-call-border-color"
+                />
+              </div>
+            </div>
+            <Button 
+              onClick={handleSaveDisplay} 
+              className="w-full" 
+              data-testid="button-save-call-colors"
+              disabled={saveSettingsMutation.isPending}
+            >
+              {saveSettingsMutation.isPending ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Simpan Warna Panggilan
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Prayer Times Section Colors */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+              Prayer Times Display
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Warna untuk paparan waktu solat</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Warna Text Waktu Solat</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.prayerTimesTextColor || '#ffffff'}
+                  onChange={(e) => updateDisplaySetting('prayerTimesTextColor', e.target.value)}
+                  data-testid="input-prayer-text-color"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Warna Background Waktu Solat</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.prayerTimesBackgroundColor || '#7c3aed'}
+                  onChange={(e) => updateDisplaySetting('prayerTimesBackgroundColor', e.target.value)}
+                  data-testid="input-prayer-bg-color"
+                />
+              </div>
+            </div>
+            <Button 
+              onClick={handleSaveDisplay} 
+              className="w-full" 
+              data-testid="button-save-prayer-colors"
+              disabled={saveSettingsMutation.isPending}
+            >
+              {saveSettingsMutation.isPending ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Simpan Warna Waktu Solat
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Weather Section Colors */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+              Weather Display
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Warna untuk paparan cuaca</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Warna Text Cuaca</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.weatherTextColor || '#ffffff'}
+                  onChange={(e) => updateDisplaySetting('weatherTextColor', e.target.value)}
+                  data-testid="input-weather-text-color"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Warna Background Cuaca</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.weatherBackgroundColor || '#f97316'}
+                  onChange={(e) => updateDisplaySetting('weatherBackgroundColor', e.target.value)}
+                  data-testid="input-weather-bg-color"
+                />
+              </div>
+            </div>
+            <Button 
+              onClick={handleSaveDisplay} 
+              className="w-full" 
+              data-testid="button-save-weather-colors"
+              disabled={saveSettingsMutation.isPending}
+            >
+              {saveSettingsMutation.isPending ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Simpan Warna Cuaca
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Queue List Colors */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              Queue List Display
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Warna untuk senarai giliran pesakit</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Warna Text Senarai</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.queueTextColor || '#1f2937'}
+                  onChange={(e) => updateDisplaySetting('queueTextColor', e.target.value)}
+                  data-testid="input-queue-text-color"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Warna Background Senarai</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.queueBackgroundColor || '#f3f4f6'}
+                  onChange={(e) => updateDisplaySetting('queueBackgroundColor', e.target.value)}
+                  data-testid="input-queue-bg-color"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Warna Highlight</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.queueHighlightColor || '#ef4444'}
+                  onChange={(e) => updateDisplaySetting('queueHighlightColor', e.target.value)}
+                  data-testid="input-queue-highlight-color"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Warna Border</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.queueBorderColor || '#d1d5db'}
+                  onChange={(e) => updateDisplaySetting('queueBorderColor', e.target.value)}
+                  data-testid="input-queue-border-color"
+                />
+              </div>
+            </div>
+            <Button 
+              onClick={handleSaveDisplay} 
+              className="w-full" 
+              data-testid="button-save-queue-colors"
+              disabled={saveSettingsMutation.isPending}
+            >
+              {saveSettingsMutation.isPending ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Simpan Warna Senarai
             </Button>
           </CardContent>
         </Card>
