@@ -46,6 +46,7 @@ export default function Dashboard() {
   // Fetch windows data to map window IDs to names
   const { data: windows = [] } = useQuery<any[]>({
     queryKey: ['/api/windows'],
+    refetchInterval: 5000, // Refresh every 5 seconds to stay in sync with patient calls
   });
 
   // Fetch active media for display
