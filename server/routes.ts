@@ -618,7 +618,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const limit = parseInt(req.query.limit as string) || 10;
-      const history = await storage.getRecentHistory(limit, req.session.userId);
+      const history = await storage.getRecentHistory(req.session.userId, limit);
       res.json(history);
     } catch (error) {
       console.error("Error fetching recent history:", error);

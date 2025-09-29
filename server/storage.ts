@@ -1396,9 +1396,9 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getCurrentCall(): Promise<Patient | undefined> {
+  async getCurrentCall(userId: string): Promise<Patient | undefined> {
     const [currentCall] = await db.select().from(schema.patients)
-      .where(eq(schema.patients.status, "called"))
+      .where(and(eq(schema.patients.status, "called"), eq(schema.patients.userId, userId)))
       .orderBy(sql`${schema.patients.calledAt} DESC`)
       .limit(1);
     return currentCall;
@@ -1412,14 +1412,15 @@ export class DatabaseStorage implements IStorage {
     endOfDay.setHours(23, 59, 59, 999);
 
     // Get current call to exclude from history to avoid duplication
-    const currentCall = await this.getCurrentCall();
+    const currentCall = await this.getCurrentCall(userId);
 
     const history = await db.select().from(schema.patients)
       .where(
         and(
+          eq(schema.patients.userId, userId),
           sql`${schema.patients.calledAt} IS NOT NULL`,
-          sql`${schema.patients.registeredAt} >= ${startOfDay.toISOString()}`,
-          sql`${schema.patients.registeredAt} <= ${endOfDay.toISOString()}`
+          sql`${schema.patients.calledAt} >= ${startOfDay.toISOString()}`,
+          sql`${schema.patients.calledAt} <= ${endOfDay.toISOString()}`
         )
       )
       .orderBy(sql`${schema.patients.calledAt} DESC`)
@@ -1428,7 +1429,6 @@ export class DatabaseStorage implements IStorage {
     // Filter out current call to avoid showing it in both current call and history
     return history
       .filter(patient => currentCall ? patient.id !== currentCall.id : true)
-      .filter(patient => patient.userId === userId)
       .slice(0, limit);
   }
 }
