@@ -783,19 +783,17 @@ export function TVDisplay({
              ...getBackgroundStyle(prayerTimesBackgroundMode, prayerTimesBackgroundColor, prayerTimesBackgroundGradient, '#1e40af')
            }}>
         {/* Date/Time Section - Larger */}
-        <div className={`bg-white text-gray-900 p-6 ${isFullscreen ? 'rounded-md mb-6' : 'rounded-lg mb-6'}`}>
-          <div className="flex items-center justify-center space-x-6 mb-4">
-            <div className="bg-teal-500 text-white p-4 rounded-lg">
-              <div className="text-center">
-                <div className="text-sm">Today</div>
-                <div className="text-4xl font-bold">{dateInfo.day}</div>
-                <div className="text-sm">Sep</div>
-              </div>
-            </div>
+        <div className={`bg-white text-gray-900 p-6 ${isFullscreen ? 'rounded-md mb-6' : 'rounded-lg mb-6'} flex items-center justify-center space-x-8`}>
+          <div className="bg-teal-500 text-white p-4 rounded-lg">
             <div className="text-center">
-              <div className="font-bold text-4xl">{dateInfo.dayName}</div>
-              <div className="text-3xl text-gray-600">{dateInfo.month} {dateInfo.year}</div>
+              <div className="text-sm">Today</div>
+              <div className="text-4xl font-bold">{dateInfo.day}</div>
+              <div className="text-sm">Sep</div>
             </div>
+          </div>
+          <div className="text-center">
+            <div className="font-bold text-4xl">{dateInfo.dayName}</div>
+            <div className="text-3xl text-gray-600">{dateInfo.month} {dateInfo.year}</div>
           </div>
           <div className="text-center">
             <div className="font-mono font-bold text-6xl" data-testid="display-time">
