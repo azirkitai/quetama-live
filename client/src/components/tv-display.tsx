@@ -95,6 +95,23 @@ export function TVDisplay({
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  // Fetch settings for marquee and other display settings
+  const { data: settings = [] } = useQuery<Array<{key: string; value: string}>>({
+    queryKey: ['/api/settings'],
+    staleTime: 30 * 1000, // 30 seconds - shorter for real-time marquee updates
+    refetchInterval: 30 * 1000, // Refetch every 30 seconds for live updates
+  });
+
+  // Convert settings array to object for easier access
+  const settingsObj = settings.reduce((acc: Record<string, string>, setting) => {
+    acc[setting.key] = setting.value;
+    return acc;
+  }, {});
+
+  // Extract marquee settings with fallbacks
+  const marqueeText = settingsObj.marqueeText || "Selamat datang ke Klinik Kesihatan";
+  const marqueeColor = settingsObj.marqueeColor || "#ffffff";
+
   // Helper function to get text group styles
   const getTextGroupStyles = (groupName: string) => {
     const group = textGroups.find((g: any) => g.groupName === groupName);
@@ -760,11 +777,24 @@ export function TVDisplay({
         <div className="fixed bottom-0 left-0 w-full bg-blue-800 bg-opacity-90 text-white py-2 z-50">
           <div className="overflow-hidden w-full">
             <div className="inline-flex whitespace-nowrap animate-marquee" data-testid="marquee-container" aria-hidden="false">
-              <span className="px-8 font-bold text-2xl" style={{ fontSize: 'clamp(1.5rem, 2vw, 2rem)' }}>
-                SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH
+              <span 
+                className="px-8 font-bold text-2xl" 
+                style={{ 
+                  fontSize: 'clamp(1.5rem, 2vw, 2rem)',
+                  color: marqueeColor
+                }}
+              >
+                {marqueeText}
               </span>
-              <span className="px-8 font-bold text-2xl" style={{ fontSize: 'clamp(1.5rem, 2vw, 2rem)' }} aria-hidden="true">
-                SELAMAT DATANG KE {clinicName} CAWANGAN TROPICANA AMAN, TERIMA KASIH
+              <span 
+                className="px-8 font-bold text-2xl" 
+                style={{ 
+                  fontSize: 'clamp(1.5rem, 2vw, 2rem)',
+                  color: marqueeColor
+                }} 
+                aria-hidden="true"
+              >
+                {marqueeText}
               </span>
             </div>
           </div>
