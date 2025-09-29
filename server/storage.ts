@@ -1271,12 +1271,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Media methods
-  async getMedia(): Promise<Media[]> {
-    return await db.select().from(schema.media);
+  async getMedia(userId: string): Promise<Media[]> {
+    return await db.select().from(schema.media).where(eq(schema.media.userId, userId));
   }
 
-  async getMediaById(id: string): Promise<Media | undefined> {
-    const [media] = await db.select().from(schema.media).where(eq(schema.media.id, id));
+  async getMediaById(id: string, userId: string): Promise<Media | undefined> {
+    const [media] = await db.select().from(schema.media)
+      .where(and(eq(schema.media.id, id), eq(schema.media.userId, userId)));
     return media;
   }
 
@@ -1285,65 +1286,65 @@ export class DatabaseStorage implements IStorage {
     return media;
   }
 
-  async updateMedia(id: string, updates: Partial<Media>): Promise<Media | undefined> {
+  async updateMedia(id: string, updates: Partial<Media>, userId: string): Promise<Media | undefined> {
     const [updatedMedia] = await db.update(schema.media)
       .set(updates)
-      .where(eq(schema.media.id, id))
+      .where(and(eq(schema.media.id, id), eq(schema.media.userId, userId)))
       .returning();
     return updatedMedia;
   }
 
-  async deleteMedia(id: string): Promise<boolean> {
+  async deleteMedia(id: string, userId: string): Promise<boolean> {
     const result = await db.delete(schema.media)
-      .where(eq(schema.media.id, id));
+      .where(and(eq(schema.media.id, id), eq(schema.media.userId, userId)));
     return result.rowCount !== null && result.rowCount > 0;
   }
 
-  async getActiveMedia(): Promise<Media[]> {
+  async getActiveMedia(userId: string): Promise<Media[]> {
     return await db.select().from(schema.media)
-      .where(eq(schema.media.isActive, true));
+      .where(and(eq(schema.media.isActive, true), eq(schema.media.userId, userId)));
   }
 
   // Theme methods
-  async getThemes(): Promise<Theme[]> {
-    return this.memStorage.getThemes();
+  async getThemes(userId: string): Promise<Theme[]> {
+    return this.memStorage.getThemes(userId);
   }
 
-  async getActiveTheme(): Promise<Theme | undefined> {
-    return this.memStorage.getActiveTheme();
+  async getActiveTheme(userId: string): Promise<Theme | undefined> {
+    return this.memStorage.getActiveTheme(userId);
   }
 
-  async getThemeById(id: string): Promise<Theme | undefined> {
-    return this.memStorage.getThemeById(id);
+  async getThemeById(id: string, userId: string): Promise<Theme | undefined> {
+    return this.memStorage.getThemeById(id, userId);
   }
 
   async createTheme(insertTheme: InsertTheme): Promise<Theme> {
     return this.memStorage.createTheme(insertTheme);
   }
 
-  async updateTheme(id: string, updates: Partial<Theme>): Promise<Theme | undefined> {
-    return this.memStorage.updateTheme(id, updates);
+  async updateTheme(id: string, updates: Partial<Theme>, userId: string): Promise<Theme | undefined> {
+    return this.memStorage.updateTheme(id, updates, userId);
   }
 
-  async deleteTheme(id: string): Promise<boolean> {
-    return this.memStorage.deleteTheme(id);
+  async deleteTheme(id: string, userId: string): Promise<boolean> {
+    return this.memStorage.deleteTheme(id, userId);
   }
 
-  async setActiveTheme(id: string): Promise<Theme | undefined> {
-    return this.memStorage.setActiveTheme(id);
+  async setActiveTheme(id: string, userId: string): Promise<Theme | undefined> {
+    return this.memStorage.setActiveTheme(id, userId);
   }
 
   // Text Group methods
-  async getTextGroups(): Promise<TextGroup[]> {
-    return this.memStorage.getTextGroups();
+  async getTextGroups(userId: string): Promise<TextGroup[]> {
+    return this.memStorage.getTextGroups(userId);
   }
 
-  async getActiveTextGroups(): Promise<TextGroup[]> {
-    return this.memStorage.getActiveTextGroups();
+  async getActiveTextGroups(userId: string): Promise<TextGroup[]> {
+    return this.memStorage.getActiveTextGroups(userId);
   }
 
-  async getTextGroupById(id: string): Promise<TextGroup | undefined> {
-    return this.memStorage.getTextGroupById(id);
+  async getTextGroupById(id: string, userId: string): Promise<TextGroup | undefined> {
+    return this.memStorage.getTextGroupById(id, userId);
   }
 
   async createTextGroup(insertTextGroup: InsertTextGroup): Promise<TextGroup> {
