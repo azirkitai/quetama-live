@@ -657,9 +657,9 @@ export function TVDisplay({
               />
             </div>
           )}
-          <h1 className="font-bold text-[30px]" 
+          <h1 className="font-bold text-[20px]" 
               style={{ 
-                fontSize: '30px',
+                fontSize: '20px',
                 ...getTextGroupStyles('clinic_name', true), // Exclude color overrides so Settings can override
                 ...getTextStyle(clinicNameTextMode, clinicNameTextColor, clinicNameTextGradient, '#ffffff')
               }} 
