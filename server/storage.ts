@@ -110,6 +110,9 @@ export class MemStorage implements IStorage {
     // Create default system user first
     this.systemUserId = this.initializeSystemUser();
     
+    // Initialize demo users for login
+    this.initializeDefaultUsers();
+    
     // Initialize default settings, theme, and text groups
     this.initializeDefaultSettings();
     this.initializeDefaultTheme();
@@ -131,6 +134,40 @@ export class MemStorage implements IStorage {
     
     this.users.set(systemUser.id, systemUser);
     return systemUser.id;
+  }
+
+  private async initializeDefaultUsers() {
+    // Create demo admin user
+    const adminId = randomUUID();
+    const hashedAdminPassword = await bcrypt.hash("password123", 10);
+    const adminUser: User = {
+      id: adminId,
+      username: "admin",
+      password: hashedAdminPassword,
+      role: "admin",
+      isActive: true,
+      clinicName: "Klinik Utama 24 Jam",
+      clinicLocation: "Tropicana Aman",
+      createdAt: new Date(),
+      lastLogin: null,
+    };
+    this.users.set(adminId, adminUser);
+
+    // Create demo regular user
+    const userId = randomUUID();
+    const hashedUserPassword = await bcrypt.hash("userpass", 10);
+    const regularUser: User = {
+      id: userId,
+      username: "user",
+      password: hashedUserPassword,
+      role: "user",
+      isActive: true,
+      clinicName: "Klinik Utama 24 Jam",
+      clinicLocation: "Tropicana Aman",
+      createdAt: new Date(),
+      lastLogin: null,
+    };
+    this.users.set(userId, regularUser);
   }
   
   private async initializeDefaultSettings() {
