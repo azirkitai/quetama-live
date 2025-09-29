@@ -717,10 +717,11 @@ export function TVDisplay({
 
       </div>
 
-      {/* Second Row Left - Date & Prayer Times Expanded */}
-      <div className={`${isFullscreen ? 'px-4 py-2 m-0' : 'px-4 py-2'} text-white w-full h-full flex flex-col justify-center`}
+      {/* Second Row Left - Date & Prayer Times Expanded - Now covers full right area */}
+      <div className={`${isFullscreen ? 'px-4 py-2 m-0' : 'px-4 py-2'} text-white w-full h-full flex flex-col justify-center relative`}
            style={{
-             ...getBackgroundStyle(prayerTimesBackgroundMode, prayerTimesBackgroundColor, prayerTimesBackgroundGradient, '#1e40af')
+             ...getBackgroundStyle(prayerTimesBackgroundMode, prayerTimesBackgroundColor, prayerTimesBackgroundGradient, '#1e40af'),
+             gridColumn: 'span 2' // Make this div span both columns
            }}>
         {/* Date/Time Section - Larger */}
         <div className={`bg-white text-gray-900 p-6 ${isFullscreen ? 'rounded-md mb-6' : 'rounded-lg mb-6'} flex items-center justify-center space-x-6`}>
@@ -865,51 +866,51 @@ export function TVDisplay({
             )}
           </div>
         )}
-      </div>
-
-      {/* Second Row Right - Patient Queue */}
-      <div className={`text-white ${isFullscreen ? 'p-4' : 'p-4'} flex flex-col w-full h-full`}>
-        <div className="grid grid-cols-2 gap-1 text-center mb-2">
-          <div className="font-bold" style={{ 
-            fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
-            ...getHistoryNameStyle(),
-            ...getTextGroupStyles('Token Label', true) // Exclude color overrides so Settings can override
-          }}>NAME</div>
-          <div className="font-bold" style={{ 
-            fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
-            ...getHistoryNameStyle(),
-            ...getTextGroupStyles('Window Label', true) // Exclude color overrides so Settings can override
-          }}>ROOM</div>
-        </div>
-        <div className="space-y-1 overflow-y-auto flex-1" data-testid="queue-list">
-          {queueHistory.length > 0 ? (
-            queueHistory.slice(0, 4).map((item) => (
-              <div key={item.id} className="grid grid-cols-2 gap-1">
-                <div className="font-bold" 
-                     style={{ 
-                       fontSize: 'clamp(1.25rem, 2vw, 2rem)',
-                       ...getHistoryNameStyle()
-                     }}>
-                  {item.name}
+        
+        {/* Patient Queue - Floating on top of prayer times background */}
+        <div className="absolute top-4 right-4 w-1/3 h-full text-white flex flex-col">
+          <div className="grid grid-cols-2 gap-1 text-center mb-2">
+            <div className="font-bold" style={{ 
+              fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
+              ...getHistoryNameStyle(),
+              ...getTextGroupStyles('Token Label', true) // Exclude color overrides so Settings can override
+            }}>NAME</div>
+            <div className="font-bold" style={{ 
+              fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
+              ...getHistoryNameStyle(),
+              ...getTextGroupStyles('Window Label', true) // Exclude color overrides so Settings can override
+            }}>ROOM</div>
+          </div>
+          <div className="space-y-1 overflow-y-auto flex-1" data-testid="queue-list">
+            {queueHistory.length > 0 ? (
+              queueHistory.slice(0, 4).map((item) => (
+                <div key={item.id} className="grid grid-cols-2 gap-1">
+                  <div className="font-bold" 
+                       style={{ 
+                         fontSize: 'clamp(1.25rem, 2vw, 2rem)',
+                         ...getHistoryNameStyle()
+                       }}>
+                    {item.name}
+                  </div>
+                  <div 
+                       style={{ 
+                         fontSize: 'clamp(1.25rem, 2vw, 2rem)',
+                         ...getHistoryNameStyle()
+                       }}>
+                    {item.room}
+                  </div>
                 </div>
-                <div 
-                     style={{ 
-                       fontSize: 'clamp(1.25rem, 2vw, 2rem)',
-                       ...getHistoryNameStyle()
-                     }}>
-                  {item.room}
-                </div>
+              ))
+            ) : (
+              <div className="text-center py-4">
+                <p style={{ 
+                  fontSize: 'clamp(1.25rem, 2vw, 2rem)',
+                  ...getHistoryNameStyle(),
+                  ...getTextGroupStyles('Patient History', true) // Exclude color overrides so Settings can override
+                }}>Tiada dalam barisan</p>
               </div>
-            ))
-          ) : (
-            <div className="text-center py-4">
-              <p style={{ 
-                fontSize: 'clamp(1.25rem, 2vw, 2rem)',
-                ...getHistoryNameStyle(),
-                ...getTextGroupStyles('Patient History', true) // Exclude color overrides so Settings can override
-              }}>Tiada dalam barisan</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
       
