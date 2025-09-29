@@ -878,7 +878,7 @@ export function TVDisplay({
             fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
             ...getHistoryNameStyle(),
             ...getTextGroupStyles('Token Label', true) // Exclude color overrides so Settings can override
-          }}>NAME dan ROOM</div>
+          }}>NAME ROOM</div>
         </div>
         
         {/* Floating History Items - No Background */}
