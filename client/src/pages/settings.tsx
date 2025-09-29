@@ -806,12 +806,53 @@ export default function Settings() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Warna Text Header</Label>
-                <Input
-                  type="color"
-                  value={currentSettings.headerTextColor || '#ffffff'}
-                  onChange={(e) => updateDisplaySetting('headerTextColor', e.target.value)}
-                  data-testid="input-header-text-color"
-                />
+                
+                {/* Toggle between solid and gradient for header text */}
+                <div className="flex space-x-2 mb-2">
+                  <Button
+                    variant={currentSettings.headerTextMode === 'solid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('headerTextMode', 'solid')}
+                    data-testid="button-header-text-solid"
+                  >
+                    Solid
+                  </Button>
+                  <Button
+                    variant={currentSettings.headerTextMode === 'gradient' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('headerTextMode', 'gradient')}
+                    data-testid="button-header-text-gradient"
+                  >
+                    <Brush className="h-3 w-3 mr-1" />
+                    Gradient
+                  </Button>
+                </div>
+
+                {currentSettings.headerTextMode === 'solid' ? (
+                  <Input
+                    type="color"
+                    value={currentSettings.headerTextColor || '#ffffff'}
+                    onChange={(e) => updateDisplaySetting('headerTextColor', e.target.value)}
+                    data-testid="input-header-text-color"
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full h-8 text-xs"
+                      onClick={() => setGradientPickers(prev => ({ ...prev, headerText: true }))}
+                      data-testid="button-header-text-gradient-picker"
+                      style={{
+                        background: currentSettings.headerTextGradient,
+                        color: 'white',
+                        border: '2px solid #e5e7eb'
+                      }}
+                    >
+                      <Brush className="h-3 w-3 mr-1" />
+                      Pilih Gradient Text
+                    </Button>
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Background Header</Label>
@@ -896,12 +937,53 @@ export default function Settings() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Warna Nama Pesakit</Label>
-                <Input
-                  type="color"
-                  value={currentSettings.callNameTextColor || '#ffffff'}
-                  onChange={(e) => updateDisplaySetting('callNameTextColor', e.target.value)}
-                  data-testid="input-call-name-color"
-                />
+                
+                {/* Toggle between solid and gradient for call name text */}
+                <div className="flex space-x-2 mb-2">
+                  <Button
+                    variant={currentSettings.callNameTextMode === 'solid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('callNameTextMode', 'solid')}
+                    data-testid="button-call-name-text-solid"
+                  >
+                    Solid
+                  </Button>
+                  <Button
+                    variant={currentSettings.callNameTextMode === 'gradient' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('callNameTextMode', 'gradient')}
+                    data-testid="button-call-name-text-gradient"
+                  >
+                    <Brush className="h-3 w-3 mr-1" />
+                    Gradient
+                  </Button>
+                </div>
+
+                {currentSettings.callNameTextMode === 'solid' ? (
+                  <Input
+                    type="color"
+                    value={currentSettings.callNameTextColor || '#ffffff'}
+                    onChange={(e) => updateDisplaySetting('callNameTextColor', e.target.value)}
+                    data-testid="input-call-name-color"
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full h-8 text-xs"
+                      onClick={() => setGradientPickers(prev => ({ ...prev, callNameText: true }))}
+                      data-testid="button-call-name-text-gradient-picker"
+                      style={{
+                        background: currentSettings.callNameTextGradient,
+                        color: 'white',
+                        border: '2px solid #e5e7eb'
+                      }}
+                    >
+                      <Brush className="h-3 w-3 mr-1" />
+                      Pilih Gradient Text
+                    </Button>
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Background Panggilan</Label>
@@ -960,12 +1042,53 @@ export default function Settings() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Warna Window/Counter</Label>
-                <Input
-                  type="color"
-                  value={currentSettings.windowTextColor || '#ffffff'}
-                  onChange={(e) => updateDisplaySetting('windowTextColor', e.target.value)}
-                  data-testid="input-window-text-color"
-                />
+                
+                {/* Toggle between solid and gradient for window text */}
+                <div className="flex space-x-2 mb-2">
+                  <Button
+                    variant={currentSettings.windowTextMode === 'solid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('windowTextMode', 'solid')}
+                    data-testid="button-window-text-solid"
+                  >
+                    Solid
+                  </Button>
+                  <Button
+                    variant={currentSettings.windowTextMode === 'gradient' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('windowTextMode', 'gradient')}
+                    data-testid="button-window-text-gradient"
+                  >
+                    <Brush className="h-3 w-3 mr-1" />
+                    Gradient
+                  </Button>
+                </div>
+
+                {currentSettings.windowTextMode === 'solid' ? (
+                  <Input
+                    type="color"
+                    value={currentSettings.windowTextColor || '#ffffff'}
+                    onChange={(e) => updateDisplaySetting('windowTextColor', e.target.value)}
+                    data-testid="input-window-text-color"
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full h-8 text-xs"
+                      onClick={() => setGradientPickers(prev => ({ ...prev, windowText: true }))}
+                      data-testid="button-window-text-gradient-picker"
+                      style={{
+                        background: currentSettings.windowTextGradient,
+                        color: 'white',
+                        border: '2px solid #e5e7eb'
+                      }}
+                    >
+                      <Brush className="h-3 w-3 mr-1" />
+                      Pilih Gradient Text
+                    </Button>
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Warna Border</Label>
@@ -1006,12 +1129,53 @@ export default function Settings() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Warna Text Waktu Solat</Label>
-                <Input
-                  type="color"
-                  value={currentSettings.prayerTimesTextColor || '#ffffff'}
-                  onChange={(e) => updateDisplaySetting('prayerTimesTextColor', e.target.value)}
-                  data-testid="input-prayer-text-color"
-                />
+                
+                {/* Toggle between solid and gradient for prayer times text */}
+                <div className="flex space-x-2 mb-2">
+                  <Button
+                    variant={currentSettings.prayerTimesTextMode === 'solid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('prayerTimesTextMode', 'solid')}
+                    data-testid="button-prayer-text-solid"
+                  >
+                    Solid
+                  </Button>
+                  <Button
+                    variant={currentSettings.prayerTimesTextMode === 'gradient' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('prayerTimesTextMode', 'gradient')}
+                    data-testid="button-prayer-text-gradient"
+                  >
+                    <Brush className="h-3 w-3 mr-1" />
+                    Gradient
+                  </Button>
+                </div>
+
+                {currentSettings.prayerTimesTextMode === 'solid' ? (
+                  <Input
+                    type="color"
+                    value={currentSettings.prayerTimesTextColor || '#ffffff'}
+                    onChange={(e) => updateDisplaySetting('prayerTimesTextColor', e.target.value)}
+                    data-testid="input-prayer-text-color"
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full h-8 text-xs"
+                      onClick={() => setGradientPickers(prev => ({ ...prev, prayerText: true }))}
+                      data-testid="button-prayer-text-gradient-picker"
+                      style={{
+                        background: currentSettings.prayerTimesTextGradient,
+                        color: 'white',
+                        border: '2px solid #e5e7eb'
+                      }}
+                    >
+                      <Brush className="h-3 w-3 mr-1" />
+                      Pilih Gradient Text
+                    </Button>
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Background Waktu Solat</Label>
@@ -1096,12 +1260,53 @@ export default function Settings() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Warna Text Cuaca</Label>
-                <Input
-                  type="color"
-                  value={currentSettings.weatherTextColor || '#ffffff'}
-                  onChange={(e) => updateDisplaySetting('weatherTextColor', e.target.value)}
-                  data-testid="input-weather-text-color"
-                />
+                
+                {/* Toggle between solid and gradient for weather text */}
+                <div className="flex space-x-2 mb-2">
+                  <Button
+                    variant={currentSettings.weatherTextMode === 'solid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('weatherTextMode', 'solid')}
+                    data-testid="button-weather-text-solid"
+                  >
+                    Solid
+                  </Button>
+                  <Button
+                    variant={currentSettings.weatherTextMode === 'gradient' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('weatherTextMode', 'gradient')}
+                    data-testid="button-weather-text-gradient"
+                  >
+                    <Brush className="h-3 w-3 mr-1" />
+                    Gradient
+                  </Button>
+                </div>
+
+                {currentSettings.weatherTextMode === 'solid' ? (
+                  <Input
+                    type="color"
+                    value={currentSettings.weatherTextColor || '#ffffff'}
+                    onChange={(e) => updateDisplaySetting('weatherTextColor', e.target.value)}
+                    data-testid="input-weather-text-color"
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full h-8 text-xs"
+                      onClick={() => setGradientPickers(prev => ({ ...prev, weatherText: true }))}
+                      data-testid="button-weather-text-gradient-picker"
+                      style={{
+                        background: currentSettings.weatherTextGradient,
+                        color: 'white',
+                        border: '2px solid #e5e7eb'
+                      }}
+                    >
+                      <Brush className="h-3 w-3 mr-1" />
+                      Pilih Gradient Text
+                    </Button>
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Background Cuaca</Label>
@@ -1186,12 +1391,53 @@ export default function Settings() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Warna Text Senarai</Label>
-                <Input
-                  type="color"
-                  value={currentSettings.queueTextColor || '#1f2937'}
-                  onChange={(e) => updateDisplaySetting('queueTextColor', e.target.value)}
-                  data-testid="input-queue-text-color"
-                />
+                
+                {/* Toggle between solid and gradient for queue text */}
+                <div className="flex space-x-2 mb-2">
+                  <Button
+                    variant={currentSettings.queueTextMode === 'solid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('queueTextMode', 'solid')}
+                    data-testid="button-queue-text-solid"
+                  >
+                    Solid
+                  </Button>
+                  <Button
+                    variant={currentSettings.queueTextMode === 'gradient' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('queueTextMode', 'gradient')}
+                    data-testid="button-queue-text-gradient"
+                  >
+                    <Brush className="h-3 w-3 mr-1" />
+                    Gradient
+                  </Button>
+                </div>
+
+                {currentSettings.queueTextMode === 'solid' ? (
+                  <Input
+                    type="color"
+                    value={currentSettings.queueTextColor || '#1f2937'}
+                    onChange={(e) => updateDisplaySetting('queueTextColor', e.target.value)}
+                    data-testid="input-queue-text-color"
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full h-8 text-xs"
+                      onClick={() => setGradientPickers(prev => ({ ...prev, queueText: true }))}
+                      data-testid="button-queue-text-gradient-picker"
+                      style={{
+                        background: currentSettings.queueTextGradient,
+                        color: 'white',
+                        border: '2px solid #e5e7eb'
+                      }}
+                    >
+                      <Brush className="h-3 w-3 mr-1" />
+                      Pilih Gradient Text
+                    </Button>
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Background Senarai</Label>
@@ -1466,12 +1712,53 @@ export default function Settings() {
               />
               <div className="space-y-2">
                 <Label>Warna Text Marquee</Label>
-                <Input
-                  type="color"
-                  value={currentSettings.marqueeColor}
-                  onChange={(e) => updateDisplaySetting('marqueeColor', e.target.value)}
-                  data-testid="input-marquee-color"
-                />
+                
+                {/* Toggle between solid and gradient for marquee text */}
+                <div className="flex space-x-2 mb-2">
+                  <Button
+                    variant={currentSettings.marqueeTextMode === 'solid' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('marqueeTextMode', 'solid')}
+                    data-testid="button-marquee-text-solid"
+                  >
+                    Solid
+                  </Button>
+                  <Button
+                    variant={currentSettings.marqueeTextMode === 'gradient' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => updateDisplaySetting('marqueeTextMode', 'gradient')}
+                    data-testid="button-marquee-text-gradient"
+                  >
+                    <Brush className="h-3 w-3 mr-1" />
+                    Gradient
+                  </Button>
+                </div>
+
+                {currentSettings.marqueeTextMode === 'solid' ? (
+                  <Input
+                    type="color"
+                    value={currentSettings.marqueeColor}
+                    onChange={(e) => updateDisplaySetting('marqueeColor', e.target.value)}
+                    data-testid="input-marquee-color"
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full h-8 text-xs"
+                      onClick={() => setGradientPickers(prev => ({ ...prev, marqueeText: true }))}
+                      data-testid="button-marquee-text-gradient-picker"
+                      style={{
+                        background: currentSettings.marqueeTextGradient,
+                        color: 'white',
+                        border: '2px solid #e5e7eb'
+                      }}
+                    >
+                      <Brush className="h-3 w-3 mr-1" />
+                      Pilih Gradient Text
+                    </Button>
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Background Marquee</Label>
