@@ -541,18 +541,18 @@ export function TVDisplay({
     if (queueHistory.length > 0) {
       const newHistoryFontSizes: Record<string, {name: string, room: string}> = {};
       
-      // Calculate container widths for history items (smaller than main display)
+      // Calculate container widths for history items (bigger containers for bigger text)
       const isFullSize = isFullscreen;
-      const historyNameContainerWidth = isFullSize ? 300 : 200; // Name column width in history
-      const historyRoomContainerWidth = isFullSize ? 200 : 150; // Room column width in history
+      const historyNameContainerWidth = isFullSize ? 450 : 350; // Bigger name column width
+      const historyRoomContainerWidth = isFullSize ? 300 : 250; // Bigger room column width
       
-      // Base font sizes for history (smaller than main display)
-      const historyNameBaseSize = isFullSize ? 28 : 24; // ~1.75rem equivalent
-      const historyRoomBaseSize = isFullSize ? 28 : 24; // Same size for room
+      // Base font sizes for history (bigger base sizes)
+      const historyNameBaseSize = isFullSize ? 40 : 32; // Bigger base size (~2.5rem equivalent)
+      const historyRoomBaseSize = isFullSize ? 40 : 32; // Same bigger size for room
       
       queueHistory.forEach((item) => {
-        const nameFontSize = calculateFontSize(item.name, historyNameContainerWidth, historyNameBaseSize, 14);
-        const roomFontSize = calculateFontSize(item.room, historyRoomContainerWidth, historyRoomBaseSize, 14);
+        const nameFontSize = calculateFontSize(item.name, historyNameContainerWidth, historyNameBaseSize, 22); // Bigger minimum size
+        const roomFontSize = calculateFontSize(item.room, historyRoomContainerWidth, historyRoomBaseSize, 22); // Bigger minimum size
         
         newHistoryFontSizes[item.id] = {
           name: nameFontSize,
