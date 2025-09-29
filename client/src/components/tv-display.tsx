@@ -461,7 +461,7 @@ export function TVDisplay({
          data-testid="tv-display">
       {/* Top Row - Advertisement Area with 16:9 ratio */}
       <div className={`${isFullscreen ? 'm-0 p-0 w-full h-full' : 'p-4 w-full'}`}>
-        <div className="bg-gray-100 overflow-hidden flex items-center justify-center w-full h-full relative" style={{ aspectRatio: '16/9' }}>
+        <div className="overflow-hidden flex items-center justify-center w-full h-full relative" style={{ aspectRatio: '16/9', backgroundColor: '#f3f4f6' }}>
           {currentMedia ? (
             <div 
               className="absolute inset-0 w-full h-full transition-opacity ease-in-out"
@@ -575,7 +575,10 @@ export function TVDisplay({
 
         {/* Current Patient Display */}
         {currentPatient ? (
-          <div className={`bg-blue-600 ${isFullscreen ? 'p-2 mx-4 rounded-md mb-2' : 'p-3 rounded-lg mb-3'} text-center`}>
+          <div className={`${isFullscreen ? 'p-2 mx-4 rounded-md mb-2' : 'p-3 rounded-lg mb-3'} text-center`}
+               style={{
+                 ...createGradientStyle(theme?.callingGradient, theme?.callingColor || '#2563eb')
+               }}>
             <div className="font-bold text-yellow-400"
                  style={{ 
                    fontSize: 'clamp(2.5rem, 4vw, 4rem)',
@@ -607,7 +610,10 @@ export function TVDisplay({
       </div>
 
       {/* Second Row Left - Date & Prayer Times Expanded */}
-      <div className={`${isFullscreen ? 'px-4 py-2 m-0' : 'px-4 py-2'} bg-blue-800 text-white w-full h-full flex flex-col justify-center`}>
+      <div className={`${isFullscreen ? 'px-4 py-2 m-0' : 'px-4 py-2'} text-white w-full h-full flex flex-col justify-center`}
+           style={{
+             ...createGradientStyle(theme?.historyNameGradient, theme?.historyNameColor || '#1e40af')
+           }}>
         {/* Date/Time Section - Larger */}
         <div className={`bg-white text-gray-900 p-6 ${isFullscreen ? 'rounded-md mb-6' : 'rounded-lg mb-6'} flex items-center justify-center space-x-6`}>
           <div className="bg-teal-500 text-white p-4 rounded-lg">
@@ -736,7 +742,10 @@ export function TVDisplay({
       </div>
 
       {/* Second Row Right - Patient Queue */}
-      <div className={`bg-blue-700 text-white ${isFullscreen ? 'p-4' : 'p-4'} flex flex-col w-full h-full`}>
+      <div className={`text-white ${isFullscreen ? 'p-4' : 'p-4'} flex flex-col w-full h-full`}
+           style={{
+             ...createGradientStyle(theme?.historyNameGradient, theme?.historyNameColor || '#1d4ed8')
+           }}>
         <div className="grid grid-cols-2 gap-1 text-center mb-2">
           <div className="font-bold text-yellow-400" style={{ 
             fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
@@ -750,7 +759,10 @@ export function TVDisplay({
         <div className="space-y-1 overflow-y-auto flex-1" data-testid="queue-list">
           {queueHistory.length > 0 ? (
             queueHistory.slice(0, 4).map((item) => (
-              <div key={item.id} className="bg-blue-600 p-3 rounded grid grid-cols-2 gap-1">
+              <div key={item.id} className="p-3 rounded grid grid-cols-2 gap-1"
+                   style={{
+                     ...createGradientStyle(theme?.highlightBoxGradient, theme?.highlightBoxColor || '#2563eb')
+                   }}>
                 <div className="font-bold" 
                      style={{ 
                        fontSize: 'clamp(1.25rem, 2vw, 2rem)',

@@ -11,16 +11,19 @@ export function useActiveTheme() {
 
 // Utility function to create gradient styles
 export function createGradientStyle(gradientString: string | null | undefined, fallbackColor: string) {
-  if (!gradientString) {
+  if (!gradientString || gradientString.trim() === '') {
     return { backgroundColor: fallbackColor };
   }
   
-  return { backgroundImage: gradientString };
+  return { 
+    backgroundImage: gradientString,
+    backgroundColor: 'transparent' // Ensure background color doesn't override gradient
+  };
 }
 
 // Utility function to create text gradient styles
 export function createTextGradientStyle(gradientString: string | null | undefined, fallbackColor: string) {
-  if (!gradientString) {
+  if (!gradientString || gradientString.trim() === '') {
     return { color: fallbackColor };
   }
   
@@ -28,6 +31,7 @@ export function createTextGradientStyle(gradientString: string | null | undefine
     background: gradientString,
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text'
+    backgroundClip: 'text',
+    color: 'transparent' // Fallback for non-webkit browsers
   };
 }
