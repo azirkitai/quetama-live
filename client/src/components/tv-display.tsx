@@ -653,13 +653,6 @@ export function TVDisplay({
               data-testid="clinic-name">
             {clinicName}
           </h1>
-          <p style={{ 
-            fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
-            ...getTextStyle(headerTextMode, headerTextColor, headerTextGradient, '#facc15'),
-            ...getTextGroupStyles('clinic_name')
-          }}>
-            TROPICANA AMAN
-          </p>
           <div className="px-4 py-2 rounded-lg mt-2"
                style={{
                  ...getBackgroundStyle(callBackgroundMode, callBackgroundColor, callBackgroundGradient, '#1e40af'),
