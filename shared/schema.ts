@@ -109,6 +109,7 @@ export const themes = pgTable("themes", {
   clinicNameGradient: text("clinic_name_gradient"), // Optional gradient for NAMA KLINIK
   // Background and accent colors
   backgroundColor: text("background_color").notNull().default("#ffffff"),
+  backgroundGradient: text("background_gradient"), // Optional gradient for background
   accentColor: text("accent_color").notNull().default("#f3f4f6"),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
   updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
