@@ -1009,7 +1009,7 @@ export function TVDisplay({
                    }}>
                 <div className="font-bold" 
                      style={{ 
-                       fontSize: 'clamp(3.5rem, 8vw, 6rem)',
+                       fontSize: '80px',
                        color: modalTextColor
                      }}
                      data-testid="highlight-patient-name">
@@ -1031,7 +1031,7 @@ export function TVDisplay({
                    }}>
                 <div className="font-bold" 
                      style={{ 
-                       fontSize: 'clamp(3rem, 6vw, 5rem)',
+                       fontSize: '70px',
                        color: modalTextColor
                      }}
                      data-testid="highlight-patient-room">
