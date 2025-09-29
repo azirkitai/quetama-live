@@ -867,20 +867,21 @@ export function TVDisplay({
         )}
       </div>
 
-      {/* Second Row Right - Patient Queue */}
-      <div className={`text-white ${isFullscreen ? 'p-4' : 'p-4'} flex flex-col w-full h-full`}>
-        <div className="grid grid-cols-2 gap-1 text-center mb-2">
+      {/* Second Row Right - Background Header with Floating History */}
+      <div className={`relative text-white ${isFullscreen ? 'p-4' : 'p-4'} flex flex-col w-full h-full`}
+           style={{
+             ...getBackgroundStyle(queueBackgroundMode, queueBackgroundColor, queueBackgroundGradient, '#1d4ed8')
+           }}>
+        {/* Background Header - Full Height */}
+        <div className="text-center mb-4">
           <div className="font-bold" style={{ 
             fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
             ...getHistoryNameStyle(),
             ...getTextGroupStyles('Token Label', true) // Exclude color overrides so Settings can override
-          }}>NAME</div>
-          <div className="font-bold" style={{ 
-            fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
-            ...getHistoryNameStyle(),
-            ...getTextGroupStyles('Window Label', true) // Exclude color overrides so Settings can override
-          }}>ROOM</div>
+          }}>Background Header</div>
         </div>
+        
+        {/* Floating History Items - No Background */}
         <div className="space-y-1 overflow-y-auto flex-1" data-testid="queue-list">
           {queueHistory.length > 0 ? (
             queueHistory.slice(0, 4).map((item) => (
