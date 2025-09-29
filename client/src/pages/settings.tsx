@@ -1318,12 +1318,21 @@ export default function Settings() {
                   data-testid="textarea-marquee-text"
                 />
                 <div className="space-y-2">
-                  <Label>Warna Marquee</Label>
+                  <Label>Warna Text Marquee</Label>
                   <Input
                     type="color"
                     value={currentSettings.marqueeColor}
                     onChange={(e) => updateDisplaySetting('marqueeColor', e.target.value)}
                     data-testid="input-marquee-color"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Warna Background Marquee</Label>
+                  <Input
+                    type="color"
+                    value={currentSettings.marqueeBackgroundColor}
+                    onChange={(e) => updateDisplaySetting('marqueeBackgroundColor', e.target.value)}
+                    data-testid="input-marquee-background-color"
                   />
                 </div>
               </div>
