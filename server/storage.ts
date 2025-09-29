@@ -1136,27 +1136,36 @@ export class DatabaseStorage implements IStorage {
 
   // Media methods
   async getMedia(): Promise<Media[]> {
-    return this.memStorage.getMedia();
+    return await db.select().from(schema.media);
   }
 
   async getMediaById(id: string): Promise<Media | undefined> {
-    return this.memStorage.getMediaById(id);
+    const [media] = await db.select().from(schema.media).where(eq(schema.media.id, id));
+    return media;
   }
 
   async createMedia(insertMedia: InsertMedia): Promise<Media> {
-    return this.memStorage.createMedia(insertMedia);
+    const [media] = await db.insert(schema.media).values(insertMedia).returning();
+    return media;
   }
 
   async updateMedia(id: string, updates: Partial<Media>): Promise<Media | undefined> {
-    return this.memStorage.updateMedia(id, updates);
+    const [updatedMedia] = await db.update(schema.media)
+      .set(updates)
+      .where(eq(schema.media.id, id))
+      .returning();
+    return updatedMedia;
   }
 
   async deleteMedia(id: string): Promise<boolean> {
-    return this.memStorage.deleteMedia(id);
+    const result = await db.delete(schema.media)
+      .where(eq(schema.media.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
   }
 
   async getActiveMedia(): Promise<Media[]> {
-    return this.memStorage.getActiveMedia();
+    return await db.select().from(schema.media)
+      .where(eq(schema.media.isActive, true));
   }
 
   // Theme methods
