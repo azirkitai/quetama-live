@@ -1115,9 +1115,9 @@ export class DatabaseStorage implements IStorage {
     };
 
     if (status === "called") {
-      updateData.calledAt = new Date().toISOString();
+      updateData.calledAt = new Date();
     } else if (status === "completed") {
-      updateData.completedAt = new Date().toISOString();
+      updateData.completedAt = new Date();
     }
 
     const [updatedPatient] = await db.update(schema.patients)
