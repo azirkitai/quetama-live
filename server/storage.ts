@@ -1055,7 +1055,7 @@ export class DatabaseStorage implements IStorage {
 
   // Patient methods (using memStorage for now due to type complexity)
   async getPatients(): Promise<Patient[]> {
-    return this.memStorage.getPatients();
+    return await db.select().from(schema.patients);
   }
 
   async getPatient(id: string): Promise<Patient | undefined> {
@@ -1064,15 +1064,42 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPatientsByDate(date: string): Promise<Patient[]> {
-    return this.memStorage.getPatientsByDate(date);
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    return await db.select().from(schema.patients)
+      .where(
+        and(
+          sql`${schema.patients.registeredAt} >= ${startOfDay.toISOString()}`,
+          sql`${schema.patients.registeredAt} <= ${endOfDay.toISOString()}`
+        )
+      );
   }
 
   async getNextPatientNumber(): Promise<number> {
-    return this.memStorage.getNextPatientNumber();
+    const today = new Date().toISOString().split('T')[0];
+    const startOfDay = new Date(today);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(today);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const result = await db.select({ maxNumber: sql`COALESCE(MAX(${schema.patients.number}), 0)` })
+      .from(schema.patients)
+      .where(
+        and(
+          sql`${schema.patients.registeredAt} >= ${startOfDay.toISOString()}`,
+          sql`${schema.patients.registeredAt} <= ${endOfDay.toISOString()}`
+        )
+      );
+
+    return (result[0]?.maxNumber as number || 0) + 1;
   }
 
   async createPatient(insertPatient: InsertPatient): Promise<Patient> {
-    return this.memStorage.createPatient(insertPatient);
+    const [patient] = await db.insert(schema.patients).values(insertPatient).returning();
+    return patient;
   }
 
   async updatePatient(id: string, updates: Partial<Patient>): Promise<Patient | undefined> {
@@ -1081,11 +1108,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePatientStatus(id: string, status: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined> {
-    return this.memStorage.updatePatientStatus(id, status, windowId, requeueReason);
+    const updateData: any = { 
+      status,
+      windowId: windowId || null,
+      requeueReason: requeueReason || null
+    };
+
+    if (status === "called") {
+      updateData.calledAt = new Date().toISOString();
+    } else if (status === "completed") {
+      updateData.completedAt = new Date().toISOString();
+    }
+
+    const [updatedPatient] = await db.update(schema.patients)
+      .set(updateData)
+      .where(eq(schema.patients.id, id))
+      .returning();
+
+    return updatedPatient;
   }
 
   async deletePatient(id: string): Promise<boolean> {
-    return this.memStorage.deletePatient(id);
+    const result = await db.delete(schema.patients)
+      .where(eq(schema.patients.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
   }
 
   // Media methods
