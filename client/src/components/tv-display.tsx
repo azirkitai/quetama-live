@@ -873,12 +873,19 @@ export function TVDisplay({
              ...getBackgroundStyle(queueBackgroundMode, queueBackgroundColor, queueBackgroundGradient, '#1d4ed8')
            }}>
         {/* Background Header - Full Height */}
-        <div className="text-center mb-4">
-          <div className="font-bold" style={{ 
-            fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
-            ...getHistoryNameStyle(),
-            ...getTextGroupStyles('Token Label', true) // Exclude color overrides so Settings can override
-          }}>NAME ROOM</div>
+        <div className="mb-4">
+          <div className="grid grid-cols-2 gap-1">
+            <div className="font-bold text-center" style={{ 
+              fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
+              ...getHistoryNameStyle(),
+              ...getTextGroupStyles('Token Label', true) // Exclude color overrides so Settings can override
+            }}>ROOM</div>
+            <div className="font-bold text-center" style={{ 
+              fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
+              ...getHistoryNameStyle(),
+              ...getTextGroupStyles('Token Label', true) // Exclude color overrides so Settings can override
+            }}>NAME</div>
+          </div>
         </div>
         
         {/* Floating History Items - No Background */}
