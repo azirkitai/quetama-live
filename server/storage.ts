@@ -1179,7 +1179,17 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async updateWindowPatient(windowId: string, patientId: string | undefined): Promise<Window | undefined> {
+  async updateWindowPatient(windowId: string, userId: string, patientId?: string): Promise<Window | undefined> {
+    // SECURITY: Verify window belongs to user to prevent cross-tenant access
+    const window = await this.getWindow(windowId);
+    if (!window || window.userId !== userId) return undefined;
+
+    // SECURITY: If assigning a patient, verify patient belongs to same user
+    if (patientId) {
+      const patient = await this.getPatient(patientId);
+      if (!patient || patient.userId !== userId) return undefined;
+    }
+
     const result = await db.update(schema.windows)
       .set({ currentPatientId: patientId || null })
       .where(eq(schema.windows.id, windowId))
