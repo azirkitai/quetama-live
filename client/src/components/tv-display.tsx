@@ -759,12 +759,13 @@ export function TVDisplay({
               ))
             ) : (
               <div className="text-center py-4">
-                <p className="font-bold" style={{ 
-                  ...getHistoryNameStyle(),
+                <p style={{ 
                   ...getTextGroupStyles('Patient History', true),
-                  fontSize: 'clamp(2rem, 4vw, 4rem) !important', // Force override with !important
-                  fontWeight: 'bold !important'
-                }}>Tiada dalam barisan</p>
+                  ...getHistoryNameStyle(),
+                  fontSize: 'clamp(2rem, 4vw, 4rem)',
+                  fontWeight: 'bold'
+                }} 
+                data-testid="text-no-queue">Tiada dalam barisan</p>
               </div>
             )}
           </div>
