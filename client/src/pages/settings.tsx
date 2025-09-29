@@ -139,6 +139,8 @@ export default function Settings() {
     historyNameGradient: "",
     clinicNameColor: "#1f2937",
     clinicNameGradient: "",
+    backgroundColor: "#ffffff",
+    backgroundGradient: "",
   });
 
   // Update state when settings are loaded from database
@@ -183,6 +185,8 @@ export default function Settings() {
         historyNameGradient: activeTheme.historyNameGradient || "",
         clinicNameColor: activeTheme.clinicNameColor,
         clinicNameGradient: activeTheme.clinicNameGradient || "",
+        backgroundColor: activeTheme.backgroundColor,
+        backgroundGradient: activeTheme.backgroundGradient || "",
       });
     }
   }, [activeTheme]);
@@ -289,11 +293,17 @@ export default function Settings() {
       "linear-gradient(90deg, #374151, #1f2937)",
       "linear-gradient(135deg, #4b5563, #374151)",
       "linear-gradient(180deg, #6b7280, #4b5563)"
+    ],
+    background: [
+      "linear-gradient(45deg, #ffffff, #f8fafc)",
+      "linear-gradient(90deg, #f1f5f9, #e2e8f0)",
+      "linear-gradient(135deg, #fef7cd, #fef3c7)",
+      "linear-gradient(180deg, #dcfce7, #bbf7d0)"
     ]
   };
 
   // Handle gradient button clicks
-  const handleGradientClick = (element: 'calling' | 'highlight' | 'history' | 'clinic') => {
+  const handleGradientClick = (element: 'calling' | 'highlight' | 'history' | 'clinic' | 'background') => {
     const presets = gradientPresets[element];
     const randomGradient = presets[Math.floor(Math.random() * presets.length)];
     
@@ -301,7 +311,8 @@ export default function Settings() {
       calling: 'callingGradient',
       highlight: 'highlightBoxGradient', 
       history: 'historyNameGradient',
-      clinic: 'clinicNameGradient'
+      clinic: 'clinicNameGradient',
+      background: 'backgroundGradient'
     } as const;
     
     handleThemeColorChange(gradientFieldMap[element], randomGradient);
@@ -318,6 +329,8 @@ export default function Settings() {
       historyNameGradient: themeColors.historyNameGradient || null,
       clinicNameColor: themeColors.clinicNameColor,
       clinicNameGradient: themeColors.clinicNameGradient || null,
+      backgroundColor: themeColors.backgroundColor,
+      backgroundGradient: themeColors.backgroundGradient || null,
     };
     updateThemeMutation.mutate(themeData);
   };
@@ -1236,9 +1249,63 @@ export default function Settings() {
                   </div>
                 </div>
 
+                {/* BACKGROUND Color */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Warna Background Display:</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      type="color"
+                      value={themeColors.backgroundColor || "#ffffff"}
+                      onChange={(e) => handleThemeColorChange('backgroundColor', e.target.value)}
+                      className="w-12 h-8 p-1 border rounded"
+                      data-testid="color-background"
+                    />
+                    <Input
+                      type="text"
+                      placeholder="#ffffff atau gradient"
+                      className="flex-1"
+                      value={themeColors.backgroundColor}
+                      onChange={(e) => handleThemeColorChange('backgroundColor', e.target.value)}
+                      data-testid="input-background-color"
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleGradientClick('background')}
+                      data-testid="button-gradient-background"
+                    >
+                      Gradient
+                    </Button>
+                  </div>
+                </div>
+
+                {/* BACKGROUND Gradient */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Gradient Background (Custom):</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      type="text"
+                      placeholder="linear-gradient(45deg, #ffffff, #f8fafc)"
+                      className="flex-1"
+                      value={themeColors.backgroundGradient}
+                      onChange={(e) => handleThemeColorChange('backgroundGradient', e.target.value)}
+                      data-testid="input-background-gradient"
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleGradientClick('background')}
+                      data-testid="button-preset-background-gradient"
+                    >
+                      Preset
+                    </Button>
+                  </div>
+                </div>
+
                 <p className="text-xs text-muted-foreground mt-4">
                   Tip: Untuk gradient, masukkan format seperti "linear-gradient(45deg, #ff0000, #00ff00)"<br/>
-                  Atau gunakan butang "Gradient" untuk pilihan mudah
+                  Atau gunakan butang "Gradient" untuk pilihan mudah<br/>
+                  Background gradient akan menggantikan background color jika ditetapkan
                 </p>
 
                 {/* Save Theme Button */}
