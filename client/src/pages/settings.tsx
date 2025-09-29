@@ -2024,6 +2024,84 @@ export default function Settings() {
         title="Marquee Background Gradient"
         currentValue={currentSettings.marqueeBackgroundGradient}
       />
+      
+      {/* Text Gradient Pickers */}
+      <GradientPicker
+        isOpen={gradientPickers.headerText}
+        onClose={() => setGradientPickers(prev => ({ ...prev, headerText: false }))}
+        onApply={(gradient) => {
+          updateDisplaySetting('headerTextGradient', gradient);
+          setGradientPickers(prev => ({ ...prev, headerText: false }));
+        }}
+        title="Header Text Gradient"
+        currentValue={currentSettings.headerTextGradient}
+      />
+      
+      <GradientPicker
+        isOpen={gradientPickers.callNameText}
+        onClose={() => setGradientPickers(prev => ({ ...prev, callNameText: false }))}
+        onApply={(gradient) => {
+          updateDisplaySetting('callNameTextGradient', gradient);
+          setGradientPickers(prev => ({ ...prev, callNameText: false }));
+        }}
+        title="Call Name Text Gradient"
+        currentValue={currentSettings.callNameTextGradient}
+      />
+      
+      <GradientPicker
+        isOpen={gradientPickers.windowText}
+        onClose={() => setGradientPickers(prev => ({ ...prev, windowText: false }))}
+        onApply={(gradient) => {
+          updateDisplaySetting('windowTextGradient', gradient);
+          setGradientPickers(prev => ({ ...prev, windowText: false }));
+        }}
+        title="Window Text Gradient"
+        currentValue={currentSettings.windowTextGradient}
+      />
+      
+      <GradientPicker
+        isOpen={gradientPickers.prayerTimesText}
+        onClose={() => setGradientPickers(prev => ({ ...prev, prayerTimesText: false }))}
+        onApply={(gradient) => {
+          updateDisplaySetting('prayerTimesTextGradient', gradient);
+          setGradientPickers(prev => ({ ...prev, prayerTimesText: false }));
+        }}
+        title="Prayer Times Text Gradient"
+        currentValue={currentSettings.prayerTimesTextGradient}
+      />
+      
+      <GradientPicker
+        isOpen={gradientPickers.weatherText}
+        onClose={() => setGradientPickers(prev => ({ ...prev, weatherText: false }))}
+        onApply={(gradient) => {
+          updateDisplaySetting('weatherTextGradient', gradient);
+          setGradientPickers(prev => ({ ...prev, weatherText: false }));
+        }}
+        title="Weather Text Gradient"
+        currentValue={currentSettings.weatherTextGradient}
+      />
+      
+      <GradientPicker
+        isOpen={gradientPickers.queueText}
+        onClose={() => setGradientPickers(prev => ({ ...prev, queueText: false }))}
+        onApply={(gradient) => {
+          updateDisplaySetting('queueTextGradient', gradient);
+          setGradientPickers(prev => ({ ...prev, queueText: false }));
+        }}
+        title="Queue Text Gradient"
+        currentValue={currentSettings.queueTextGradient}
+      />
+      
+      <GradientPicker
+        isOpen={gradientPickers.marqueeText}
+        onClose={() => setGradientPickers(prev => ({ ...prev, marqueeText: false }))}
+        onApply={(gradient) => {
+          updateDisplaySetting('marqueeTextGradient', gradient);
+          setGradientPickers(prev => ({ ...prev, marqueeText: false }));
+        }}
+        title="Marquee Text Gradient"
+        currentValue={currentSettings.marqueeTextGradient}
+      />
     </div>
   );
 }
