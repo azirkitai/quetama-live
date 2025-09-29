@@ -102,6 +102,10 @@ export const themes = pgTable("themes", {
   highlightBoxColor: text("highlight_box_color").notNull().default("#ef4444"), // "HIGHLIGHT BOX" color
   historyNameColor: text("history_name_color").notNull().default("#6b7280"), // "HISTORY NAME" color
   clinicNameColor: text("clinic_name_color").notNull().default("#1f2937"), // "NAMA KLINIK" color
+  // Modal styling (for highlight display)
+  modalBackgroundColor: text("modal_background_color").notNull().default("#1e293b"), // Modal background
+  modalBorderColor: text("modal_border_color").notNull().default("#fbbf24"), // Modal border lines
+  modalTextColor: text("modal_text_color").notNull().default("#ffffff"), // Modal text color
   // Gradient support
   callingGradient: text("calling_gradient"), // Optional gradient for CALLING
   highlightBoxGradient: text("highlight_box_gradient"), // Optional gradient for HIGHLIGHT BOX
@@ -175,6 +179,9 @@ export const insertThemeSchema = createInsertSchema(themes).pick({
   highlightBoxColor: true,
   historyNameColor: true,
   clinicNameColor: true,
+  modalBackgroundColor: true,
+  modalBorderColor: true,
+  modalTextColor: true,
   callingGradient: true,
   highlightBoxGradient: true,
   historyNameGradient: true,

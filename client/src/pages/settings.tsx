@@ -141,6 +141,9 @@ export default function Settings() {
     clinicNameGradient: "",
     backgroundColor: "#ffffff",
     backgroundGradient: "",
+    modalBackgroundColor: "#1e293b",
+    modalBorderColor: "#fbbf24",
+    modalTextColor: "#ffffff",
   });
 
   // Update state when settings are loaded from database
@@ -187,6 +190,9 @@ export default function Settings() {
         clinicNameGradient: activeTheme.clinicNameGradient || "",
         backgroundColor: activeTheme.backgroundColor,
         backgroundGradient: activeTheme.backgroundGradient || "",
+        modalBackgroundColor: activeTheme.modalBackgroundColor,
+        modalBorderColor: activeTheme.modalBorderColor,
+        modalTextColor: activeTheme.modalTextColor,
       });
     }
   }, [activeTheme]);
@@ -331,6 +337,9 @@ export default function Settings() {
       clinicNameGradient: themeColors.clinicNameGradient || null,
       backgroundColor: themeColors.backgroundColor,
       backgroundGradient: themeColors.backgroundGradient || null,
+      modalBackgroundColor: themeColors.modalBackgroundColor,
+      modalBorderColor: themeColors.modalBorderColor,
+      modalTextColor: themeColors.modalTextColor,
     };
     updateThemeMutation.mutate(themeData);
   };
@@ -1299,6 +1308,80 @@ export default function Settings() {
                     >
                       Preset
                     </Button>
+                  </div>
+                </div>
+
+                {/* MODAL SETTINGS */}
+                <div className="border-t pt-6 mt-6">
+                  <h3 className="text-lg font-semibold mb-4">Modal (Highlight Box) Settings</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Kawalan untuk modal yang muncul apabila patient name dipanggil (seperti dalam gambar yang anda tunjukkan)
+                  </p>
+
+                  {/* Modal Background Color */}
+                  <div className="space-y-2 mb-4">
+                    <Label className="text-sm font-medium">Warna Background Modal:</Label>
+                    <div className="flex space-x-2">
+                      <Input
+                        type="color"
+                        value={themeColors.modalBackgroundColor || "#1e293b"}
+                        onChange={(e) => handleThemeColorChange('modalBackgroundColor', e.target.value)}
+                        className="w-12 h-8 p-1 border rounded"
+                        data-testid="color-modal-background"
+                      />
+                      <Input
+                        type="text"
+                        placeholder="#1e293b"
+                        className="flex-1"
+                        value={themeColors.modalBackgroundColor}
+                        onChange={(e) => handleThemeColorChange('modalBackgroundColor', e.target.value)}
+                        data-testid="input-modal-background"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Modal Border Color */}
+                  <div className="space-y-2 mb-4">
+                    <Label className="text-sm font-medium">Warna Border Modal (Lines):</Label>
+                    <div className="flex space-x-2">
+                      <Input
+                        type="color"
+                        value={themeColors.modalBorderColor || "#fbbf24"}
+                        onChange={(e) => handleThemeColorChange('modalBorderColor', e.target.value)}
+                        className="w-12 h-8 p-1 border rounded"
+                        data-testid="color-modal-border"
+                      />
+                      <Input
+                        type="text"
+                        placeholder="#fbbf24"
+                        className="flex-1"
+                        value={themeColors.modalBorderColor}
+                        onChange={(e) => handleThemeColorChange('modalBorderColor', e.target.value)}
+                        data-testid="input-modal-border"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Modal Text Color */}
+                  <div className="space-y-2 mb-4">
+                    <Label className="text-sm font-medium">Warna Text Modal:</Label>
+                    <div className="flex space-x-2">
+                      <Input
+                        type="color"
+                        value={themeColors.modalTextColor || "#ffffff"}
+                        onChange={(e) => handleThemeColorChange('modalTextColor', e.target.value)}
+                        className="w-12 h-8 p-1 border rounded"
+                        data-testid="color-modal-text"
+                      />
+                      <Input
+                        type="text"
+                        placeholder="#ffffff"
+                        className="flex-1"
+                        value={themeColors.modalTextColor}
+                        onChange={(e) => handleThemeColorChange('modalTextColor', e.target.value)}
+                        data-testid="input-modal-text"
+                      />
+                    </div>
                   </div>
                 </div>
 
