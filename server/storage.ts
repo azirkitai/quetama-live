@@ -195,45 +195,13 @@ export class MemStorage implements IStorage {
 
 
   async getUser(id: string): Promise<User | undefined> {
-    const result = await db.select({
-      id: users.id,
-      username: users.username,
-      password: users.password,
-      role: users.role,
-      isActive: users.isActive
-    }).from(users).where(eq(users.id, id)).limit(1);
-    
-    if (!result[0]) return undefined;
-    
-    // Add missing fields for compatibility
-    return {
-      ...result[0],
-      clinicName: "Klinik Utama 24 Jam",
-      clinicLocation: "Tropicana Aman",
-      createdAt: new Date(),
-      lastLogin: null
-    };
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const result = await db.select({
-      id: users.id,
-      username: users.username,
-      password: users.password,
-      role: users.role,
-      isActive: users.isActive
-    }).from(users).where(eq(users.username, username)).limit(1);
-    
-    if (!result[0]) return undefined;
-    
-    // Add missing fields for compatibility
-    return {
-      ...result[0],
-      clinicName: "Klinik Utama 24 Jam",
-      clinicLocation: "Tropicana Aman",
-      createdAt: new Date(),
-      lastLogin: null
-    };
+    const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -248,42 +216,13 @@ export class MemStorage implements IStorage {
       isActive: true,
     };
     
-    const result = await db.insert(users).values(userToInsert).returning({
-      id: users.id,
-      username: users.username,
-      password: users.password,
-      role: users.role,
-      isActive: users.isActive
-    });
-    
-    // Add missing fields for compatibility
-    const userWithDefaults = {
-      ...result[0],
-      clinicName: "Klinik Utama 24 Jam",
-      clinicLocation: "Tropicana Aman",
-      createdAt: new Date(),
-      lastLogin: null
-    };
-    return userWithDefaults;
+    const result = await db.insert(users).values(userToInsert).returning();
+    return result[0];
   }
 
   async getUsers(): Promise<User[]> {
-    const result = await db.select({
-      id: users.id,
-      username: users.username,
-      password: users.password,
-      role: users.role,
-      isActive: users.isActive
-    }).from(users);
-    
-    // Add missing fields for compatibility
-    return result.map(user => ({
-      ...user,
-      clinicName: "Klinik Utama 24 Jam",
-      clinicLocation: "Tropicana Aman",
-      createdAt: new Date(),
-      lastLogin: null
-    }));
+    const result = await db.select().from(users);
+    return result;
   }
 
   async updateUser(userId: string, updates: Partial<User>): Promise<User | undefined> {

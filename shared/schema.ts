@@ -10,11 +10,6 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   role: text("role").notNull().default("user"), // 'admin' or 'user'
   isActive: boolean("is_active").notNull().default(true),
-  // Account information for data isolation
-  clinicName: text("clinic_name").notNull().default("Klinik Utama 24 Jam"),
-  clinicLocation: text("clinic_location").notNull().default("Tropicana Aman"),
-  createdAt: timestamp("created_at").notNull().default(sql`now()`),
-  lastLogin: timestamp("last_login"),
 });
 
 // Windows/Rooms table
