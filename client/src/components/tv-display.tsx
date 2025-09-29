@@ -760,9 +760,9 @@ export function TVDisplay({
             ) : (
               <div className="text-center py-4">
                 <p className="font-bold" style={{ 
-                  fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
                   ...getHistoryNameStyle(),
-                  ...getTextGroupStyles('Patient History', true)
+                  ...getTextGroupStyles('Patient History', true),
+                  fontSize: 'clamp(1.75rem, 3vw, 3rem)' // Put fontSize LAST to override getTextGroupStyles
                 }}>Tiada dalam barisan</p>
               </div>
             )}
