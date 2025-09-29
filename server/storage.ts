@@ -1,4 +1,6 @@
-import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting, type Media, type InsertMedia, type TextGroup, type InsertTextGroup, type Theme, type InsertTheme } from "@shared/schema";
+import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting, type Media, type InsertMedia, type TextGroup, type InsertTextGroup, type Theme, type InsertTheme, users } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import * as bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
 
@@ -89,7 +91,6 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
   private patients: Map<string, Patient>;
   private windows: Map<string, Window>;
   private settings: Map<string, Setting>;
@@ -99,7 +100,6 @@ export class MemStorage implements IStorage {
   private systemUserId: string;
 
   constructor() {
-    this.users = new Map();
     this.patients = new Map();
     this.windows = new Map();
     this.settings = new Map();
@@ -107,67 +107,13 @@ export class MemStorage implements IStorage {
     this.themes = new Map();
     this.textGroups = new Map();
     
-    // Create default system user first
-    this.systemUserId = this.initializeSystemUser();
-    
-    // Initialize demo users for login
-    this.initializeDefaultUsers();
+    // Use a default system user ID for settings that need user association
+    this.systemUserId = "system";
     
     // Initialize default settings, theme, and text groups
     this.initializeDefaultSettings();
     this.initializeDefaultTheme();
     this.initializeDefaultTextGroups();
-  }
-
-  private initializeSystemUser(): string {
-    const systemUser: User = {
-      id: randomUUID(),
-      username: "system",
-      password: "",
-      role: "admin",
-      isActive: true,
-      clinicName: "Klinik Utama 24 Jam",
-      clinicLocation: "Tropicana Aman",
-      createdAt: new Date(),
-      lastLogin: null,
-    };
-    
-    this.users.set(systemUser.id, systemUser);
-    return systemUser.id;
-  }
-
-  private initializeDefaultUsers() {
-    // Create demo admin user using synchronous hashing to avoid race conditions
-    const adminId = randomUUID();
-    const hashedAdminPassword = bcrypt.hashSync("password123", 10);
-    const adminUser: User = {
-      id: adminId,
-      username: "admin",
-      password: hashedAdminPassword,
-      role: "admin",
-      isActive: true,
-      clinicName: "Klinik Utama 24 Jam",
-      clinicLocation: "Tropicana Aman",
-      createdAt: new Date(),
-      lastLogin: null,
-    };
-    this.users.set(adminId, adminUser);
-
-    // Create demo regular user using synchronous hashing
-    const userId = randomUUID();
-    const hashedUserPassword = bcrypt.hashSync("userpass", 10);
-    const regularUser: User = {
-      id: userId,
-      username: "user",
-      password: hashedUserPassword,
-      role: "user",
-      isActive: true,
-      clinicName: "Klinik Utama 24 Jam",
-      clinicLocation: "Tropicana Aman",
-      createdAt: new Date(),
-      lastLogin: null,
-    };
-    this.users.set(userId, regularUser);
   }
   
   private async initializeDefaultSettings() {
@@ -249,67 +195,101 @@ export class MemStorage implements IStorage {
 
 
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    if (!result[0]) return undefined;
+    
+    // Add missing fields for compatibility
+    return {
+      ...result[0],
+      clinicName: "Klinik Utama 24 Jam",
+      clinicLocation: "Tropicana Aman",
+      createdAt: new Date(),
+      lastLogin: null
+    };
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    if (!result[0]) return undefined;
+    
+    // Add missing fields for compatibility
+    return {
+      ...result[0],
+      clinicName: "Klinik Utama 24 Jam",
+      clinicLocation: "Tropicana Aman",
+      createdAt: new Date(),
+      lastLogin: null
+    };
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    
     // Hash the password before storing
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(insertUser.password, saltRounds);
     
-    const user: User = { 
-      ...insertUser, 
+    const userToInsert = {
+      username: insertUser.username,
       password: hashedPassword, // Store hashed password
-      id, 
       role: insertUser.role || "user",
       isActive: true,
-      clinicName: insertUser.clinicName || "Klinik Utama 24 Jam",
-      clinicLocation: insertUser.clinicLocation || "Tropicana Aman",
+    };
+    
+    const result = await db.insert(users).values(userToInsert).returning();
+    // Add missing fields for compatibility
+    const userWithDefaults = {
+      ...result[0],
+      clinicName: "Klinik Utama 24 Jam",
+      clinicLocation: "Tropicana Aman",
       createdAt: new Date(),
       lastLogin: null
     };
-    this.users.set(id, user);
-    return user;
+    return userWithDefaults;
   }
 
   async getUsers(): Promise<User[]> {
-    return Array.from(this.users.values());
+    const result = await db.select().from(users);
+    // Add missing fields for compatibility
+    return result.map(user => ({
+      ...user,
+      clinicName: "Klinik Utama 24 Jam",
+      clinicLocation: "Tropicana Aman",
+      createdAt: new Date(),
+      lastLogin: null
+    }));
   }
 
   async updateUser(userId: string, updates: Partial<User>): Promise<User | undefined> {
-    const user = this.users.get(userId);
-    if (!user) return undefined;
-
     // Hash password if it's being updated
     if (updates.password) {
       const saltRounds = 10;
       updates.password = await bcrypt.hash(updates.password, saltRounds);
     }
 
-    const updatedUser = { ...user, ...updates };
-    this.users.set(userId, updatedUser);
-    return updatedUser;
+    const result = await db.update(users)
+      .set(updates)
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return result[0];
   }
 
   async deleteUser(userId: string): Promise<boolean> {
-    return this.users.delete(userId);
+    const result = await db.delete(users).where(eq(users.id, userId)).returning();
+    return result.length > 0;
   }
 
   async toggleUserStatus(userId: string): Promise<User | undefined> {
-    const user = this.users.get(userId);
-    if (!user) return undefined;
+    // First get the current user
+    const currentUser = await this.getUser(userId);
+    if (!currentUser) return undefined;
 
-    const updatedUser = { ...user, isActive: !user.isActive };
-    this.users.set(userId, updatedUser);
-    return updatedUser;
+    // Toggle the isActive status
+    const result = await db.update(users)
+      .set({ isActive: !currentUser.isActive })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return result[0];
   }
 
   // Authentication method - verify user credentials
@@ -327,11 +307,8 @@ export class MemStorage implements IStorage {
       return null; // Invalid password
     }
     
-    // Update last login timestamp
-    const updatedUser = { ...user, lastLogin: new Date() };
-    this.users.set(user.id, updatedUser);
-    
-    return updatedUser;
+    // Return user without updating lastLogin since column doesn't exist in database
+    return user;
   }
 
   async createPatient(insertPatient: InsertPatient): Promise<Patient> {
