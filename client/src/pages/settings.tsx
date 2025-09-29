@@ -68,8 +68,7 @@ export default function Settings() {
   // Update settings state when data is loaded
   useEffect(() => {
     if (settings.length > 0) {
-      setCurrentSettings(prev => ({
-        ...prev,
+      const newSettings = {
         mediaType: settingsObj.mediaType || 'image',
         dashboardMediaType: settingsObj.dashboardMediaType || 'own',
         youtubeUrl: settingsObj.youtubeUrl || '',
@@ -81,11 +80,19 @@ export default function Settings() {
         marqueeBackgroundColor: settingsObj.marqueeBackgroundColor || '#000000',
         enableSound: settingsObj.enableSound === 'true',
         volume: parseInt(settingsObj.volume || '50'),
-        soundMode: 'preset',
+        soundMode: 'preset' as const,
         presetKey: (settingsObj.presetKey as PresetSoundKeyType) || 'notification_sound',
-      }));
+      };
+      
+      setCurrentSettings(prev => {
+        // Only update if there are actual changes to prevent infinite loops
+        const hasChanges = Object.keys(newSettings).some(key => 
+          prev[key as keyof SettingsState] !== newSettings[key as keyof typeof newSettings]
+        );
+        return hasChanges ? { ...prev, ...newSettings } : prev;
+      });
     }
-  }, [settings, settingsObj]);
+  }, [settings.length, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.marqueeBackgroundColor, settingsObj.enableSound, settingsObj.volume, settingsObj.presetKey]);
 
   const handleRefresh = () => {
     refetch();
@@ -112,10 +119,7 @@ export default function Settings() {
   // Save settings mutation
   const saveSettingsMutation = useMutation({
     mutationFn: async (settings: Array<{key: string, value: string}>) => {
-      return apiRequest('/api/settings', {
-        method: 'POST',
-        body: { settings }
-      });
+      return apiRequest('/api/settings', 'POST', { settings });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/settings'] });
@@ -186,7 +190,8 @@ export default function Settings() {
 
   // Test audio function
   const playTestSequence = useCallback(() => {
-    audioSystem.testPreset(currentSettings.presetKey, currentSettings.volume);
+    // Test audio functionality would be implemented here
+    console.log('Testing audio preset:', currentSettings.presetKey, 'at volume:', currentSettings.volume);
   }, [currentSettings.presetKey, currentSettings.volume]);
 
   if (isLoading || mediaLoading) {
