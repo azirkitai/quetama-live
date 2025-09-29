@@ -376,6 +376,35 @@ export default function Settings() {
     }
   });
 
+  // Delete media mutation
+  const deleteMediaMutation = useMutation({
+    mutationFn: async (mediaId: string) => {
+      const response = await apiRequest('DELETE', `/api/media/${mediaId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/media'] });
+      toast({
+        title: "Berjaya",
+        description: "Gambar telah dipadamkan",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Ralat",
+        description: "Gagal memadam gambar",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Handle delete media
+  const handleDeleteMedia = (mediaId: string, filename: string) => {
+    if (confirm(`Adakah anda pasti ingin memadam '${filename}'?`)) {
+      deleteMediaMutation.mutate(mediaId);
+    }
+  };
+
   // Save settings mutation
   const saveSettingsMutation = useMutation({
     mutationFn: async (settings: Array<{key: string, value: string, category: string}>) => {
@@ -863,6 +892,19 @@ export default function Settings() {
                                 />
                               )}
                             </div>
+                            
+                            {/* Delete button - appears on hover */}
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-8 w-8 p-0"
+                              onClick={() => handleDeleteMedia(media.id, media.filename)}
+                              disabled={deleteMediaMutation.isPending}
+                              data-testid={`button-delete-media-${media.id}`}
+                              title={`Padam ${media.filename}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         ) : (
                           <div key={`empty-${index}`} className="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center"
