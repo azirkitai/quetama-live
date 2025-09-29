@@ -197,13 +197,22 @@ export const insertThemeSchema = createInsertSchema(themes).pick({
 export const SoundMode = z.enum(["preset"]);
 export type SoundModeType = z.infer<typeof SoundMode>;
 
-// Preset sound keys - exactly 5 uploaded audio files
+// Preset sound keys - 13 uploaded audio files (5 original + 8 new)
 export const PresetSoundKey = z.enum([
   "notification_sound",
   "subway_chime", 
   "header_tone",
   "airport_chime", 
-  "airport_call"
+  "airport_call",
+  // New audio files added
+  "airport_ding_1569",
+  "melodic_airport_ding_1570",
+  "flute_phone_alert_2316",
+  "happy_bells_937",
+  "orchestra_trumpets_triumphant_2285",
+  "orchestra_trumpets_ending_2292",
+  "software_remove_2576",
+  "trumpet_fanfare_2293"
 ]);
 export type PresetSoundKeyType = z.infer<typeof PresetSoundKey>;
 
