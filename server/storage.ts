@@ -35,72 +35,72 @@ export interface IStorage {
   
   // Patient methods
   createPatient(patient: InsertPatient): Promise<Patient>;
-  getPatients(): Promise<Patient[]>;
-  getPatientsByDate(date: string): Promise<Patient[]>;
-  getNextPatientNumber(): Promise<number>;
-  updatePatientStatus(patientId: string, status: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined>;
-  deletePatient(patientId: string): Promise<boolean>;
+  getPatients(userId: string): Promise<Patient[]>;
+  getPatientsByDate(date: string, userId: string): Promise<Patient[]>;
+  getNextPatientNumber(userId: string): Promise<number>;
+  updatePatientStatus(patientId: string, status: string, userId: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined>;
+  deletePatient(patientId: string, userId: string): Promise<boolean>;
   
   // Window methods
-  getWindows(): Promise<Window[]>;
+  getWindows(userId: string): Promise<Window[]>;
   createWindow(insertWindow: InsertWindow): Promise<Window>;
-  updateWindow(windowId: string, name: string): Promise<Window | undefined>;
-  deleteWindow(windowId: string): Promise<boolean>;
-  toggleWindowStatus(windowId: string): Promise<Window | undefined>;
-  updateWindowPatient(windowId: string, patientId?: string): Promise<Window | undefined>;
+  updateWindow(windowId: string, name: string, userId: string): Promise<Window | undefined>;
+  deleteWindow(windowId: string, userId: string): Promise<boolean>;
+  toggleWindowStatus(windowId: string, userId: string): Promise<Window | undefined>;
+  updateWindowPatient(windowId: string, userId: string, patientId?: string): Promise<Window | undefined>;
   
   // Dashboard methods
-  getDashboardStats(): Promise<{
+  getDashboardStats(userId: string): Promise<{
     totalWaiting: number;
     totalCalled: number;
     totalCompleted: number;
     activeWindows: number;
     totalWindows: number;
   }>;
-  getCurrentCall(): Promise<Patient | undefined>;
-  getRecentHistory(limit?: number): Promise<Patient[]>;
+  getCurrentCall(userId: string): Promise<Patient | undefined>;
+  getRecentHistory(userId: string, limit?: number): Promise<Patient[]>;
   
   // Settings methods
-  getSettings(): Promise<Setting[]>;
-  getSetting(key: string): Promise<Setting | undefined>;
-  getSettingsByCategory(category: string): Promise<Setting[]>;
-  setSetting(key: string, value: string, category: string): Promise<Setting>;
-  updateSetting(key: string, value: string): Promise<Setting | undefined>;
-  deleteSetting(key: string): Promise<boolean>;
+  getSettings(userId: string): Promise<Setting[]>;
+  getSetting(key: string, userId: string): Promise<Setting | undefined>;
+  getSettingsByCategory(category: string, userId: string): Promise<Setting[]>;
+  setSetting(key: string, value: string, category: string, userId: string): Promise<Setting>;
+  updateSetting(key: string, value: string, userId: string): Promise<Setting | undefined>;
+  deleteSetting(key: string, userId: string): Promise<boolean>;
   
   // Media methods
-  getMedia(): Promise<Media[]>;
-  getMediaById(id: string): Promise<Media | undefined>;
+  getMedia(userId: string): Promise<Media[]>;
+  getMediaById(id: string, userId: string): Promise<Media | undefined>;
   createMedia(media: InsertMedia): Promise<Media>;
-  updateMedia(id: string, updates: Partial<Media>): Promise<Media | undefined>;
-  deleteMedia(id: string): Promise<boolean>;
-  getActiveMedia(): Promise<Media[]>;
+  updateMedia(id: string, updates: Partial<Media>, userId: string): Promise<Media | undefined>;
+  deleteMedia(id: string, userId: string): Promise<boolean>;
+  getActiveMedia(userId: string): Promise<Media[]>;
   
   // Theme methods
-  getThemes(): Promise<Theme[]>;
-  getActiveTheme(): Promise<Theme | undefined>;
-  getThemeById(id: string): Promise<Theme | undefined>;
+  getThemes(userId: string): Promise<Theme[]>;
+  getActiveTheme(userId: string): Promise<Theme | undefined>;
+  getThemeById(id: string, userId: string): Promise<Theme | undefined>;
   createTheme(theme: InsertTheme): Promise<Theme>;
-  updateTheme(id: string, updates: Partial<Theme>): Promise<Theme | undefined>;
-  deleteTheme(id: string): Promise<boolean>;
-  setActiveTheme(id: string): Promise<Theme | undefined>;
+  updateTheme(id: string, updates: Partial<Theme>, userId: string): Promise<Theme | undefined>;
+  deleteTheme(id: string, userId: string): Promise<boolean>;
+  setActiveTheme(id: string, userId: string): Promise<Theme | undefined>;
   
   // Text Group methods
-  getTextGroups(): Promise<TextGroup[]>;
-  getActiveTextGroups(): Promise<TextGroup[]>;
-  getTextGroupByName(groupName: string): Promise<TextGroup | undefined>;
-  getTextGroupById(id: string): Promise<TextGroup | undefined>;
+  getTextGroups(userId: string): Promise<TextGroup[]>;
+  getActiveTextGroups(userId: string): Promise<TextGroup[]>;
+  getTextGroupByName(groupName: string, userId: string): Promise<TextGroup | undefined>;
+  getTextGroupById(id: string, userId: string): Promise<TextGroup | undefined>;
   createTextGroup(textGroup: InsertTextGroup): Promise<TextGroup>;
-  updateTextGroup(id: string, updates: Partial<TextGroup>): Promise<TextGroup | undefined>;
-  deleteTextGroup(id: string): Promise<boolean>;
-  toggleTextGroupStatus(id: string): Promise<TextGroup | undefined>;
+  updateTextGroup(id: string, updates: Partial<TextGroup>, userId: string): Promise<TextGroup | undefined>;
+  deleteTextGroup(id: string, userId: string): Promise<boolean>;
+  toggleTextGroupStatus(id: string, userId: string): Promise<TextGroup | undefined>;
   
 }
 
 export class MemStorage implements IStorage {
   private patients: Map<string, Patient>;
   private windows: Map<string, Window>;
-  private settings: Map<string, Setting>;
+  private settings: Map<string, Setting>; // Will be keyed by ${userId}:${key}
   private media: Map<string, Media>;
   private themes: Map<string, Theme>;
   private textGroups: Map<string, TextGroup>;
@@ -140,8 +140,9 @@ export class MemStorage implements IStorage {
     ];
 
     for (const setting of defaultSettings) {
-      // Only set if the setting doesn't already exist
-      if (!this.settings.has(setting.key)) {
+      // Only set if the setting doesn't already exist for system
+      const systemKey = `${this.systemUserId}:${setting.key}`;
+      if (!this.settings.has(systemKey)) {
         await this.setSetting(setting.key, setting.value, setting.category, this.systemUserId);
       }
     }
@@ -305,31 +306,32 @@ export class MemStorage implements IStorage {
     return patient;
   }
 
-  async getPatients(): Promise<Patient[]> {
-    return Array.from(this.patients.values());
+  async getPatients(userId: string): Promise<Patient[]> {
+    return Array.from(this.patients.values()).filter(p => p.userId === userId);
   }
 
-  async getPatientsByDate(date: string): Promise<Patient[]> {
+  async getPatientsByDate(date: string, userId: string): Promise<Patient[]> {
     const targetDate = new Date(date);
     const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
     const endOfDay = new Date(targetDate.setHours(23, 59, 59, 999));
     
     return Array.from(this.patients.values()).filter(
       (patient) => 
+        patient.userId === userId &&
         patient.registeredAt >= startOfDay && 
         patient.registeredAt <= endOfDay
     );
   }
 
-  async getNextPatientNumber(): Promise<number> {
+  async getNextPatientNumber(userId: string): Promise<number> {
     const today = new Date().toISOString().split('T')[0];
-    const todayPatients = await this.getPatientsByDate(today);
+    const todayPatients = await this.getPatientsByDate(today, userId);
     return todayPatients.length + 1;
   }
 
-  async updatePatientStatus(patientId: string, status: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined> {
+  async updatePatientStatus(patientId: string, status: string, userId: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined> {
     const patient = this.patients.get(patientId);
-    if (!patient) return undefined;
+    if (!patient || patient.userId !== userId) return undefined;
 
     const now = new Date();
     const timeString = now.toLocaleTimeString('en-US', { 
@@ -343,9 +345,13 @@ export class MemStorage implements IStorage {
     
     if (status === "called" && windowId) {
       const window = this.windows.get(windowId);
-      if (window) {
+      // SECURITY: Ensure window belongs to same user to prevent cross-tenant access
+      if (window && window.userId === userId) {
         newTrackingHistory.push(`Called to ${window.name} at ${timeString}`);
         patient.calledAt = now;
+      } else if (windowId) {
+        // Invalid window assignment - reject the operation
+        return undefined;
       }
     } else if (status === "in-progress") {
       newTrackingHistory.push(`Consultation started at ${timeString}`);
@@ -363,6 +369,14 @@ export class MemStorage implements IStorage {
       lastWindowId = patient.windowId;
     }
 
+    // SECURITY: Validate windowId belongs to same user if provided
+    if (windowId && windowId !== patient.windowId) {
+      const window = this.windows.get(windowId);
+      if (!window || window.userId !== userId) {
+        return undefined; // Reject cross-tenant window assignment
+      }
+    }
+
     const updatedPatient = {
       ...patient,
       status,
@@ -376,13 +390,16 @@ export class MemStorage implements IStorage {
     return updatedPatient;
   }
 
-  async deletePatient(patientId: string): Promise<boolean> {
+  async deletePatient(patientId: string, userId: string): Promise<boolean> {
+    const patient = this.patients.get(patientId);
+    if (!patient || patient.userId !== userId) return false;
+    
     const deleted = this.patients.delete(patientId);
     
-    // Remove patient from any windows
+    // Remove patient from any windows (only user's windows)
     if (deleted) {
       this.windows.forEach((window, windowId) => {
-        if (window.currentPatientId === patientId) {
+        if (window.userId === userId && window.currentPatientId === patientId) {
           this.windows.set(windowId, { ...window, currentPatientId: undefined });
         }
       });
@@ -391,8 +408,8 @@ export class MemStorage implements IStorage {
     return deleted;
   }
 
-  async getWindows(): Promise<Window[]> {
-    return Array.from(this.windows.values());
+  async getWindows(userId: string): Promise<Window[]> {
+    return Array.from(this.windows.values()).filter(w => w.userId === userId);
   }
 
   async createWindow(insertWindow: InsertWindow): Promise<Window> {
@@ -408,9 +425,9 @@ export class MemStorage implements IStorage {
     return window;
   }
 
-  async updateWindow(windowId: string, name: string): Promise<Window | undefined> {
+  async updateWindow(windowId: string, name: string, userId: string): Promise<Window | undefined> {
     const window = this.windows.get(windowId);
-    if (!window) return undefined;
+    if (!window || window.userId !== userId) return undefined;
 
     const updatedWindow = {
       ...window,
@@ -421,18 +438,18 @@ export class MemStorage implements IStorage {
     return updatedWindow;
   }
 
-  async deleteWindow(windowId: string): Promise<boolean> {
+  async deleteWindow(windowId: string, userId: string): Promise<boolean> {
     const window = this.windows.get(windowId);
-    if (!window) return false;
+    if (!window || window.userId !== userId) return false;
 
     // Check if window has a current patient - prevent deletion if occupied
     if (window.currentPatientId) {
       return false;
     }
 
-    // Clear any patients assigned to this window
+    // Clear any patients assigned to this window (only user's patients)
     this.patients.forEach((patient, patientId) => {
-      if (patient.windowId === windowId) {
+      if (patient.userId === userId && patient.windowId === windowId) {
         this.patients.set(patientId, { ...patient, windowId: null });
       }
     });
@@ -440,9 +457,9 @@ export class MemStorage implements IStorage {
     return this.windows.delete(windowId);
   }
 
-  async toggleWindowStatus(windowId: string): Promise<Window | undefined> {
+  async toggleWindowStatus(windowId: string, userId: string): Promise<Window | undefined> {
     const window = this.windows.get(windowId);
-    if (!window) return undefined;
+    if (!window || window.userId !== userId) return undefined;
 
     const updatedWindow = {
       ...window,
@@ -453,9 +470,15 @@ export class MemStorage implements IStorage {
     return updatedWindow;
   }
 
-  async updateWindowPatient(windowId: string, patientId?: string): Promise<Window | undefined> {
+  async updateWindowPatient(windowId: string, userId: string, patientId?: string): Promise<Window | undefined> {
     const window = this.windows.get(windowId);
-    if (!window) return undefined;
+    if (!window || window.userId !== userId) return undefined;
+
+    // If assigning a patient, verify patient belongs to same user
+    if (patientId) {
+      const patient = this.patients.get(patientId);
+      if (!patient || patient.userId !== userId) return undefined;
+    }
 
     const updatedWindow = {
       ...window,
@@ -466,15 +489,15 @@ export class MemStorage implements IStorage {
     return updatedWindow;
   }
 
-  async getDashboardStats(): Promise<{
+  async getDashboardStats(userId: string): Promise<{
     totalWaiting: number;
     totalCalled: number;
     totalCompleted: number;
     activeWindows: number;
     totalWindows: number;
   }> {
-    const allPatients = Array.from(this.patients.values());
-    const allWindows = Array.from(this.windows.values());
+    const userPatients = Array.from(this.patients.values()).filter(p => p.userId === userId);
+    const userWindows = Array.from(this.windows.values()).filter(w => w.userId === userId);
     
     // Get today's start and end boundaries (local timezone)
     const today = new Date();
@@ -483,16 +506,16 @@ export class MemStorage implements IStorage {
     const endOfDay = new Date(today);
     endOfDay.setHours(23, 59, 59, 999);
     
-    const totalWaiting = allPatients.filter(p => p.status === 'waiting').length;
-    const totalCalled = allPatients.filter(p => p.status === 'called').length;
-    const totalCompleted = allPatients.filter(p => 
+    const totalWaiting = userPatients.filter(p => p.status === 'waiting').length;
+    const totalCalled = userPatients.filter(p => p.status === 'called').length;
+    const totalCompleted = userPatients.filter(p => 
       p.status === 'completed' && 
       p.completedAt && 
       p.completedAt >= startOfDay && 
       p.completedAt <= endOfDay
     ).length;
-    const activeWindows = allWindows.filter(w => w.isActive).length;
-    const totalWindows = allWindows.length;
+    const activeWindows = userWindows.filter(w => w.isActive).length;
+    const totalWindows = userWindows.length;
 
     return {
       totalWaiting,
@@ -503,10 +526,11 @@ export class MemStorage implements IStorage {
     };
   }
 
-  async getCurrentCall(): Promise<Patient | undefined> {
+  async getCurrentCall(userId: string): Promise<Patient | undefined> {
     // Get the most recently called patient - including requeued patients
     // Keep showing the last called patient until a new one is called
     const calledPatients = Array.from(this.patients.values())
+      .filter(p => p.userId === userId)
       .filter(p => p.status === 'called' || p.status === 'requeue' || p.status === 'completed' || p.status === 'in-progress')
       .filter(p => p.calledAt) // Only patients that have actually been called
       .sort((a, b) => {
@@ -518,10 +542,11 @@ export class MemStorage implements IStorage {
     return calledPatients[0];
   }
 
-  async getRecentHistory(limit: number = 10): Promise<Patient[]> {
+  async getRecentHistory(userId: string, limit: number = 10): Promise<Patient[]> {
     // Get all patients that have been called - include requeued patients in history
     // Don't clear history even when patients are requeued
     return Array.from(this.patients.values())
+      .filter(p => p.userId === userId)
       .filter(p => p.status === 'called' || p.status === 'completed' || p.status === 'requeue' || p.status === 'in-progress')
       .filter(p => p.calledAt) // Only include patients that have actually been called
       .sort((a, b) => {
@@ -533,34 +558,44 @@ export class MemStorage implements IStorage {
   }
 
   // Settings methods implementation
-  async getSettings(): Promise<Setting[]> {
-    return Array.from(this.settings.values());
+  async getSettings(userId: string): Promise<Setting[]> {
+    return Array.from(this.settings.values()).filter(s => s.userId === userId || s.userId === this.systemUserId);
   }
 
-  async getSetting(key: string): Promise<Setting | undefined> {
-    return this.settings.get(key);
+  async getSetting(key: string, userId: string): Promise<Setting | undefined> {
+    // First try user-specific setting
+    const userKey = `${userId}:${key}`;
+    const userSetting = this.settings.get(userKey);
+    if (userSetting) return userSetting;
+    
+    // Fallback to system default
+    const systemKey = `${this.systemUserId}:${key}`;
+    return this.settings.get(systemKey);
   }
 
-  async getSettingsByCategory(category: string): Promise<Setting[]> {
+  async getSettingsByCategory(category: string, userId: string): Promise<Setting[]> {
     return Array.from(this.settings.values()).filter(
-      (setting) => setting.category === category
+      (setting) => setting.category === category && (setting.userId === userId || setting.userId === this.systemUserId)
     );
   }
 
-  async setSetting(key: string, value: string, category: string, userId?: string): Promise<Setting> {
+  async setSetting(key: string, value: string, category: string, userId: string): Promise<Setting> {
     const setting: Setting = {
       id: randomUUID(),
       key,
       value,
       category,
-      userId: userId || this.systemUserId,
+      userId: userId,
     };
-    this.settings.set(key, setting);
+    const compositeKey = `${userId}:${key}`;
+    this.settings.set(compositeKey, setting);
     return setting;
   }
 
-  async updateSetting(key: string, value: string): Promise<Setting | undefined> {
-    const existingSetting = this.settings.get(key);
+  async updateSetting(key: string, value: string, userId: string): Promise<Setting | undefined> {
+    // Only allow updating user's own settings, NOT system settings
+    const userKey = `${userId}:${key}`;
+    const existingSetting = this.settings.get(userKey);
     if (!existingSetting) {
       return undefined;
     }
@@ -569,21 +604,29 @@ export class MemStorage implements IStorage {
       ...existingSetting,
       value,
     };
-    this.settings.set(key, updatedSetting);
+    this.settings.set(userKey, updatedSetting);
     return updatedSetting;
   }
 
-  async deleteSetting(key: string): Promise<boolean> {
-    return this.settings.delete(key);
+  async deleteSetting(key: string, userId: string): Promise<boolean> {
+    // Only allow deleting user's own settings, NOT system settings
+    const userKey = `${userId}:${key}`;
+    const setting = this.settings.get(userKey);
+    if (!setting) {
+      return false;
+    }
+    return this.settings.delete(userKey);
   }
 
   // Media methods implementation
-  async getMedia(): Promise<Media[]> {
-    return Array.from(this.media.values());
+  async getMedia(userId: string): Promise<Media[]> {
+    return Array.from(this.media.values()).filter(m => m.userId === userId);
   }
 
-  async getMediaById(id: string): Promise<Media | undefined> {
-    return this.media.get(id);
+  async getMediaById(id: string, userId: string): Promise<Media | undefined> {
+    const media = this.media.get(id);
+    if (!media || media.userId !== userId) return undefined;
+    return media;
   }
 
   async createMedia(insertMedia: InsertMedia): Promise<Media> {
@@ -598,34 +641,47 @@ export class MemStorage implements IStorage {
     return media;
   }
 
-  async updateMedia(id: string, updates: Partial<Media>): Promise<Media | undefined> {
+  async updateMedia(id: string, updates: Partial<Media>, userId: string): Promise<Media | undefined> {
     const media = this.media.get(id);
-    if (!media) return undefined;
+    if (!media || media.userId !== userId) return undefined;
 
     const updatedMedia = { ...media, ...updates };
     this.media.set(id, updatedMedia);
     return updatedMedia;
   }
 
-  async deleteMedia(id: string): Promise<boolean> {
+  async deleteMedia(id: string, userId: string): Promise<boolean> {
+    const media = this.media.get(id);
+    if (!media || media.userId !== userId) return false;
     return this.media.delete(id);
   }
 
-  async getActiveMedia(): Promise<Media[]> {
-    return Array.from(this.media.values()).filter(media => media.isActive);
+  async getActiveMedia(userId: string): Promise<Media[]> {
+    return Array.from(this.media.values()).filter(media => media.userId === userId && media.isActive);
   }
   
   // Theme methods implementation
-  async getThemes(): Promise<Theme[]> {
-    return Array.from(this.themes.values());
+  async getThemes(userId: string): Promise<Theme[]> {
+    return Array.from(this.themes.values()).filter(t => t.userId === userId || t.userId === this.systemUserId);
   }
 
-  async getActiveTheme(): Promise<Theme | undefined> {
-    return Array.from(this.themes.values()).find(theme => theme.isActive);
+  async getActiveTheme(userId: string): Promise<Theme | undefined> {
+    // PRIORITY: First check for user's active theme, then system default
+    const userActiveTheme = Array.from(this.themes.values()).find(theme => 
+      theme.isActive && theme.userId === userId
+    );
+    if (userActiveTheme) return userActiveTheme;
+    
+    // Fallback to system active theme
+    return Array.from(this.themes.values()).find(theme => 
+      theme.isActive && theme.userId === this.systemUserId
+    );
   }
 
-  async getThemeById(id: string): Promise<Theme | undefined> {
-    return this.themes.get(id);
+  async getThemeById(id: string, userId: string): Promise<Theme | undefined> {
+    const theme = this.themes.get(id);
+    if (!theme || (theme.userId !== userId && theme.userId !== this.systemUserId)) return undefined;
+    return theme;
   }
 
   async createTheme(insertTheme: InsertTheme): Promise<Theme> {
@@ -658,9 +714,10 @@ export class MemStorage implements IStorage {
     return theme;
   }
 
-  async updateTheme(id: string, updates: Partial<Theme>): Promise<Theme | undefined> {
+  async updateTheme(id: string, updates: Partial<Theme>, userId: string): Promise<Theme | undefined> {
     const theme = this.themes.get(id);
-    if (!theme) return undefined;
+    // SECURITY: Only allow updating user's own themes, NEVER system themes
+    if (!theme || theme.userId !== userId || theme.userId === this.systemUserId) return undefined;
 
     const updatedTheme = { 
       ...theme, 
@@ -671,9 +728,10 @@ export class MemStorage implements IStorage {
     return updatedTheme;
   }
 
-  async deleteTheme(id: string): Promise<boolean> {
+  async deleteTheme(id: string, userId: string): Promise<boolean> {
     const theme = this.themes.get(id);
-    if (!theme) return false;
+    // SECURITY: Only allow deleting user's own themes, NEVER system themes
+    if (!theme || theme.userId !== userId || theme.userId === this.systemUserId) return false;
     
     // Don't allow deleting the active theme
     if (theme.isActive) return false;
@@ -681,37 +739,64 @@ export class MemStorage implements IStorage {
     return this.themes.delete(id);
   }
 
-  async setActiveTheme(id: string): Promise<Theme | undefined> {
-    const newActiveTheme = this.themes.get(id);
-    if (!newActiveTheme) return undefined;
+  async setActiveTheme(id: string, userId: string): Promise<Theme | undefined> {
+    const targetTheme = this.themes.get(id);
+    if (!targetTheme || (targetTheme.userId !== userId && targetTheme.userId !== this.systemUserId)) return undefined;
 
-    // Deactivate all themes first
-    const allThemes = Array.from(this.themes.values());
-    for (const theme of allThemes) {
-      if (theme.isActive) {
-        await this.updateTheme(theme.id, { isActive: false });
-      }
+    // If selecting system theme, clone it as user's active theme to avoid cross-tenant issues
+    if (targetTheme.userId === this.systemUserId) {
+      // Clone system theme as user's active theme
+      const clonedTheme: Theme = {
+        ...targetTheme,
+        id: randomUUID(),
+        name: `${targetTheme.name} (Copy)`,
+        userId: userId,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      this.themes.set(clonedTheme.id, clonedTheme);
+      
+      // Deactivate user's other themes only
+      Array.from(this.themes.values())
+        .filter(theme => theme.userId === userId && theme.id !== clonedTheme.id)
+        .forEach(theme => {
+          this.themes.set(theme.id, { ...theme, isActive: false });
+        });
+      
+      return clonedTheme;
+    } else {
+      // Activating user's own theme - deactivate user's other themes only
+      Array.from(this.themes.values())
+        .filter(theme => theme.userId === userId && theme.id !== id)
+        .forEach(theme => {
+          this.themes.set(theme.id, { ...theme, isActive: false });
+        });
+      
+      // Activate selected theme
+      const updatedTheme = { ...targetTheme, isActive: true, updatedAt: new Date() };
+      this.themes.set(id, updatedTheme);
+      return updatedTheme;
     }
-
-    // Activate the selected theme
-    return await this.updateTheme(id, { isActive: true });
   }
 
   // Text Group methods implementation
-  async getTextGroups(): Promise<TextGroup[]> {
-    return Array.from(this.textGroups.values());
+  async getTextGroups(userId: string): Promise<TextGroup[]> {
+    return Array.from(this.textGroups.values()).filter(tg => tg.userId === userId || tg.userId === this.systemUserId);
   }
 
-  async getActiveTextGroups(): Promise<TextGroup[]> {
-    return Array.from(this.textGroups.values()).filter(group => group.isActive);
+  async getActiveTextGroups(userId: string): Promise<TextGroup[]> {
+    return Array.from(this.textGroups.values()).filter(group => group.isActive && (group.userId === userId || group.userId === this.systemUserId));
   }
 
-  async getTextGroupByName(groupName: string): Promise<TextGroup | undefined> {
-    return Array.from(this.textGroups.values()).find(group => group.groupName === groupName);
+  async getTextGroupByName(groupName: string, userId: string): Promise<TextGroup | undefined> {
+    return Array.from(this.textGroups.values()).find(group => group.groupName === groupName && (group.userId === userId || group.userId === this.systemUserId));
   }
 
-  async getTextGroupById(id: string): Promise<TextGroup | undefined> {
-    return this.textGroups.get(id);
+  async getTextGroupById(id: string, userId: string): Promise<TextGroup | undefined> {
+    const textGroup = this.textGroups.get(id);
+    if (!textGroup || (textGroup.userId !== userId && textGroup.userId !== this.systemUserId)) return undefined;
+    return textGroup;
   }
 
   async createTextGroup(insertTextGroup: InsertTextGroup): Promise<TextGroup> {
@@ -736,9 +821,10 @@ export class MemStorage implements IStorage {
     return textGroup;
   }
 
-  async updateTextGroup(id: string, updates: Partial<TextGroup>): Promise<TextGroup | undefined> {
+  async updateTextGroup(id: string, updates: Partial<TextGroup>, userId: string): Promise<TextGroup | undefined> {
     const textGroup = this.textGroups.get(id);
-    if (!textGroup) return undefined;
+    // SECURITY: Only allow updating user's own text groups, NOT system ones
+    if (!textGroup || textGroup.userId !== userId) return undefined;
 
     const updatedTextGroup = { 
       ...textGroup, 
@@ -749,13 +835,17 @@ export class MemStorage implements IStorage {
     return updatedTextGroup;
   }
 
-  async deleteTextGroup(id: string): Promise<boolean> {
+  async deleteTextGroup(id: string, userId: string): Promise<boolean> {
+    const textGroup = this.textGroups.get(id);
+    // SECURITY: Only allow deleting user's own text groups, NOT system ones
+    if (!textGroup || textGroup.userId !== userId) return false;
     return this.textGroups.delete(id);
   }
 
-  async toggleTextGroupStatus(id: string): Promise<TextGroup | undefined> {
+  async toggleTextGroupStatus(id: string, userId: string): Promise<TextGroup | undefined> {
     const textGroup = this.textGroups.get(id);
-    if (!textGroup) return undefined;
+    // SECURITY: Only allow toggling user's own text groups, NOT system ones  
+    if (!textGroup || textGroup.userId !== userId) return undefined;
 
     const updatedTextGroup = {
       ...textGroup,
@@ -1295,4 +1385,4 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();
