@@ -2082,11 +2082,11 @@ export default function Settings() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="notification_sound">Notification Sound</SelectItem>
-                      <SelectItem value="subway_chime">Subway Station Chime</SelectItem>
-                      <SelectItem value="header_tone">Header Tone</SelectItem>
-                      <SelectItem value="airport_chime">Airport Announcement Chime</SelectItem>
-                      <SelectItem value="airport_call">Airport Call</SelectItem>
+                      {audioSystem.getAvailablePresets().map((preset) => (
+                        <SelectItem key={preset.key} value={preset.key}>
+                          {preset.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
