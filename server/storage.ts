@@ -991,28 +991,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Settings methods
-  async getSettings(): Promise<Setting[]> {
-    return await db.select().from(schema.settings);
+  async getSettings(userId: string): Promise<Setting[]> {
+    return await db.select().from(schema.settings).where(eq(schema.settings.userId, userId));
   }
 
-  async getSetting(key: string): Promise<Setting | undefined> {
+  async getSetting(key: string, userId: string): Promise<Setting | undefined> {
     const result = await db.select().from(schema.settings)
-      .where(eq(schema.settings.key, key))
+      .where(and(eq(schema.settings.key, key), eq(schema.settings.userId, userId)))
       .limit(1);
     return result[0];
   }
 
-  async getSettingsByCategory(category: string): Promise<Setting[]> {
+  async getSettingsByCategory(category: string, userId: string): Promise<Setting[]> {
     return await db.select().from(schema.settings)
-      .where(eq(schema.settings.category, category));
+      .where(and(eq(schema.settings.category, category), eq(schema.settings.userId, userId)));
   }
 
-  async setSetting(key: string, value: string, category: string, userId?: string): Promise<Setting> {
+  async setSetting(key: string, value: string, category: string, userId: string): Promise<Setting> {
     const setting = {
       key,
       value,
       category,
-      userId: userId || this.systemUserId,
+      userId,
     };
     
     const result = await db.insert(schema.settings)
@@ -1021,17 +1021,17 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async updateSetting(key: string, value: string): Promise<Setting | undefined> {
+  async updateSetting(key: string, value: string, userId: string): Promise<Setting | undefined> {
     const result = await db.update(schema.settings)
       .set({ value })
-      .where(eq(schema.settings.key, key))
+      .where(and(eq(schema.settings.key, key), eq(schema.settings.userId, userId)))
       .returning();
     return result[0];
   }
 
-  async deleteSetting(key: string): Promise<boolean> {
+  async deleteSetting(key: string, userId: string): Promise<boolean> {
     const result = await db.delete(schema.settings)
-      .where(eq(schema.settings.key, key));
+      .where(and(eq(schema.settings.key, key), eq(schema.settings.userId, userId)));
     return (result.rowCount || 0) > 0;
   }
 
