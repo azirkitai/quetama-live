@@ -4,6 +4,7 @@ import { db } from "./db";
 import { eq, and, sql } from "drizzle-orm";
 import * as bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
+import { createHash } from "crypto";
 
 interface Window {
   id: string;
@@ -16,6 +17,24 @@ interface Window {
 interface InsertWindow {
   name: string;
   userId: string;
+}
+
+// TV Token utility - generates deterministic token from userId
+function generateTvToken(userId: string): string {
+  const hash = createHash('sha256')
+    .update(`tv-token-${userId}-clinic-display`)
+    .digest('hex');
+  return hash.substring(0, 32); // First 32 chars for security
+}
+
+// Token resolution - extract userId from token
+function resolveUserIdFromToken(token: string, allUsers: User[]): string | undefined {
+  for (const user of allUsers) {
+    if (generateTvToken(user.id) === token) {
+      return user.id;
+    }
+  }
+  return undefined;
 }
 
 // modify the interface with any CRUD methods
@@ -32,6 +51,9 @@ export interface IStorage {
   toggleUserStatus(userId: string): Promise<User | undefined>;
   // Authentication methods
   authenticateUser(username: string, password: string): Promise<User | null>;
+  // TV Token methods
+  getUserByTvToken(token: string): Promise<User | undefined>;
+  generateTvToken(userId: string): string;
   
   // Patient methods
   createPatient(patient: InsertPatient): Promise<Patient>;
@@ -284,6 +306,18 @@ export class MemStorage implements IStorage {
     
     // Return user without updating lastLogin since column doesn't exist in database
     return user;
+  }
+
+  // TV Token methods - for unauthenticated TV displays
+  generateTvToken(userId: string): string {
+    return generateTvToken(userId);
+  }
+
+  async getUserByTvToken(token: string): Promise<User | undefined> {
+    // Get all users from database and check token match
+    const allUsers = await this.getUsers();
+    const userId = resolveUserIdFromToken(token, allUsers);
+    return userId ? this.getUser(userId) : undefined;
   }
 
   async createPatient(insertPatient: InsertPatient): Promise<Patient> {
@@ -1030,6 +1064,18 @@ export class DatabaseStorage implements IStorage {
 
   async toggleUserStatus(id: string): Promise<User | undefined> {
     return this.memStorage.toggleUserStatus(id);
+  }
+
+  // TV Token methods - use database query for efficiency
+  generateTvToken(userId: string): string {
+    return generateTvToken(userId);
+  }
+
+  async getUserByTvToken(token: string): Promise<User | undefined> {
+    // Get all users from database and check token match
+    const allUsers = await this.getUsers();
+    const userId = resolveUserIdFromToken(token, allUsers);
+    return userId ? this.getUser(userId) : undefined;
   }
 
   // Window methods  

@@ -1617,6 +1617,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== TV DISPLAY TOKEN ROUTES =====
+  // These routes serve authenticated TV displays using clinic tokens
+  
+  // TV Token resolution endpoint - resolve token to userId
+  app.get("/api/tv/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      const user = await storage.getUserByTvToken(token);
+      if (!user) {
+        return res.status(404).json({ error: "Token TV tidak sah atau klinik tidak dijumpai" });
+      }
+      
+      if (!user.isActive) {
+        return res.status(403).json({ error: "Akaun klinik tidak aktif" });
+      }
+      
+      // Return basic clinic info for TV display
+      res.json({
+        clinicId: user.id,
+        clinicName: user.username,
+        isActive: user.isActive,
+        token: token
+      });
+    } catch (error) {
+      console.error("Error resolving TV token:", error);
+      res.status(500).json({ error: "Gagal menyelesaikan token TV" });
+    }
+  });
+  
+  // TV Settings endpoint - get settings for specific clinic token
+  app.get("/api/tv/:token/settings", async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      const user = await storage.getUserByTvToken(token);
+      if (!user || !user.isActive) {
+        return res.status(404).json({ error: "Token TV tidak sah" });
+      }
+      
+      const settings = await storage.getSettings(user.id);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching TV settings:", error);
+      res.status(500).json({ error: "Gagal mendapatkan tetapan TV" });
+    }
+  });
+  
+  // TV Active Theme endpoint
+  app.get("/api/tv/:token/themes/active", async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      const user = await storage.getUserByTvToken(token);
+      if (!user || !user.isActive) {
+        return res.status(404).json({ error: "Token TV tidak sah" });
+      }
+      
+      const activeTheme = await storage.getActiveTheme(user.id);
+      res.json(activeTheme);
+    } catch (error) {
+      console.error("Error fetching TV active theme:", error);
+      res.status(500).json({ error: "Gagal mendapatkan tema aktif TV" });
+    }
+  });
+  
+  // TV Active Text Groups endpoint
+  app.get("/api/tv/:token/text-groups/active", async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      const user = await storage.getUserByTvToken(token);
+      if (!user || !user.isActive) {
+        return res.status(404).json({ error: "Token TV tidak sah" });
+      }
+      
+      const activeTextGroups = await storage.getActiveTextGroups(user.id);
+      res.json(activeTextGroups);
+    } catch (error) {
+      console.error("Error fetching TV active text groups:", error);
+      res.status(500).json({ error: "Gagal mendapatkan kumpulan teks aktif TV" });
+    }
+  });
+  
+  // TV Active Media endpoint
+  app.get("/api/tv/:token/media/active", async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      const user = await storage.getUserByTvToken(token);
+      if (!user || !user.isActive) {
+        return res.status(404).json({ error: "Token TV tidak sah" });
+      }
+      
+      const activeMedia = await storage.getActiveMedia(user.id);
+      res.json(activeMedia);
+    } catch (error) {
+      console.error("Error fetching TV active media:", error);
+      res.status(500).json({ error: "Gagal mendapatkan media aktif TV" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
