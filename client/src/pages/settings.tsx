@@ -271,7 +271,39 @@ export default function Settings() {
         return hasChanges ? { ...prev, ...newSettings } : prev;
       });
     }
-  }, [settings.length, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.marqueeBackgroundColor, settingsObj.enableSound, settingsObj.volume, settingsObj.presetKey, settingsObj.headerTextColor, settingsObj.headerBackgroundColor, settingsObj.headerBackgroundMode, settingsObj.headerBackgroundGradient, settingsObj.callNameTextColor, settingsObj.callBackgroundColor, settingsObj.callBackgroundMode, settingsObj.callBackgroundGradient, settingsObj.windowTextColor, settingsObj.callBorderColor, settingsObj.prayerTimesTextColor, settingsObj.prayerTimesBackgroundColor, settingsObj.prayerTimesBackgroundMode, settingsObj.prayerTimesBackgroundGradient, settingsObj.weatherTextColor, settingsObj.weatherBackgroundColor, settingsObj.weatherBackgroundMode, settingsObj.weatherBackgroundGradient, settingsObj.queueTextColor, settingsObj.queueBackgroundColor, settingsObj.queueBackgroundMode, settingsObj.queueBackgroundGradient, settingsObj.queueItemBackgroundColor, settingsObj.queueItemBackgroundMode, settingsObj.queueItemBackgroundGradient, settingsObj.queueHighlightColor, settingsObj.queueBorderColor, settingsObj.marqueeBackgroundMode, settingsObj.marqueeBackgroundGradient]);
+  }, [settings.length, 
+    // Basic settings
+    settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, 
+    settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, 
+    settingsObj.marqueeBackgroundColor, settingsObj.enableSound, settingsObj.volume, settingsObj.presetKey,
+    // Header text and background
+    settingsObj.headerTextColor, settingsObj.headerTextMode, settingsObj.headerTextGradient,
+    settingsObj.headerBackgroundColor, settingsObj.headerBackgroundMode, settingsObj.headerBackgroundGradient,
+    // Call name text and background
+    settingsObj.callNameTextColor, settingsObj.callNameTextMode, settingsObj.callNameTextGradient,
+    settingsObj.callBackgroundColor, settingsObj.callBackgroundMode, settingsObj.callBackgroundGradient,
+    // Window text and call border
+    settingsObj.windowTextColor, settingsObj.windowTextMode, settingsObj.windowTextGradient,
+    settingsObj.callBorderColor,
+    // Prayer times text and background
+    settingsObj.prayerTimesTextColor, settingsObj.prayerTimesTextMode, settingsObj.prayerTimesTextGradient,
+    settingsObj.prayerTimesBackgroundColor, settingsObj.prayerTimesBackgroundMode, settingsObj.prayerTimesBackgroundGradient,
+    // Weather text and background
+    settingsObj.weatherTextColor, settingsObj.weatherTextMode, settingsObj.weatherTextGradient,
+    settingsObj.weatherBackgroundColor, settingsObj.weatherBackgroundMode, settingsObj.weatherBackgroundGradient,
+    // Queue text and background
+    settingsObj.queueTextColor, settingsObj.queueTextMode, settingsObj.queueTextGradient,
+    settingsObj.queueBackgroundColor, settingsObj.queueBackgroundMode, settingsObj.queueBackgroundGradient,
+    // Queue item background
+    settingsObj.queueItemBackgroundColor, settingsObj.queueItemBackgroundMode, settingsObj.queueItemBackgroundGradient,
+    // History name
+    settingsObj.historyNameColor, settingsObj.historyNameMode, settingsObj.historyNameGradient,
+    // Queue styling
+    settingsObj.queueHighlightColor, settingsObj.queueBorderColor,
+    // Marquee text and background
+    settingsObj.marqueeTextMode, settingsObj.marqueeTextGradient,
+    settingsObj.marqueeBackgroundMode, settingsObj.marqueeBackgroundGradient
+  ]);
 
   const handleRefresh = () => {
     refetch();
@@ -1395,119 +1427,114 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Queue List Colors */}
+        {/* Queue List Colors - Compact Layout */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <div className="w-3 h-3 bg-red-500 rounded-full"></div>
               Queue List Display
             </CardTitle>
             <p className="text-sm text-muted-foreground">Warna untuk senarai giliran pesakit</p>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <CardContent className="space-y-3">
+            {/* Compact grid layout */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Text Color Section */}
               <div className="space-y-2">
-                <Label>Warna Text Senarai</Label>
-                
-                {/* Toggle between solid and gradient for queue text */}
-                <div className="flex space-x-2 mb-2">
-                  <Button
-                    variant={currentSettings.queueTextMode === 'solid' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => updateDisplaySetting('queueTextMode', 'solid')}
-                    data-testid="button-queue-text-solid"
-                  >
-                    Solid
-                  </Button>
-                  <Button
-                    variant={currentSettings.queueTextMode === 'gradient' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => updateDisplaySetting('queueTextMode', 'gradient')}
-                    data-testid="button-queue-text-gradient"
-                  >
-                    <Brush className="h-3 w-3 mr-1" />
-                    Gradient
-                  </Button>
-                </div>
-
-                {currentSettings.queueTextMode === 'solid' ? (
-                  <Input
-                    type="color"
-                    value={currentSettings.queueTextColor || '#1f2937'}
-                    onChange={(e) => updateDisplaySetting('queueTextColor', e.target.value)}
-                    data-testid="input-queue-text-color"
-                  />
-                ) : (
-                  <div className="space-y-2">
+                <Label className="text-sm font-medium">Text Senarai</Label>
+                <div className="flex items-center gap-2">
+                  <div className="flex border rounded-md">
+                    <Button
+                      variant={currentSettings.queueTextMode === 'solid' ? 'default' : 'ghost'}
+                      size="sm"
+                      className="h-7 px-2 text-xs rounded-r-none"
+                      onClick={() => updateDisplaySetting('queueTextMode', 'solid')}
+                      data-testid="button-queue-text-solid"
+                    >
+                      Solid
+                    </Button>
+                    <Button
+                      variant={currentSettings.queueTextMode === 'gradient' ? 'default' : 'ghost'}
+                      size="sm"
+                      className="h-7 px-2 text-xs rounded-l-none border-l"
+                      onClick={() => updateDisplaySetting('queueTextMode', 'gradient')}
+                      data-testid="button-queue-text-gradient"
+                    >
+                      <Brush className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  {currentSettings.queueTextMode === 'solid' ? (
+                    <Input
+                      type="color"
+                      value={currentSettings.queueTextColor || '#1f2937'}
+                      onChange={(e) => updateDisplaySetting('queueTextColor', e.target.value)}
+                      className="w-12 h-7 p-0 border-2"
+                      data-testid="input-queue-text-color"
+                    />
+                  ) : (
                     <Button
                       variant="outline"
-                      className="w-full h-8 text-xs"
+                      size="sm"
+                      className="h-7 w-12 p-0"
                       onClick={() => setGradientPickers(prev => ({ ...prev, queueText: true }))}
                       data-testid="button-queue-text-gradient-picker"
                       style={{
                         background: currentSettings.queueTextGradient,
-                        color: 'white',
                         border: '2px solid #e5e7eb'
                       }}
                     >
-                      <Brush className="h-3 w-3 mr-1" />
-                      Pilih Gradient Text
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Background Color Section */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Background Senarai</Label>
+                <div className="flex items-center gap-2">
+                  <div className="flex border rounded-md">
+                    <Button
+                      variant={currentSettings.queueBackgroundMode === 'solid' ? 'default' : 'ghost'}
+                      size="sm"
+                      className="h-7 px-2 text-xs rounded-r-none"
+                      onClick={() => updateDisplaySetting('queueBackgroundMode', 'solid')}
+                      data-testid="button-queue-solid"
+                    >
+                      Solid
+                    </Button>
+                    <Button
+                      variant={currentSettings.queueBackgroundMode === 'gradient' ? 'default' : 'ghost'}
+                      size="sm"
+                      className="h-7 px-2 text-xs rounded-l-none border-l"
+                      onClick={() => updateDisplaySetting('queueBackgroundMode', 'gradient')}
+                      data-testid="button-queue-gradient"
+                    >
+                      <Brush className="h-3 w-3" />
                     </Button>
                   </div>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label>Background Senarai</Label>
-                
-                {/* Toggle between solid and gradient */}
-                <div className="flex space-x-2 mb-2">
-                  <Button
-                    variant={currentSettings.queueBackgroundMode === 'solid' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => updateDisplaySetting('queueBackgroundMode', 'solid')}
-                    data-testid="button-queue-solid"
-                  >
-                    Solid
-                  </Button>
-                  <Button
-                    variant={currentSettings.queueBackgroundMode === 'gradient' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => updateDisplaySetting('queueBackgroundMode', 'gradient')}
-                    data-testid="button-queue-gradient"
-                  >
-                    <Brush className="h-3 w-3 mr-1" />
-                    Gradient
-                  </Button>
-                </div>
-
-                {currentSettings.queueBackgroundMode === 'solid' ? (
-                  <Input
-                    type="color"
-                    value={currentSettings.queueBackgroundColor || '#f3f4f6'}
-                    onChange={(e) => updateDisplaySetting('queueBackgroundColor', e.target.value)}
-                    data-testid="input-queue-bg-color"
-                  />
-                ) : (
-                  <div className="space-y-2">
+                  {currentSettings.queueBackgroundMode === 'solid' ? (
+                    <Input
+                      type="color"
+                      value={currentSettings.queueBackgroundColor || '#f3f4f6'}
+                      onChange={(e) => updateDisplaySetting('queueBackgroundColor', e.target.value)}
+                      className="w-12 h-7 p-0 border-2"
+                      data-testid="input-queue-bg-color"
+                    />
+                  ) : (
                     <Button
                       variant="outline"
-                      className="w-full h-10"
+                      size="sm"
+                      className="h-7 w-12 p-0"
                       onClick={() => setGradientPickers(prev => ({ ...prev, queue: true }))}
                       data-testid="button-queue-gradient-picker"
                       style={{
                         background: currentSettings.queueBackgroundGradient,
-                        color: 'white',
                         border: '2px solid #e5e7eb'
                       }}
                     >
-                      <Brush className="h-4 w-4 mr-2" />
-                      Pilih Gradient
                     </Button>
-                    <p className="text-xs text-muted-foreground">
-                      Preview: {currentSettings.queueBackgroundGradient}
-                    </p>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
             
