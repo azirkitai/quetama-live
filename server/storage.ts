@@ -1386,6 +1386,10 @@ export class DatabaseStorage implements IStorage {
     return this.memStorage.getActiveTextGroups(userId);
   }
 
+  async getTextGroupByName(groupName: string, userId: string): Promise<TextGroup | undefined> {
+    return this.memStorage.getTextGroupByName(groupName, userId);
+  }
+
   async getTextGroupById(id: string, userId: string): Promise<TextGroup | undefined> {
     return this.memStorage.getTextGroupById(id, userId);
   }
