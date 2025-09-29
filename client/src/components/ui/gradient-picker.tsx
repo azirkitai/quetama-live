@@ -139,8 +139,6 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
     }
   };
 
-  if (!isOpen) return null;
-
   // Initialize visual builder from current value when dialog opens
   useEffect(() => {
     if (isOpen && currentValue) {
@@ -153,6 +151,8 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
   useEffect(() => {
     updateCustomGradientFromVisual();
   }, []);
+
+  if (!isOpen) return null;
 
   const handlePresetSelect = (gradient: string) => {
     setSelectedPreset(gradient);
