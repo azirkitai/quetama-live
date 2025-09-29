@@ -113,6 +113,11 @@ export function TVDisplay({
   const marqueeText = settingsObj.marqueeText || "Selamat datang ke Klinik Kesihatan";
   const marqueeColor = settingsObj.marqueeColor || "#ffffff";
   const marqueeBackgroundColor = settingsObj.marqueeBackgroundColor || "#1e40af";
+
+  // Extract modal highlight box settings
+  const modalBackgroundColor = settingsObj.modalBackgroundColor || '#1e293b';
+  const modalBorderColor = settingsObj.modalBorderColor || '#fbbf24';
+  const modalTextColor = settingsObj.modalTextColor || '#ffffff';
   
   // Helper function to get background style based on mode (solid vs gradient)
   const getBackgroundStyle = (mode: string | undefined, solidColor: string, gradientValue: string, fallbackColor: string) => {
@@ -943,7 +948,7 @@ export function TVDisplay({
           {/* Modal Container with Lines Design */}
           <div className="relative p-8 rounded-lg shadow-2xl"
                style={{
-                 backgroundColor: theme?.modalBackgroundColor || '#1e293b',
+                 backgroundColor: modalBackgroundColor,
                  minWidth: '500px',
                  maxWidth: '800px'
                }}>
@@ -952,47 +957,47 @@ export function TVDisplay({
             <div className="absolute inset-0 pointer-events-none">
               {/* Top-left corner */}
               <div className="absolute top-0 left-0 w-20 h-0.5" 
-                   style={{ backgroundColor: theme?.modalBorderColor || '#fbbf24' }}></div>
+                   style={{ backgroundColor: modalBorderColor }}></div>
               <div className="absolute top-0 left-0 w-0.5 h-20" 
-                   style={{ backgroundColor: theme?.modalBorderColor || '#fbbf24' }}></div>
+                   style={{ backgroundColor: modalBorderColor }}></div>
               
               {/* Top-right corner */}
               <div className="absolute top-0 right-0 w-20 h-0.5" 
-                   style={{ backgroundColor: theme?.modalBorderColor || '#fbbf24' }}></div>
+                   style={{ backgroundColor: modalBorderColor }}></div>
               <div className="absolute top-0 right-0 w-0.5 h-20" 
-                   style={{ backgroundColor: theme?.modalBorderColor || '#fbbf24' }}></div>
+                   style={{ backgroundColor: modalBorderColor }}></div>
               
               {/* Bottom-left corner */}
               <div className="absolute bottom-0 left-0 w-20 h-0.5" 
-                   style={{ backgroundColor: theme?.modalBorderColor || '#fbbf24' }}></div>
+                   style={{ backgroundColor: modalBorderColor }}></div>
               <div className="absolute bottom-0 left-0 w-0.5 h-20" 
-                   style={{ backgroundColor: theme?.modalBorderColor || '#fbbf24' }}></div>
+                   style={{ backgroundColor: modalBorderColor }}></div>
               
               {/* Bottom-right corner */}
               <div className="absolute bottom-0 right-0 w-20 h-0.5" 
-                   style={{ backgroundColor: theme?.modalBorderColor || '#fbbf24' }}></div>
+                   style={{ backgroundColor: modalBorderColor }}></div>
               <div className="absolute bottom-0 right-0 w-0.5 h-20" 
-                   style={{ backgroundColor: theme?.modalBorderColor || '#fbbf24' }}></div>
+                   style={{ backgroundColor: modalBorderColor }}></div>
             </div>
 
             {/* Modal Content */}
             <div className="text-center space-y-6 relative z-10">
               {/* NAME Label */}
               <div className="text-sm font-semibold tracking-wider mb-2" 
-                   style={{ color: theme?.modalTextColor || '#ffffff', opacity: 0.8 }}>
+                   style={{ color: modalTextColor, opacity: 0.8 }}>
                 NAME
               </div>
               
               {/* Patient Name */}
               <div className="px-8 py-4 rounded border-2"
                    style={{
-                     borderColor: theme?.modalBorderColor || '#fbbf24',
+                     borderColor: modalBorderColor,
                      backgroundColor: 'rgba(0, 0, 0, 0.2)'
                    }}>
                 <div className="font-bold" 
                      style={{ 
                        fontSize: 'clamp(2.5rem, 6vw, 4rem)',
-                       color: theme?.modalTextColor || '#ffffff'
+                       color: modalTextColor
                      }}
                      data-testid="highlight-patient-name">
                   {currentPatient.name}
@@ -1001,20 +1006,20 @@ export function TVDisplay({
 
               {/* ROOM Label */}
               <div className="text-sm font-semibold tracking-wider mb-2" 
-                   style={{ color: theme?.modalTextColor || '#ffffff', opacity: 0.8 }}>
+                   style={{ color: modalTextColor, opacity: 0.8 }}>
                 ROOM
               </div>
 
               {/* Room Name */}
               <div className="px-8 py-4 rounded border-2"
                    style={{
-                     borderColor: theme?.modalBorderColor || '#fbbf24',
+                     borderColor: modalBorderColor,
                      backgroundColor: 'rgba(0, 0, 0, 0.2)'
                    }}>
                 <div className="font-bold" 
                      style={{ 
                        fontSize: 'clamp(2rem, 4vw, 3rem)',
-                       color: theme?.modalTextColor || '#ffffff'
+                       color: modalTextColor
                      }}
                      data-testid="highlight-patient-room">
                   {currentPatient.room}
