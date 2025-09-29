@@ -238,6 +238,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user display configuration
+  app.get("/api/users/:id/display-config", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const user = await storage.getUser(id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Get all user-specific display configuration data
+      const [settings, themes, media, textGroups] = await Promise.all([
+        storage.getSettings().then(settings => settings.filter(s => s.userId === id)),
+        storage.getThemes().then(themes => themes.filter(t => t.userId === id)),
+        storage.getMedia().then(media => media.filter(m => m.userId === id)),
+        storage.getTextGroups().then(groups => groups.filter(g => g.userId === id))
+      ]);
+
+      const displayConfig = {
+        user: {
+          id: user.id,
+          username: user.username,
+          clinicName: user.clinicName,
+          clinicLocation: user.clinicLocation
+        },
+        settings,
+        themes,
+        media,
+        textGroups,
+        stats: {
+          totalSettings: settings.length,
+          totalThemes: themes.length,
+          totalMedia: media.length,
+          totalTextGroups: textGroups.length,
+          activeTheme: themes.find(t => t.isActive)?.name || "None"
+        }
+      };
+
+      res.json(displayConfig);
+    } catch (error) {
+      console.error("Error fetching user display config:", error);
+      res.status(500).json({ error: "Failed to fetch display configuration" });
+    }
+  });
+
   // Get all windows
   app.get("/api/windows", async (req, res) => {
     try {
