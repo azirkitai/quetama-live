@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -731,20 +730,15 @@ export default function Settings() {
         </Button>
       </div>
 
-      <Tabs defaultValue="display" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="display" data-testid="tab-display-settings">
-            <Monitor className="h-4 w-4 mr-2" />
-            Display
-          </TabsTrigger>
-          <TabsTrigger value="sound" data-testid="tab-sound-settings">
-            <Volume2 className="h-4 w-4 mr-2" />
-            Sound
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Display Settings */}
-        <TabsContent value="display" className="space-y-6">
+      {/* SECTION 1: MEDIA MANAGEMENT */}
+      <div className="space-y-4">
+        <div className="border-b pb-2">
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <Upload className="h-5 w-5" />
+            Media Management
+          </h2>
+          <p className="text-sm text-muted-foreground">Tetapan media dan galeri gambar</p>
+        </div>
           {/* MEDIA CARD */}
           <Card>
             <CardHeader>
@@ -1119,13 +1113,21 @@ export default function Settings() {
             </Card>
           )}
 
-          {/* THEME CARD */}
+        </div>
+
+        {/* SECTION 2: THEME & COLOR SETTINGS */}
+        <div className="space-y-4">
+          <div className="border-b pb-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              Theme & Color Settings
+            </h2>
+            <p className="text-sm text-muted-foreground">Kustomisasi warna dan tema visual</p>
+          </div>
+          
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="h-5 w-5" />
-                Theme & Color Settings
-              </CardTitle>
+              <CardTitle>Tetapan Tema dan Warna</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Main Theme */}
@@ -1424,10 +1426,21 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* SECTION 4: INFORMATION DISPLAY SETTINGS */}
+        <div className="space-y-4">
+          <div className="border-b pb-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Monitor className="h-5 w-5" />
+              Information Display Settings
+            </h2>
+            <p className="text-sm text-muted-foreground">Tetapan paparan maklumat dan marquee</p>
+          </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>Information Display</CardTitle>
+              <CardTitle>Tetapan Paparan Maklumat</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Toggle Options */}
@@ -1516,10 +1529,17 @@ export default function Settings() {
               </Button>
             </CardContent>
           </Card>
-        </TabsContent>
+        </div>
 
-        {/* Sound Settings */}
-        <TabsContent value="sound" className="space-y-6">
+        {/* SECTION 3: AUDIO SETTINGS */}
+        <div className="space-y-4">
+          <div className="border-b pb-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Volume2 className="h-5 w-5" />
+              Audio Settings
+            </h2>
+            <p className="text-sm text-muted-foreground">Tetapan bunyi dan audio</p>
+          </div>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -1617,17 +1637,19 @@ export default function Settings() {
               </Button>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
 
       {/* Gradient Picker Modal */}
-      <GradientPicker
-        isOpen={gradientPicker.isOpen}
-        onClose={handleGradientPickerClose}
-        onApply={handleGradientApply}
-        currentValue={gradientPicker.currentValue}
-        title={`Select Gradient for ${gradientPicker.elementType ? gradientPicker.elementType.charAt(0).toUpperCase() + gradientPicker.elementType.slice(1) : ""}`}
-      />
+      {gradientPicker.isOpen && (
+        <GradientPicker
+          isOpen={gradientPicker.isOpen}
+          onClose={handleGradientPickerClose}
+          onApply={handleGradientApply}
+          currentValue={gradientPicker.currentValue}
+          title={`Select Gradient for ${gradientPicker.elementType ? gradientPicker.elementType.charAt(0).toUpperCase() + gradientPicker.elementType.slice(1) : "Element"}`}
+        />
+      )}
     </div>
   );
 }
