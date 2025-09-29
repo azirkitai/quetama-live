@@ -950,43 +950,94 @@ export function TVDisplay({
         </div>
       )}
 
-      {/* Pure Floating Text - No containers */}
+      {/* Highlight Card Overlay - Rectangle showing name and window */}
       {showHighlight && currentPatient && (
-        <>
-          {/* NAME Label */}
-          <div className="fixed top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 font-semibold tracking-wider z-[100]" 
-               style={{ color: modalTextColor, opacity: 0.8, fontSize: '36px' }}
-               data-testid="highlight-name-label">
-            NAME
-          </div>
-          
-          {/* Patient Name */}
-          <div className="fixed top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 font-bold z-[100]" 
-               style={{ 
-                 fontSize: '80px',
-                 color: modalTextColor
-               }}
-               data-testid="highlight-patient-name">
-            {currentPatient.name}
-          </div>
+        <div className="fixed inset-0 flex items-center justify-center z-[100]" 
+             style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
+             data-testid="highlight-overlay">
+          {/* Modal Container with Lines Design */}
+          <div className="relative p-12 rounded-lg shadow-2xl"
+               style={{
+                 backgroundColor: modalBackgroundColor,
+                 minWidth: '700px',
+                 maxWidth: '1200px'
+               }}>
+            
+            {/* Corner Lines Design */}
+            <div className="absolute inset-0 pointer-events-none">
+              {/* Top-left corner */}
+              <div className="absolute top-0 left-0 w-20 h-0.5" 
+                   style={{ backgroundColor: modalBorderColor }}></div>
+              <div className="absolute top-0 left-0 w-0.5 h-20" 
+                   style={{ backgroundColor: modalBorderColor }}></div>
+              
+              {/* Top-right corner */}
+              <div className="absolute top-0 right-0 w-20 h-0.5" 
+                   style={{ backgroundColor: modalBorderColor }}></div>
+              <div className="absolute top-0 right-0 w-0.5 h-20" 
+                   style={{ backgroundColor: modalBorderColor }}></div>
+              
+              {/* Bottom-left corner */}
+              <div className="absolute bottom-0 left-0 w-20 h-0.5" 
+                   style={{ backgroundColor: modalBorderColor }}></div>
+              <div className="absolute bottom-0 left-0 w-0.5 h-20" 
+                   style={{ backgroundColor: modalBorderColor }}></div>
+              
+              {/* Bottom-right corner */}
+              <div className="absolute bottom-0 right-0 w-20 h-0.5" 
+                   style={{ backgroundColor: modalBorderColor }}></div>
+              <div className="absolute bottom-0 right-0 w-0.5 h-20" 
+                   style={{ backgroundColor: modalBorderColor }}></div>
+            </div>
 
-          {/* ROOM Label */}
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 font-semibold tracking-wider z-[100]" 
-               style={{ color: modalTextColor, opacity: 0.8, fontSize: '36px' }}
-               data-testid="highlight-room-label">
-            ROOM
-          </div>
+            {/* Modal Content */}
+            <div className="text-center space-y-6 relative z-10">
+              {/* NAME Label */}
+              <div className="font-semibold tracking-wider mb-2" 
+                   style={{ color: modalTextColor, opacity: 0.8, fontSize: '36px' }}>
+                NAME
+              </div>
+              
+              {/* Patient Name */}
+              <div className="px-8 py-4 rounded border-2"
+                   style={{
+                     borderColor: modalBorderColor,
+                     backgroundColor: 'rgba(0, 0, 0, 0.2)'
+                   }}>
+                <div className="font-bold" 
+                     style={{ 
+                       fontSize: '80px',
+                       color: modalTextColor
+                     }}
+                     data-testid="highlight-patient-name">
+                  {currentPatient.name}
+                </div>
+              </div>
 
-          {/* Room Name */}
-          <div className="fixed top-2/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 font-bold z-[100]" 
-               style={{ 
-                 fontSize: '70px',
-                 color: modalTextColor
-               }}
-               data-testid="highlight-patient-room">
-            {currentPatient.room}
+              {/* ROOM Label */}
+              <div className="font-semibold tracking-wider mb-2" 
+                   style={{ color: modalTextColor, opacity: 0.8, fontSize: '36px' }}>
+                ROOM
+              </div>
+
+              {/* Room Name */}
+              <div className="px-8 py-4 rounded border-2"
+                   style={{
+                     borderColor: modalBorderColor,
+                     backgroundColor: 'rgba(0, 0, 0, 0.2)'
+                   }}>
+                <div className="font-bold" 
+                     style={{ 
+                       fontSize: '70px',
+                       color: modalTextColor
+                     }}
+                     data-testid="highlight-patient-room">
+                  {currentPatient.room}
+                </div>
+              </div>
+            </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
