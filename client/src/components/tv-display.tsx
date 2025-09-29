@@ -142,6 +142,10 @@ export function TVDisplay({
   const queueBackgroundColor = settingsObj.queueBackgroundColor || '#f3f4f6';
   const queueBackgroundGradient = settingsObj.queueBackgroundGradient || 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)';
   
+  const queueItemBackgroundMode = settingsObj.queueItemBackgroundMode || 'solid';
+  const queueItemBackgroundColor = settingsObj.queueItemBackgroundColor || '#2563eb';
+  const queueItemBackgroundGradient = settingsObj.queueItemBackgroundGradient || 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)';
+  
   const marqueeBackgroundMode = settingsObj.marqueeBackgroundMode || 'solid';
   const marqueeBackgroundGradient = settingsObj.marqueeBackgroundGradient || 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)';
 
@@ -793,7 +797,7 @@ export function TVDisplay({
             queueHistory.slice(0, 4).map((item) => (
               <div key={item.id} className="p-3 rounded grid grid-cols-2 gap-1"
                    style={{
-                     ...getBackgroundStyle(queueBackgroundMode, queueBackgroundColor, queueBackgroundGradient, '#2563eb')
+                     ...getBackgroundStyle(queueItemBackgroundMode, queueItemBackgroundColor, queueItemBackgroundGradient, '#2563eb')
                    }}>
                 <div className="font-bold" 
                      style={{ 

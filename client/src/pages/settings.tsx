@@ -54,6 +54,9 @@ interface SettingsState {
   queueBackgroundColor: string;
   queueBackgroundMode: 'solid' | 'gradient';
   queueBackgroundGradient: string;
+  queueItemBackgroundColor: string;
+  queueItemBackgroundMode: 'solid' | 'gradient';
+  queueItemBackgroundGradient: string;
   queueHighlightColor: string;
   queueBorderColor: string;
   marqueeBackgroundMode: 'solid' | 'gradient';
@@ -73,6 +76,7 @@ export default function Settings() {
     prayer: boolean;
     weather: boolean;
     queue: boolean;
+    queueItem: boolean;
     marquee: boolean;
   }>({
     header: false,
@@ -80,6 +84,7 @@ export default function Settings() {
     prayer: false,
     weather: false,
     queue: false,
+    queueItem: false,
     marquee: false
   });
   
@@ -133,6 +138,9 @@ export default function Settings() {
     queueBackgroundColor: '#f3f4f6',
     queueBackgroundMode: 'solid' as 'solid' | 'gradient',
     queueBackgroundGradient: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)',
+    queueItemBackgroundColor: '#2563eb',
+    queueItemBackgroundMode: 'solid' as 'solid' | 'gradient',
+    queueItemBackgroundGradient: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
     queueHighlightColor: '#ef4444',
     queueBorderColor: '#d1d5db',
     marqueeBackgroundMode: 'solid' as 'solid' | 'gradient',
@@ -179,6 +187,9 @@ export default function Settings() {
         queueBackgroundColor: settingsObj.queueBackgroundColor || '#f3f4f6',
         queueBackgroundMode: (settingsObj.queueBackgroundMode as 'solid' | 'gradient') || 'solid',
         queueBackgroundGradient: settingsObj.queueBackgroundGradient || 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)',
+        queueItemBackgroundColor: settingsObj.queueItemBackgroundColor || '#2563eb',
+        queueItemBackgroundMode: (settingsObj.queueItemBackgroundMode as 'solid' | 'gradient') || 'solid',
+        queueItemBackgroundGradient: settingsObj.queueItemBackgroundGradient || 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
         queueHighlightColor: settingsObj.queueHighlightColor || '#ef4444',
         queueBorderColor: settingsObj.queueBorderColor || '#d1d5db',
         marqueeBackgroundMode: (settingsObj.marqueeBackgroundMode as 'solid' | 'gradient') || 'solid',
@@ -193,7 +204,7 @@ export default function Settings() {
         return hasChanges ? { ...prev, ...newSettings } : prev;
       });
     }
-  }, [settings.length, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.marqueeBackgroundColor, settingsObj.enableSound, settingsObj.volume, settingsObj.presetKey, settingsObj.headerTextColor, settingsObj.headerBackgroundColor, settingsObj.headerBackgroundMode, settingsObj.headerBackgroundGradient, settingsObj.callNameTextColor, settingsObj.callBackgroundColor, settingsObj.callBackgroundMode, settingsObj.callBackgroundGradient, settingsObj.windowTextColor, settingsObj.callBorderColor, settingsObj.prayerTimesTextColor, settingsObj.prayerTimesBackgroundColor, settingsObj.prayerTimesBackgroundMode, settingsObj.prayerTimesBackgroundGradient, settingsObj.weatherTextColor, settingsObj.weatherBackgroundColor, settingsObj.weatherBackgroundMode, settingsObj.weatherBackgroundGradient, settingsObj.queueTextColor, settingsObj.queueBackgroundColor, settingsObj.queueBackgroundMode, settingsObj.queueBackgroundGradient, settingsObj.queueHighlightColor, settingsObj.queueBorderColor, settingsObj.marqueeBackgroundMode, settingsObj.marqueeBackgroundGradient]);
+  }, [settings.length, settingsObj.mediaType, settingsObj.dashboardMediaType, settingsObj.youtubeUrl, settingsObj.theme, settingsObj.showPrayerTimes, settingsObj.showWeather, settingsObj.marqueeText, settingsObj.marqueeColor, settingsObj.marqueeBackgroundColor, settingsObj.enableSound, settingsObj.volume, settingsObj.presetKey, settingsObj.headerTextColor, settingsObj.headerBackgroundColor, settingsObj.headerBackgroundMode, settingsObj.headerBackgroundGradient, settingsObj.callNameTextColor, settingsObj.callBackgroundColor, settingsObj.callBackgroundMode, settingsObj.callBackgroundGradient, settingsObj.windowTextColor, settingsObj.callBorderColor, settingsObj.prayerTimesTextColor, settingsObj.prayerTimesBackgroundColor, settingsObj.prayerTimesBackgroundMode, settingsObj.prayerTimesBackgroundGradient, settingsObj.weatherTextColor, settingsObj.weatherBackgroundColor, settingsObj.weatherBackgroundMode, settingsObj.weatherBackgroundGradient, settingsObj.queueTextColor, settingsObj.queueBackgroundColor, settingsObj.queueBackgroundMode, settingsObj.queueBackgroundGradient, settingsObj.queueItemBackgroundColor, settingsObj.queueItemBackgroundMode, settingsObj.queueItemBackgroundGradient, settingsObj.queueHighlightColor, settingsObj.queueBorderColor, settingsObj.marqueeBackgroundMode, settingsObj.marqueeBackgroundGradient]);
 
   const handleRefresh = () => {
     refetch();
@@ -311,6 +322,9 @@ export default function Settings() {
       { key: 'queueBackgroundColor', value: currentSettings.queueBackgroundColor, category: 'display' },
       { key: 'queueBackgroundMode', value: currentSettings.queueBackgroundMode, category: 'display' },
       { key: 'queueBackgroundGradient', value: currentSettings.queueBackgroundGradient, category: 'display' },
+      { key: 'queueItemBackgroundColor', value: currentSettings.queueItemBackgroundColor, category: 'display' },
+      { key: 'queueItemBackgroundMode', value: currentSettings.queueItemBackgroundMode, category: 'display' },
+      { key: 'queueItemBackgroundGradient', value: currentSettings.queueItemBackgroundGradient, category: 'display' },
       { key: 'queueHighlightColor', value: currentSettings.queueHighlightColor, category: 'display' },
       { key: 'queueBorderColor', value: currentSettings.queueBorderColor, category: 'display' },
       { key: 'marqueeBackgroundMode', value: currentSettings.marqueeBackgroundMode, category: 'display' },
@@ -1166,6 +1180,62 @@ export default function Settings() {
                 )}
               </div>
             </div>
+            
+            {/* Queue Item Background Controls */}
+            <div className="border-t pt-4 mt-4">
+              <Label className="text-sm font-semibold mb-2 block">Background Item Queue (Kotak setiap patient)</Label>
+              
+              {/* Toggle between solid and gradient for queue items */}
+              <div className="flex space-x-2 mb-2">
+                <Button
+                  variant={currentSettings.queueItemBackgroundMode === 'solid' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => updateDisplaySetting('queueItemBackgroundMode', 'solid')}
+                  data-testid="button-queue-item-solid"
+                >
+                  Solid
+                </Button>
+                <Button
+                  variant={currentSettings.queueItemBackgroundMode === 'gradient' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => updateDisplaySetting('queueItemBackgroundMode', 'gradient')}
+                  data-testid="button-queue-item-gradient"
+                >
+                  <Brush className="h-3 w-3 mr-1" />
+                  Gradient
+                </Button>
+              </div>
+
+              {currentSettings.queueItemBackgroundMode === 'solid' ? (
+                <Input
+                  type="color"
+                  value={currentSettings.queueItemBackgroundColor || '#2563eb'}
+                  onChange={(e) => updateDisplaySetting('queueItemBackgroundColor', e.target.value)}
+                  data-testid="input-queue-item-bg-color"
+                />
+              ) : (
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full h-10"
+                    onClick={() => setGradientPickers(prev => ({ ...prev, queueItem: true }))}
+                    data-testid="button-queue-item-gradient-picker"
+                    style={{
+                      background: currentSettings.queueItemBackgroundGradient,
+                      color: 'white',
+                      border: '2px solid #e5e7eb'
+                    }}
+                  >
+                    <Brush className="h-4 w-4 mr-2" />
+                    Pilih Gradient untuk Item
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Preview: {currentSettings.queueItemBackgroundGradient}
+                  </p>
+                </div>
+              )}
+            </div>
+            
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Warna Highlight</Label>
@@ -1506,6 +1576,17 @@ export default function Settings() {
         }}
         title="Queue Background Gradient"
         currentValue={currentSettings.queueBackgroundGradient}
+      />
+      
+      <GradientPicker
+        isOpen={gradientPickers.queueItem}
+        onClose={() => setGradientPickers(prev => ({ ...prev, queueItem: false }))}
+        onApply={(gradient) => {
+          updateDisplaySetting('queueItemBackgroundGradient', gradient);
+          setGradientPickers(prev => ({ ...prev, queueItem: false }));
+        }}
+        title="Queue Item Background Gradient"
+        currentValue={currentSettings.queueItemBackgroundGradient}
       />
       
       <GradientPicker
