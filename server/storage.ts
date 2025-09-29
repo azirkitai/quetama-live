@@ -395,12 +395,13 @@ export class MemStorage implements IStorage {
     return Array.from(this.windows.values());
   }
 
-  async createWindow(name: string): Promise<Window> {
+  async createWindow(insertWindow: InsertWindow): Promise<Window> {
     const id = randomUUID();
     const window: Window = {
       id,
-      name: name.trim(),
-      isActive: true
+      name: insertWindow.name.trim(),
+      isActive: true,
+      userId: insertWindow.userId
     };
     
     this.windows.set(id, window);
@@ -952,7 +953,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createWindow(insertWindow: InsertWindow): Promise<Window> {
-    return this.memStorage.createWindow(insertWindow.name);
+    return this.memStorage.createWindow(insertWindow);
   }
 
   async updateWindow(windowId: string, name: string): Promise<Window | undefined> {

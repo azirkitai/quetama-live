@@ -415,7 +415,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Window name is required" });
       }
       
-      const window = await storage.createWindow(name);
+      // Get user ID from session
+      const userId = req.session.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const window = await storage.createWindow({ name, userId });
       res.status(201).json(window);
     } catch (error) {
       console.error("Error creating window:", error);
