@@ -738,14 +738,14 @@ export function TVDisplay({
             {queueHistory.length > 0 ? (
               queueHistory.slice(0, 4).map((item) => (
                 <div key={item.id} className="grid grid-cols-2 gap-1">
-                  <div className="font-bold" 
+                  <div className="font-bold text-center" 
                        style={{ 
                          fontSize: 'clamp(1.25rem, 2vw, 2rem)',
                          ...getHistoryNameStyle()
                        }}>
                     {item.room}
                   </div>
-                  <div 
+                  <div className="text-center" 
                        style={{ 
                          fontSize: 'clamp(1.25rem, 2vw, 2rem)',
                          ...getHistoryNameStyle()
