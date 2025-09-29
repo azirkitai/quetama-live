@@ -627,6 +627,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: 'image',
         mimeType: file.mimetype,
         size: file.size,
+        userId: 'system', // TODO: Replace with authenticated user ID
       });
 
       res.status(201).json(media);
@@ -658,6 +659,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: type as 'image' | 'video',
         mimeType,
         size,
+        userId: 'system', // TODO: Replace with authenticated user ID
       });
 
       res.status(201).json(media);
@@ -751,7 +753,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const createdMedia = [];
       for (const mediaData of testMedia) {
-        const media = await storage.createMedia(mediaData);
+        const media = await storage.createMedia({
+          ...mediaData,
+          userId: 'system' // Test media for system
+        });
         createdMedia.push(media);
       }
 
