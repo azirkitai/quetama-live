@@ -868,10 +868,7 @@ export function TVDisplay({
       </div>
 
       {/* Second Row Right - Patient Queue */}
-      <div className={`text-white ${isFullscreen ? 'p-4' : 'p-4'} flex flex-col w-full h-full`}
-           style={{
-             ...getBackgroundStyle(queueBackgroundMode, queueBackgroundColor, queueBackgroundGradient, '#1d4ed8')
-           }}>
+      <div className={`text-white ${isFullscreen ? 'p-4' : 'p-4'} flex flex-col w-full h-full`}>
         <div className="grid grid-cols-2 gap-1 text-center mb-2">
           <div className="font-bold" style={{ 
             fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
