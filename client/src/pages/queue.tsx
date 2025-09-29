@@ -348,7 +348,7 @@ export default function Queue() {
                     key={window.id} 
                     value={window.id}
                   >
-                    {window.name} {window.currentPatientId && "(Sedang Digunakan)"}
+                    {window.name}
                   </SelectItem>
                 ))}
               </SelectContent>
