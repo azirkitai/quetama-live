@@ -959,11 +959,11 @@ export function TVDisplay({
              style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
              data-testid="highlight-overlay">
           {/* Modal Container with Lines Design */}
-          <div className="relative p-8 rounded-lg shadow-2xl"
+          <div className="relative p-12 rounded-lg shadow-2xl"
                style={{
                  backgroundColor: modalBackgroundColor,
-                 minWidth: '500px',
-                 maxWidth: '800px'
+                 minWidth: '700px',
+                 maxWidth: '1200px'
                }}>
             
             {/* Corner Lines Design */}
@@ -1009,7 +1009,7 @@ export function TVDisplay({
                    }}>
                 <div className="font-bold" 
                      style={{ 
-                       fontSize: 'clamp(2.5rem, 6vw, 4rem)',
+                       fontSize: 'clamp(3.5rem, 8vw, 6rem)',
                        color: modalTextColor
                      }}
                      data-testid="highlight-patient-name">
@@ -1031,7 +1031,7 @@ export function TVDisplay({
                    }}>
                 <div className="font-bold" 
                      style={{ 
-                       fontSize: 'clamp(2rem, 4vw, 3rem)',
+                       fontSize: 'clamp(3rem, 6vw, 5rem)',
                        color: modalTextColor
                      }}
                      data-testid="highlight-patient-room">
