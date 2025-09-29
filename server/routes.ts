@@ -416,7 +416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get user ID from session
-      const userId = req.session.user?.id;
+      const userId = req.session.userId;
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
