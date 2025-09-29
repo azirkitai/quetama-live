@@ -5,7 +5,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { X, Plus, Palette, Wand2 } from "lucide-react";
 
 interface ColorStop {
@@ -289,12 +288,14 @@ export function GradientPicker({ isOpen, onClose, onApply, title, currentValue }
                           </div>
                           
                           <div className="flex items-center gap-2 w-24">
-                            <Slider
-                              value={[stop.position]}
-                              onValueChange={(value) => updateColorStop(index, "position", value[0])}
+                            <input
+                              type="range"
+                              value={stop.position}
+                              onChange={(e) => updateColorStop(index, "position", parseInt(e.target.value))}
+                              min={0}
                               max={100}
                               step={1}
-                              className="flex-1"
+                              className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                               data-testid={`position-slider-${index}`}
                             />
                             <span className="text-xs w-8 text-muted-foreground">{stop.position}%</span>
