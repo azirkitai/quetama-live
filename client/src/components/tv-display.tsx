@@ -872,6 +872,18 @@ export function TVDisplay({
            style={{
              ...getBackgroundStyle(queueBackgroundMode, queueBackgroundColor, queueBackgroundGradient, '#1d4ed8')
            }}>
+        <div className="grid grid-cols-2 gap-1 text-center mb-2">
+          <div className="font-bold" style={{ 
+            fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
+            ...getHistoryNameStyle(),
+            ...getTextGroupStyles('Token Label', true) // Exclude color overrides so Settings can override
+          }}>NAME</div>
+          <div className="font-bold" style={{ 
+            fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
+            ...getHistoryNameStyle(),
+            ...getTextGroupStyles('Window Label', true) // Exclude color overrides so Settings can override
+          }}>ROOM</div>
+        </div>
         <div className="space-y-1 overflow-y-auto flex-1" data-testid="queue-list">
           {queueHistory.length > 0 ? (
             queueHistory.slice(0, 4).map((item) => (
