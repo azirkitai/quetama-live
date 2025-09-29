@@ -536,10 +536,40 @@ export default function Settings() {
   };
 
   // Test audio function
-  const playTestSequence = useCallback(() => {
-    // Test audio functionality would be implemented here
-    console.log('Testing audio preset:', currentSettings.presetKey, 'at volume:', currentSettings.volume);
-  }, [currentSettings.presetKey, currentSettings.volume]);
+  const playTestSequence = useCallback(async () => {
+    try {
+      if (!currentSettings.enableSound) {
+        toast({
+          title: "Bunyi Dimatikan",
+          description: "Sila aktifkan bunyi terlebih dahulu untuk test audio",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Testing audio preset:', currentSettings.presetKey, 'at volume:', currentSettings.volume);
+      
+      // Play test sound using audio system
+      await audioSystem.playNotificationSound({
+        enableSound: currentSettings.enableSound,
+        volume: currentSettings.volume,
+        soundMode: 'preset',
+        presetKey: currentSettings.presetKey || 'notification_sound'
+      });
+
+      toast({
+        title: "Test Bunyi",
+        description: `Test bunyi ${currentSettings.presetKey} pada volume ${currentSettings.volume}% dimainkan`,
+      });
+    } catch (error) {
+      console.error('Error playing test sound:', error);
+      toast({
+        title: "Ralat",
+        description: "Gagal memainkan bunyi test. Sila periksa tetapan audio.",
+        variant: "destructive",
+      });
+    }
+  }, [currentSettings.enableSound, currentSettings.presetKey, currentSettings.volume, toast]);
 
   if (isLoading || mediaLoading) {
     return (
@@ -869,7 +899,6 @@ export default function Settings() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 Clinic Name Settings
               </CardTitle>
               <p className="text-xs text-muted-foreground">Tetapkan nama klinik yang akan dipaparkan di skrin TV</p>
@@ -907,7 +936,6 @@ export default function Settings() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                 Header Display
               </CardTitle>
               <p className="text-xs text-muted-foreground">Warna untuk bahagian header skrin TV</p>
@@ -1113,7 +1141,6 @@ export default function Settings() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               Current Call Display
             </CardTitle>
             <p className="text-sm text-muted-foreground">Warna untuk paparan panggilan semasa</p>
@@ -1305,7 +1332,6 @@ export default function Settings() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
               Prayer Times Display
             </CardTitle>
             <p className="text-sm text-muted-foreground">Warna untuk paparan waktu solat</p>
@@ -1436,7 +1462,6 @@ export default function Settings() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
               Weather Display
             </CardTitle>
             <p className="text-sm text-muted-foreground">Warna untuk paparan cuaca</p>
@@ -1567,7 +1592,6 @@ export default function Settings() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
               Queue List Display
             </CardTitle>
             <p className="text-sm text-muted-foreground">Warna untuk senarai giliran pesakit</p>
