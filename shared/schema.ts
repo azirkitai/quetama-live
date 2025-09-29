@@ -19,6 +19,18 @@ export const userSessions = pgTable("user_sessions", {
   expire: timestamp("expire", { precision: 6 }).notNull(),
 });
 
+// QR authentication sessions table
+export const qrSessions = pgTable("qr_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tvVerifierHash: text("tv_verifier_hash").notNull(),
+  status: text("status").notNull().default("pending"), // 'pending', 'authorized', 'consumed', 'expired'
+  authorizedUserId: varchar("authorized_user_id"),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  metadata: json("metadata").default(sql`'{}'::json`),
+});
+
 // Windows/Rooms table
 export const windows = pgTable("windows", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -192,6 +204,11 @@ export const insertThemeSchema = createInsertSchema(themes).pick({
   userId: true,
 });
 
+export const insertQrSessionSchema = createInsertSchema(qrSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
 
 // Sound mode enum for type safety - only preset mode supported
 export const SoundMode = z.enum(["preset"]);
@@ -234,6 +251,7 @@ export type InsertSetting = z.infer<typeof insertSettingSchema>;
 export type InsertMedia = z.infer<typeof insertMediaSchema>;
 export type InsertTextGroup = z.infer<typeof insertTextGroupSchema>;
 export type InsertTheme = z.infer<typeof insertThemeSchema>;
+export type InsertQrSession = z.infer<typeof insertQrSessionSchema>;
 
 // Select types
 export type User = typeof users.$inferSelect;
@@ -243,3 +261,4 @@ export type Setting = typeof settings.$inferSelect;
 export type Media = typeof media.$inferSelect;
 export type TextGroup = typeof textGroups.$inferSelect;
 export type Theme = typeof themes.$inferSelect;
+export type QrSession = typeof qrSessions.$inferSelect;

@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting, type Media, type InsertMedia, type TextGroup, type InsertTextGroup, type Theme, type InsertTheme, users, settings, themes, textGroups } from "@shared/schema";
+import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting, type Media, type InsertMedia, type TextGroup, type InsertTextGroup, type Theme, type InsertTheme, type QrSession, type InsertQrSession, users, settings, themes, textGroups, qrSessions } from "@shared/schema";
 import * as schema from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql } from "drizzle-orm";
@@ -117,6 +117,13 @@ export interface IStorage {
   deleteTextGroup(id: string, userId: string): Promise<boolean>;
   toggleTextGroupStatus(id: string, userId: string): Promise<TextGroup | undefined>;
   
+  // QR Session methods
+  createQrSession(qrSession: InsertQrSession): Promise<QrSession>;
+  getQrSession(id: string): Promise<QrSession | undefined>;
+  authorizeQrSession(id: string, userId: string): Promise<QrSession | undefined>;
+  finalizeQrSession(id: string, tvVerifier: string): Promise<{ success: boolean; userId?: string }>;
+  expireOldQrSessions(): Promise<void>;
+  
 }
 
 export class MemStorage implements IStorage {
@@ -126,6 +133,7 @@ export class MemStorage implements IStorage {
   private media: Map<string, Media>;
   private themes: Map<string, Theme>;
   private textGroups: Map<string, TextGroup>;
+  private qrSessions: Map<string, QrSession>;
   private systemUserId: string;
 
   constructor() {
@@ -135,6 +143,7 @@ export class MemStorage implements IStorage {
     this.media = new Map();
     this.themes = new Map();
     this.textGroups = new Map();
+    this.qrSessions = new Map();
     
     // Use a default system user ID for settings that need user association
     this.systemUserId = "system";
@@ -897,6 +906,84 @@ export class MemStorage implements IStorage {
     return updatedTextGroup;
   }
 
+  // QR Session methods
+  async createQrSession(qrSession: InsertQrSession): Promise<QrSession> {
+    const id = randomUUID();
+    const session: QrSession = {
+      id,
+      tvVerifierHash: qrSession.tvVerifierHash,
+      status: "pending",
+      authorizedUserId: null,
+      createdAt: new Date(),
+      expiresAt: qrSession.expiresAt,
+      usedAt: null,
+      metadata: qrSession.metadata || {},
+    };
+    this.qrSessions.set(id, session);
+    return session;
+  }
+
+  async getQrSession(id: string): Promise<QrSession | undefined> {
+    const session = this.qrSessions.get(id);
+    // Clean up expired sessions automatically
+    if (session && session.expiresAt < new Date()) {
+      this.qrSessions.delete(id);
+      return undefined;
+    }
+    return session;
+  }
+
+  async authorizeQrSession(id: string, userId: string): Promise<QrSession | undefined> {
+    const session = this.qrSessions.get(id);
+    if (!session || session.status !== "pending" || session.expiresAt < new Date()) {
+      return undefined;
+    }
+
+    const updatedSession = {
+      ...session,
+      status: "authorized" as const,
+      authorizedUserId: userId,
+    };
+    this.qrSessions.set(id, updatedSession);
+    return updatedSession;
+  }
+
+  async finalizeQrSession(id: string, tvVerifier: string): Promise<{ success: boolean; userId?: string }> {
+    const session = this.qrSessions.get(id);
+    if (!session || session.status !== "authorized" || session.expiresAt < new Date()) {
+      return { success: false };
+    }
+
+    // Verify tvVerifier hash
+    const hash = createHash('sha256').update(tvVerifier).digest('hex');
+    if (hash !== session.tvVerifierHash) {
+      return { success: false };
+    }
+
+    // Mark as consumed
+    const finalizedSession = {
+      ...session,
+      status: "consumed" as const,
+      usedAt: new Date(),
+    };
+    this.qrSessions.set(id, finalizedSession);
+
+    return { success: true, userId: session.authorizedUserId || undefined };
+  }
+
+  async expireOldQrSessions(): Promise<void> {
+    const now = new Date();
+    const expiredIds: string[] = [];
+    
+    this.qrSessions.forEach((session, id) => {
+      if (session.expiresAt < now || (session.status === "consumed" && session.usedAt && now.getTime() - session.usedAt.getTime() > 60000)) {
+        expiredIds.push(id);
+      }
+    });
+    
+    expiredIds.forEach(id => this.qrSessions.delete(id));
+  }
+
 }
 
 // Database Storage Implementation
@@ -1538,6 +1625,78 @@ export class DatabaseStorage implements IStorage {
       }));
 
     return filteredHistory;
+  }
+
+  // QR Session methods
+  async createQrSession(qrSession: InsertQrSession): Promise<QrSession> {
+    const result = await db.insert(schema.qrSessions)
+      .values(qrSession)
+      .returning();
+    return result[0];
+  }
+
+  async getQrSession(id: string): Promise<QrSession | undefined> {
+    const [session] = await db.select().from(schema.qrSessions)
+      .where(eq(schema.qrSessions.id, id));
+    
+    // Clean up expired sessions automatically
+    if (session && session.expiresAt < new Date()) {
+      await db.delete(schema.qrSessions).where(eq(schema.qrSessions.id, id));
+      return undefined;
+    }
+    return session;
+  }
+
+  async authorizeQrSession(id: string, userId: string): Promise<QrSession | undefined> {
+    const session = await this.getQrSession(id);
+    if (!session || session.status !== "pending" || session.expiresAt < new Date()) {
+      return undefined;
+    }
+
+    const result = await db.update(schema.qrSessions)
+      .set({ 
+        status: "authorized",
+        authorizedUserId: userId
+      })
+      .where(eq(schema.qrSessions.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  async finalizeQrSession(id: string, tvVerifier: string): Promise<{ success: boolean; userId?: string }> {
+    const session = await this.getQrSession(id);
+    if (!session || session.status !== "authorized" || session.expiresAt < new Date()) {
+      return { success: false };
+    }
+
+    // Verify tvVerifier hash
+    const hash = createHash('sha256').update(tvVerifier).digest('hex');
+    if (hash !== session.tvVerifierHash) {
+      return { success: false };
+    }
+
+    // Mark as consumed
+    const result = await db.update(schema.qrSessions)
+      .set({ 
+        status: "consumed",
+        usedAt: new Date()
+      })
+      .where(eq(schema.qrSessions.id, id))
+      .returning();
+
+    return { success: true, userId: session.authorizedUserId || undefined };
+  }
+
+  async expireOldQrSessions(): Promise<void> {
+    const now = new Date();
+    const oneMinuteAgo = new Date(now.getTime() - 60000);
+    
+    // Delete expired sessions or consumed sessions older than 1 minute
+    await db.delete(schema.qrSessions)
+      .where(
+        sql`${schema.qrSessions.expiresAt} < ${now.toISOString()} OR (${schema.qrSessions.status} = 'consumed' AND ${schema.qrSessions.usedAt} < ${oneMinuteAgo.toISOString()})`
+      );
   }
 }
 
