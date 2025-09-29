@@ -1250,7 +1250,7 @@ export class DatabaseStorage implements IStorage {
     return undefined;
   }
 
-  async updatePatientStatus(id: string, status: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined> {
+  async updatePatientStatus(id: string, status: string, userId: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined> {
     const updateData: any = { 
       status,
       windowId: windowId || null,
@@ -1265,7 +1265,7 @@ export class DatabaseStorage implements IStorage {
 
     const [updatedPatient] = await db.update(schema.patients)
       .set(updateData)
-      .where(eq(schema.patients.id, id))
+      .where(and(eq(schema.patients.id, id), eq(schema.patients.userId, userId)))
       .returning();
 
     return updatedPatient;
