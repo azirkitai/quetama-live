@@ -310,8 +310,10 @@ export default function Settings() {
 
   // Handle gradient button clicks
   const handleGradientClick = (element: 'calling' | 'highlight' | 'history' | 'clinic' | 'background') => {
+    console.log('Gradient button clicked:', element);
     const presets = gradientPresets[element];
     const randomGradient = presets[Math.floor(Math.random() * presets.length)];
+    console.log('Selected gradient:', randomGradient);
     
     const gradientFieldMap = {
       calling: 'callingGradient',
@@ -321,7 +323,16 @@ export default function Settings() {
       background: 'backgroundGradient'
     } as const;
     
-    handleThemeColorChange(gradientFieldMap[element], randomGradient);
+    const targetField = gradientFieldMap[element];
+    console.log('Target field:', targetField);
+    
+    handleThemeColorChange(targetField, randomGradient);
+    
+    // Also show user feedback
+    toast({
+      title: "Gradient Applied",
+      description: `${randomGradient} applied to ${element}`,
+    });
   };
 
   // Save theme colors
