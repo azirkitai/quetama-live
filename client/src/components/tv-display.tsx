@@ -759,8 +759,8 @@ export function TVDisplay({
               ))
             ) : (
               <div className="text-center py-4">
-                <p style={{ 
-                  fontSize: 'clamp(1.25rem, 2vw, 2rem)',
+                <p className="font-bold" style={{ 
+                  fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
                   ...getHistoryNameStyle(),
                   ...getTextGroupStyles('Patient History', true)
                 }}>Tiada dalam barisan</p>
