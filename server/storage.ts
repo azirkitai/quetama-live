@@ -1397,11 +1397,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCurrentCall(userId: string): Promise<Patient | undefined> {
-    const [currentCall] = await db.select().from(schema.patients)
+    const [result] = await db
+      .select({
+        id: schema.patients.id,
+        name: schema.patients.name,
+        number: schema.patients.number,
+        status: schema.patients.status,
+        windowId: schema.patients.windowId,
+        lastWindowId: schema.patients.lastWindowId,
+        registeredAt: schema.patients.registeredAt,
+        calledAt: schema.patients.calledAt,
+        completedAt: schema.patients.completedAt,
+        requeueReason: schema.patients.requeueReason,
+        trackingHistory: schema.patients.trackingHistory,
+        userId: schema.patients.userId,
+        // Add room name from windows table
+        room: schema.windows.name,
+      })
+      .from(schema.patients)
+      .leftJoin(schema.windows, eq(schema.patients.windowId, schema.windows.id))
       .where(and(eq(schema.patients.status, "called"), eq(schema.patients.userId, userId)))
       .orderBy(sql`${schema.patients.calledAt} DESC`)
       .limit(1);
-    return currentCall;
+    
+    return result ? {
+      ...result,
+      windowName: result.room || undefined
+    } as Patient & { room?: string } : undefined;
   }
 
   async getRecentHistory(userId: string, limit: number = 10): Promise<Patient[]> {
