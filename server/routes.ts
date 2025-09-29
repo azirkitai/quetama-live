@@ -239,20 +239,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Clear windowId for completed or requeue status
       const finalWindowId = (status === "completed" || status === "requeue") ? null : windowId;
       
-      const patient = await storage.updatePatientStatus(id, status, finalWindowId, requeueReason, req.session.userId);
+      const patient = await storage.updatePatientStatus(id, status, req.session.userId, finalWindowId, requeueReason);
       if (!patient) {
         return res.status(404).json({ error: "Patient not found" });
       }
       
       // Update window assignment if needed
       if (windowId && status === "called") {
-        await storage.updateWindowPatient(windowId, id, req.session.userId);
+        await storage.updateWindowPatient(windowId, req.session.userId, id);
       } else if (status === "completed" || status === "requeue") {
         // Clear patient from window
         const windows = await storage.getWindows(req.session.userId);
         const currentWindow = windows.find(w => w.currentPatientId === id);
         if (currentWindow) {
-          await storage.updateWindowPatient(currentWindow.id, undefined, req.session.userId);
+          await storage.updateWindowPatient(currentWindow.id, req.session.userId, undefined);
         }
       }
       
