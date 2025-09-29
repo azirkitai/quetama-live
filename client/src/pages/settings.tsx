@@ -55,6 +55,10 @@ interface SettingsState {
   windowTextMode: 'solid' | 'gradient';
   windowTextGradient: string;
   callBorderColor: string;
+  // Highlight box modal colors
+  modalBackgroundColor: string;
+  modalBorderColor: string;
+  modalTextColor: string;
   prayerTimesTextColor: string;
   prayerTimesTextMode: 'solid' | 'gradient';
   prayerTimesTextGradient: string;
@@ -179,6 +183,10 @@ export default function Settings() {
     windowTextMode: 'solid' as 'solid' | 'gradient',
     windowTextGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
     callBorderColor: '#22c55e',
+    // Highlight box modal defaults
+    modalBackgroundColor: '#1e293b',
+    modalBorderColor: '#fbbf24',
+    modalTextColor: '#ffffff',
     prayerTimesTextColor: '#ffffff',
     prayerTimesTextMode: 'solid' as 'solid' | 'gradient',
     prayerTimesTextGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
@@ -250,6 +258,10 @@ export default function Settings() {
         windowTextMode: (settingsObj.windowTextMode as 'solid' | 'gradient') || 'solid',
         windowTextGradient: settingsObj.windowTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
         callBorderColor: settingsObj.callBorderColor || '#22c55e',
+        // Highlight box modal settings
+        modalBackgroundColor: settingsObj.modalBackgroundColor || '#1e293b',
+        modalBorderColor: settingsObj.modalBorderColor || '#fbbf24',
+        modalTextColor: settingsObj.modalTextColor || '#ffffff',
         prayerTimesTextColor: settingsObj.prayerTimesTextColor || '#ffffff',
         prayerTimesTextMode: (settingsObj.prayerTimesTextMode as 'solid' | 'gradient') || 'solid',
         prayerTimesTextGradient: settingsObj.prayerTimesTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
@@ -302,6 +314,8 @@ export default function Settings() {
     // Window text and call border
     settingsObj.windowTextColor, settingsObj.windowTextMode, settingsObj.windowTextGradient,
     settingsObj.callBorderColor,
+    // Modal highlight colors
+    settingsObj.modalBackgroundColor, settingsObj.modalBorderColor, settingsObj.modalTextColor,
     // Prayer times text and background
     settingsObj.prayerTimesTextColor, settingsObj.prayerTimesTextMode, settingsObj.prayerTimesTextGradient,
     settingsObj.prayerTimesBackgroundColor, settingsObj.prayerTimesBackgroundMode, settingsObj.prayerTimesBackgroundGradient,
@@ -461,6 +475,10 @@ export default function Settings() {
       { key: 'windowTextMode', value: currentSettings.windowTextMode, category: 'display' },
       { key: 'windowTextGradient', value: currentSettings.windowTextGradient, category: 'display' },
       { key: 'callBorderColor', value: currentSettings.callBorderColor, category: 'display' },
+      // Modal highlight settings
+      { key: 'modalBackgroundColor', value: currentSettings.modalBackgroundColor, category: 'display' },
+      { key: 'modalBorderColor', value: currentSettings.modalBorderColor, category: 'display' },
+      { key: 'modalTextColor', value: currentSettings.modalTextColor, category: 'display' },
       { key: 'prayerTimesTextColor', value: currentSettings.prayerTimesTextColor, category: 'display' },
       { key: 'prayerTimesTextMode', value: currentSettings.prayerTimesTextMode, category: 'display' },
       { key: 'prayerTimesTextGradient', value: currentSettings.prayerTimesTextGradient, category: 'display' },
@@ -1405,6 +1423,60 @@ export default function Settings() {
                 <Save className="h-4 w-4 mr-2" />
               )}
               Simpan Warna Panggilan
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Highlight Box Modal Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              Highlight Box (Patient Calling)
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Warna untuk kotak highlight semasa panggil patient</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Background Color</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.modalBackgroundColor || '#1e293b'}
+                  onChange={(e) => updateDisplaySetting('modalBackgroundColor', e.target.value)}
+                  data-testid="input-modal-background-color"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Border Color (Corner Lines)</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.modalBorderColor || '#fbbf24'}
+                  onChange={(e) => updateDisplaySetting('modalBorderColor', e.target.value)}
+                  data-testid="input-modal-border-color"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Text Color</Label>
+                <Input
+                  type="color"
+                  value={currentSettings.modalTextColor || '#ffffff'}
+                  onChange={(e) => updateDisplaySetting('modalTextColor', e.target.value)}
+                  data-testid="input-modal-text-color"
+                />
+              </div>
+            </div>
+            <Button 
+              onClick={handleSaveDisplay} 
+              className="w-full" 
+              data-testid="button-save-highlight-colors"
+              disabled={saveSettingsMutation.isPending}
+            >
+              {saveSettingsMutation.isPending ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Simpan Warna Highlight Box
             </Button>
           </CardContent>
         </Card>
