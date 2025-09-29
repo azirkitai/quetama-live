@@ -1,6 +1,7 @@
-import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting, type Media, type InsertMedia, type TextGroup, type InsertTextGroup, type Theme, type InsertTheme, users } from "@shared/schema";
+import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting, type Media, type InsertMedia, type TextGroup, type InsertTextGroup, type Theme, type InsertTheme, users, settings, themes, textGroups } from "@shared/schema";
+import * as schema from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import * as bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
 
@@ -9,6 +10,12 @@ interface Window {
   name: string;
   isActive: boolean;
   currentPatientId?: string;
+  userId: string;
+}
+
+interface InsertWindow {
+  name: string;
+  userId: string;
 }
 
 // modify the interface with any CRUD methods
@@ -36,7 +43,7 @@ export interface IStorage {
   
   // Window methods
   getWindows(): Promise<Window[]>;
-  createWindow(name: string): Promise<Window>;
+  createWindow(insertWindow: InsertWindow): Promise<Window>;
   updateWindow(windowId: string, name: string): Promise<Window | undefined>;
   deleteWindow(windowId: string): Promise<boolean>;
   toggleWindowStatus(windowId: string): Promise<Window | undefined>;
@@ -762,10 +769,6 @@ export class MemStorage implements IStorage {
 }
 
 // Database Storage Implementation
-import { db } from "./db";
-import { eq, and } from "drizzle-orm";
-import * as schema from "@shared/schema";
-
 export class DatabaseStorage implements IStorage {
   private systemUserId: string;
 
@@ -898,7 +901,7 @@ export class DatabaseStorage implements IStorage {
   async deleteSetting(key: string): Promise<boolean> {
     const result = await db.delete(schema.settings)
       .where(eq(schema.settings.key, key));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Implement all other methods from MemStorage but using database operations
@@ -944,15 +947,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getWindow(id: string): Promise<Window | undefined> {
-    return this.memStorage.getWindow(id);
+    const windows = await this.memStorage.getWindows();
+    return windows.find(w => w.id === id);
   }
 
   async createWindow(insertWindow: InsertWindow): Promise<Window> {
-    return this.memStorage.createWindow(insertWindow);
+    return this.memStorage.createWindow(insertWindow.name);
   }
 
-  async updateWindow(id: string, updates: Partial<Window>): Promise<Window | undefined> {
-    return this.memStorage.updateWindow(id, updates);
+  async updateWindow(windowId: string, name: string): Promise<Window | undefined> {
+    return this.memStorage.updateWindow(windowId, name);
   }
 
   async deleteWindow(id: string): Promise<boolean> {
@@ -973,7 +977,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPatient(id: string): Promise<Patient | undefined> {
-    return this.memStorage.getPatient(id);
+    const patients = await this.memStorage.getPatients();
+    return patients.find(p => p.id === id);
   }
 
   async getPatientsByDate(date: string): Promise<Patient[]> {
@@ -989,7 +994,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePatient(id: string, updates: Partial<Patient>): Promise<Patient | undefined> {
-    return this.memStorage.updatePatient(id, updates);
+    // MemStorage doesn't have updatePatient, so return undefined for now
+    return undefined;
   }
 
   async updatePatientStatus(id: string, status: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined> {
