@@ -996,8 +996,8 @@ export function TVDisplay({
             {/* Modal Content */}
             <div className="text-center space-y-6 relative z-10">
               {/* NAME Label */}
-              <div className="text-sm font-semibold tracking-wider mb-2" 
-                   style={{ color: modalTextColor, opacity: 0.8 }}>
+              <div className="font-semibold tracking-wider mb-2" 
+                   style={{ color: modalTextColor, opacity: 0.8, fontSize: '36px' }}>
                 NAME
               </div>
               
@@ -1018,8 +1018,8 @@ export function TVDisplay({
               </div>
 
               {/* ROOM Label */}
-              <div className="text-sm font-semibold tracking-wider mb-2" 
-                   style={{ color: modalTextColor, opacity: 0.8 }}>
+              <div className="font-semibold tracking-wider mb-2" 
+                   style={{ color: modalTextColor, opacity: 0.8, fontSize: '36px' }}>
                 ROOM
               </div>
 
