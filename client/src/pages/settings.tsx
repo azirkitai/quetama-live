@@ -13,6 +13,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Setting, Media, Theme } from "@shared/schema";
 import { audioSystem } from "@/lib/audio-system";
+import { GradientPicker } from "@/components/ui/gradient-picker";
 
 import type { PresetSoundKeyType } from "@shared/schema";
 
@@ -144,6 +145,17 @@ export default function Settings() {
     modalBackgroundColor: "#1e293b",
     modalBorderColor: "#fbbf24",
     modalTextColor: "#ffffff",
+  });
+
+  // Gradient picker state
+  const [gradientPicker, setGradientPicker] = useState<{
+    isOpen: boolean;
+    elementType: 'calling' | 'highlight' | 'history' | 'clinic' | 'background' | null;
+    currentValue: string;
+  }>({
+    isOpen: false,
+    elementType: null,
+    currentValue: ""
   });
 
   // Update state when settings are loaded from database
