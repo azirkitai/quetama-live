@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -100,26 +100,23 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
-      <Card className="w-[600px] max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="flex items-center gap-2">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="w-[600px] max-w-[90vw] max-h-[80vh] overflow-hidden" data-testid="dialog-gradient-picker">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
             <Palette className="h-5 w-5" />
             {title}
-          </CardTitle>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </CardHeader>
+          </DialogTitle>
+        </DialogHeader>
         
-        <CardContent className="space-y-4">
+        <div className="space-y-4 overflow-y-auto">
           <Tabs defaultValue="presets" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="presets" className="flex items-center gap-2">
+              <TabsTrigger value="presets" className="flex items-center gap-2" data-testid="tab-preset-gradients">
                 <Wand2 className="h-4 w-4" />
                 Preset Gradients
               </TabsTrigger>
-              <TabsTrigger value="custom">Custom Gradient</TabsTrigger>
+              <TabsTrigger value="custom" data-testid="tab-custom-gradient">Custom Gradient</TabsTrigger>
             </TabsList>
             
             <TabsContent value="presets" className="space-y-4 max-h-[400px] overflow-y-auto">
@@ -138,6 +135,7 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
                         style={{ background: gradient }}
                         onClick={() => handlePresetSelect(gradient)}
                         title={gradient}
+                        data-testid={`preset-gradient-${key}-${index}`}
                       />
                     ))}
                   </div>
@@ -153,6 +151,7 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
                   onChange={(e) => setCustomGradient(e.target.value)}
                   placeholder="linear-gradient(45deg, #ff0000, #00ff00)"
                   className="font-mono text-sm"
+                  data-testid="input-custom-gradient"
                 />
                 <p className="text-xs text-muted-foreground">
                   Enter CSS gradient syntax like: linear-gradient(45deg, #start, #end)
@@ -178,16 +177,16 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
               Current: {customGradient ? customGradient.substring(0, 40) + "..." : "None"}
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={onClose}>
+              <Button variant="outline" onClick={onClose} data-testid="button-gradient-cancel">
                 Cancel
               </Button>
-              <Button onClick={handleApply} disabled={!customGradient}>
+              <Button onClick={handleApply} disabled={!customGradient} data-testid="button-gradient-apply">
                 Apply Gradient
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
