@@ -136,10 +136,10 @@ export class MemStorage implements IStorage {
     return systemUser.id;
   }
 
-  private async initializeDefaultUsers() {
-    // Create demo admin user
+  private initializeDefaultUsers() {
+    // Create demo admin user using synchronous hashing to avoid race conditions
     const adminId = randomUUID();
-    const hashedAdminPassword = await bcrypt.hash("password123", 10);
+    const hashedAdminPassword = bcrypt.hashSync("password123", 10);
     const adminUser: User = {
       id: adminId,
       username: "admin",
@@ -153,9 +153,9 @@ export class MemStorage implements IStorage {
     };
     this.users.set(adminId, adminUser);
 
-    // Create demo regular user
+    // Create demo regular user using synchronous hashing
     const userId = randomUUID();
-    const hashedUserPassword = await bcrypt.hash("userpass", 10);
+    const hashedUserPassword = bcrypt.hashSync("userpass", 10);
     const regularUser: User = {
       id: userId,
       username: "user",
@@ -287,6 +287,12 @@ export class MemStorage implements IStorage {
   async updateUser(userId: string, updates: Partial<User>): Promise<User | undefined> {
     const user = this.users.get(userId);
     if (!user) return undefined;
+
+    // Hash password if it's being updated
+    if (updates.password) {
+      const saltRounds = 10;
+      updates.password = await bcrypt.hash(updates.password, saltRounds);
+    }
 
     const updatedUser = { ...user, ...updates };
     this.users.set(userId, updatedUser);

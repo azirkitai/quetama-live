@@ -32,6 +32,12 @@ declare module 'express-session' {
   }
 }
 
+// Helper function to sanitize user data (remove sensitive fields)
+function sanitizeUser(user: any) {
+  const { password, ...sanitizedUser } = user;
+  return sanitizedUser;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // Authentication routes
@@ -49,21 +55,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Username atau password salah" });
       }
       
-      // Store user info in session
-      req.session.userId = user.id;
-      req.session.username = user.username;
-      req.session.role = user.role;
-      
-      res.json({
-        success: true,
-        user: {
-          id: user.id,
-          username: user.username,
-          role: user.role,
-          clinicName: user.clinicName,
-          clinicLocation: user.clinicLocation
+      // Regenerate session ID to prevent session fixation attacks
+      req.session.regenerate((err) => {
+        if (err) {
+          console.error("Session regeneration error:", err);
+          return res.status(500).json({ error: "Ralat internal server" });
         }
+        
+        // Store user info in session
+        req.session.userId = user.id;
+        req.session.username = user.username;
+        req.session.role = user.role;
+        
+        res.json({
+          success: true,
+          user: {
+            id: user.id,
+            username: user.username,
+            role: user.role,
+            clinicName: user.clinicName,
+            clinicLocation: user.clinicLocation
+          }
+        });
       });
+      
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ error: "Ralat internal server" });
@@ -232,7 +247,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users", async (req, res) => {
     try {
       const users = await storage.getUsers();
-      res.json(users);
+      // Remove sensitive data like passwords from response
+      const sanitizedUsers = users.map(sanitizeUser);
+      res.json(sanitizedUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({ error: "Failed to fetch users" });
@@ -261,7 +278,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "User not found" });
       }
       
-      res.json(user);
+      // Remove sensitive data like password from response
+      const sanitizedUser = sanitizeUser(user);
+      res.json(sanitizedUser);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ error: "Failed to fetch user" });
