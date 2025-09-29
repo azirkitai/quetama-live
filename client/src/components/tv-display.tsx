@@ -171,6 +171,10 @@ export function TVDisplay({
   const headerTextColor = settingsObj.headerTextColor || '#ffffff';
   const headerTextGradient = settingsObj.headerTextGradient || 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
   
+  const clinicNameTextMode = settingsObj.clinicNameTextMode || 'solid';
+  const clinicNameTextColor = settingsObj.clinicNameTextColor || '#ffffff';
+  const clinicNameTextGradient = settingsObj.clinicNameTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
+  
   const callNameTextMode = settingsObj.callNameTextMode || 'solid';
   const callNameTextColor = settingsObj.callNameTextColor || '#ffffff';
   const callNameTextGradient = settingsObj.callNameTextGradient || 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
@@ -643,7 +647,7 @@ export function TVDisplay({
           <h1 className="font-bold text-[30px]" 
               style={{ 
                 fontSize: 'clamp(2rem, 3.5vw, 3.5rem)',
-                ...getTextStyle(headerTextMode, headerTextColor, headerTextGradient, '#ffffff'),
+                ...getTextStyle(clinicNameTextMode, clinicNameTextColor, clinicNameTextGradient, '#ffffff'),
                 ...getTextGroupStyles('clinic_name')
               }} 
               data-testid="clinic-name">

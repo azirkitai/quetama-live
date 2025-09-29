@@ -28,6 +28,9 @@ interface SettingsState {
   marqueeTextMode: 'solid' | 'gradient';
   marqueeTextGradient: string;
   marqueeBackgroundColor: string;
+  clinicNameTextColor: string;
+  clinicNameTextMode: 'solid' | 'gradient';
+  clinicNameTextGradient: string;
   enableSound: boolean;
   volume: number;
   // Simplified audio system - preset only
@@ -103,6 +106,7 @@ export default function Settings() {
     historyName: boolean;
     marquee: boolean;
     marqueeText: boolean;
+    clinicNameText: boolean;
   }>({
     header: false,
     headerText: false,
@@ -118,7 +122,8 @@ export default function Settings() {
     queueItem: false,
     historyName: false,
     marquee: false,
-    marqueeText: false
+    marqueeText: false,
+    clinicNameText: false
   });
   
   // Fetch current settings from database
@@ -146,6 +151,9 @@ export default function Settings() {
     marqueeTextMode: 'solid' as 'solid' | 'gradient',
     marqueeTextGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
     marqueeBackgroundColor: '#000000',
+    clinicNameTextColor: '#ffffff',
+    clinicNameTextMode: 'solid' as 'solid' | 'gradient',
+    clinicNameTextGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
     enableSound: false,
     volume: 50,
     soundMode: 'preset',
@@ -212,6 +220,9 @@ export default function Settings() {
         marqueeTextMode: (settingsObj.marqueeTextMode as 'solid' | 'gradient') || 'solid',
         marqueeTextGradient: settingsObj.marqueeTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
         marqueeBackgroundColor: settingsObj.marqueeBackgroundColor || '#000000',
+        clinicNameTextColor: settingsObj.clinicNameTextColor || '#ffffff',
+        clinicNameTextMode: (settingsObj.clinicNameTextMode as 'solid' | 'gradient') || 'solid',
+        clinicNameTextGradient: settingsObj.clinicNameTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
         enableSound: settingsObj.enableSound === 'true',
         volume: parseInt(settingsObj.volume || '50'),
         soundMode: 'preset' as const,
@@ -302,7 +313,9 @@ export default function Settings() {
     settingsObj.queueHighlightColor, settingsObj.queueBorderColor,
     // Marquee text and background
     settingsObj.marqueeTextMode, settingsObj.marqueeTextGradient,
-    settingsObj.marqueeBackgroundMode, settingsObj.marqueeBackgroundGradient
+    settingsObj.marqueeBackgroundMode, settingsObj.marqueeBackgroundGradient,
+    // Clinic name text
+    settingsObj.clinicNameTextColor, settingsObj.clinicNameTextMode, settingsObj.clinicNameTextGradient
   ]);
 
   const handleRefresh = () => {
@@ -969,6 +982,81 @@ export default function Settings() {
                 <Save className="h-4 w-4 mr-2" />
               )}
               Simpan Warna Header
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Clinic Name Text Colors - Compact Layout */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+              Clinic Name Text
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Warna untuk teks nama klinik di skrin TV</p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {/* Compact clinic name text control */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Text Nama Klinik</Label>
+              <div className="flex items-center gap-2">
+                <div className="flex border rounded-md">
+                  <Button
+                    variant={currentSettings.clinicNameTextMode === 'solid' ? 'default' : 'ghost'}
+                    size="sm"
+                    className="h-7 px-2 text-xs rounded-r-none"
+                    onClick={() => updateDisplaySetting('clinicNameTextMode', 'solid')}
+                    data-testid="button-clinic-name-text-solid"
+                  >
+                    Solid
+                  </Button>
+                  <Button
+                    variant={currentSettings.clinicNameTextMode === 'gradient' ? 'default' : 'ghost'}
+                    size="sm"
+                    className="h-7 px-2 text-xs rounded-l-none border-l"
+                    onClick={() => updateDisplaySetting('clinicNameTextMode', 'gradient')}
+                    data-testid="button-clinic-name-text-gradient"
+                  >
+                    <Brush className="h-3 w-3" />
+                  </Button>
+                </div>
+                {currentSettings.clinicNameTextMode === 'solid' ? (
+                  <Input
+                    type="color"
+                    value={currentSettings.clinicNameTextColor || '#ffffff'}
+                    onChange={(e) => updateDisplaySetting('clinicNameTextColor', e.target.value)}
+                    className="w-12 h-7 p-0 border-2"
+                    data-testid="input-clinic-name-text-color"
+                  />
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 w-12 p-0"
+                    onClick={() => setGradientPickers(prev => ({ ...prev, clinicNameText: true }))}
+                    data-testid="button-clinic-name-text-gradient-picker"
+                    style={{
+                      background: currentSettings.clinicNameTextGradient,
+                      border: '2px solid #e5e7eb'
+                    }}
+                  >
+                  </Button>
+                )}
+              </div>
+            </div>
+            
+            <Button 
+              onClick={handleSaveDisplay} 
+              className="w-full" 
+              data-testid="button-save-clinic-name-text"
+              disabled={saveSettingsMutation.isPending}
+            >
+              {saveSettingsMutation.isPending ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Simpan Text Nama Klinik
             </Button>
           </CardContent>
         </Card>
@@ -2145,6 +2233,17 @@ export default function Settings() {
         }}
         title="Marquee Text Gradient"
         currentValue={currentSettings.marqueeTextGradient}
+      />
+      
+      <GradientPicker
+        isOpen={gradientPickers.clinicNameText}
+        onClose={() => setGradientPickers(prev => ({ ...prev, clinicNameText: false }))}
+        onApply={(gradient) => {
+          updateDisplaySetting('clinicNameTextGradient', gradient);
+          setGradientPickers(prev => ({ ...prev, clinicNameText: false }));
+        }}
+        title="Clinic Name Text Gradient"
+        currentValue={currentSettings.clinicNameTextGradient}
       />
     </div>
   );
