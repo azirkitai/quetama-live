@@ -365,14 +365,7 @@ export default function Settings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/media'] });
-      setSelectedFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-      toast({
-        title: "Berjaya",
-        description: "Gambar telah diupload dengan berjaya",
-      });
+      // Note: File clearing is now handled in handleUploadFiles function
     },
     onError: (error: any) => {
       toast({
