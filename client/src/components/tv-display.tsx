@@ -643,14 +643,15 @@ export function TVDisplay({
           <h1 className="font-bold text-[30px]" 
               style={{ 
                 fontSize: 'clamp(2rem, 3.5vw, 3.5rem)',
-                ...createTextGradientStyle(theme?.clinicNameGradient, theme?.clinicNameColor || '#facc15'),
+                ...getTextStyle(headerTextMode, headerTextColor, headerTextGradient, '#ffffff'),
                 ...getTextGroupStyles('clinic_name')
               }} 
               data-testid="clinic-name">
             {clinicName}
           </h1>
-          <p className="text-yellow-400" style={{ 
+          <p style={{ 
             fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
+            ...getTextStyle(headerTextMode, headerTextColor, headerTextGradient, '#facc15'),
             ...getTextGroupStyles('clinic_name')
           }}>
             TROPICANA AMAN
@@ -662,6 +663,7 @@ export function TVDisplay({
                }}>
             <h2 className="font-bold" style={{ 
               fontSize: 'clamp(1.75rem, 2.5vw, 2.5rem)',
+              ...getTextStyle(callNameTextMode, callNameTextColor, callNameTextGradient, '#ffffff'),
               ...getTextGroupStyles('title')
             }}>CALLING</h2>
           </div>
@@ -673,20 +675,22 @@ export function TVDisplay({
                style={{
                  ...getBackgroundStyle(callBackgroundMode, callBackgroundColor, callBackgroundGradient, '#2563eb')
                }}>
-            <div className="font-bold text-yellow-400"
+            <div className="font-bold"
                  style={{ 
                    fontSize: 'clamp(2.5rem, 4vw, 4rem)',
                    opacity: isBlinking ? (blinkVisible ? '1' : '0') : '1',
-                   transition: isBlinking ? 'none' : 'opacity 300ms ease-in-out'
+                   transition: isBlinking ? 'none' : 'opacity 300ms ease-in-out',
+                   ...getTextStyle(callNameTextMode, callNameTextColor, callNameTextGradient, '#facc15')
                  }} 
                  data-testid="current-patient-display">
               {currentPatient.name}
             </div>
-            <div className="text-yellow-400"
+            <div
                  style={{ 
                    fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
                    opacity: isBlinking ? (blinkVisible ? '1' : '0') : '1',
-                   transition: isBlinking ? 'none' : 'opacity 300ms ease-in-out'
+                   transition: isBlinking ? 'none' : 'opacity 300ms ease-in-out',
+                   ...getTextStyle(windowTextMode, windowTextColor, windowTextGradient, '#facc15')
                  }} 
                  data-testid="current-room">
               {currentPatient.room}
@@ -731,7 +735,7 @@ export function TVDisplay({
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
               <span className="text-yellow-400 text-3xl">🕌</span>
-              <span className="font-bold text-3xl text-yellow-400">PRAYER TIME</span>
+              <span className="font-bold text-3xl" style={{ ...getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') }}>PRAYER TIME</span>
             </div>
             
             {prayerTimesLoading ? (
@@ -751,10 +755,14 @@ export function TVDisplay({
                   
                   return (
                     <div key={prayer.key || index} className="text-center">
-                      <div className={`font-bold text-2xl ${isCurrentPrayer ? 'text-yellow-400 animate-pulse' : 'text-white'}`}>
+                      <div className={`font-bold text-2xl ${isCurrentPrayer ? 'animate-pulse' : ''}`} style={{
+                        ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
+                      }}>
                         {prayer.name}
                       </div>
-                      <div className={`text-2xl ${isCurrentPrayer ? 'text-yellow-300 font-bold' : 'text-white'}`}>
+                      <div className={`text-2xl ${isCurrentPrayer ? 'font-bold' : ''}`} style={{
+                        ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
+                      }}>
                         {prayer.time}
                       </div>
                     </div>
@@ -776,7 +784,7 @@ export function TVDisplay({
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
               <span className="text-blue-400 text-3xl">🌤️</span>
-              <span className="font-bold text-3xl text-blue-400">WEATHER</span>
+              <span className="font-bold text-3xl" style={{ ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#60a5fa') }}>WEATHER</span>
             </div>
             
             {/* Fix rendering race condition - better conditional logic */}
@@ -800,29 +808,43 @@ export function TVDisplay({
                 <div className="flex items-center justify-center space-x-6">
                   <span className="text-6xl">{weatherData.current.icon}</span>
                   <div className="text-center">
-                    <div className="text-5xl font-bold text-white">
+                    <div className="text-5xl font-bold" style={{
+                      ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
+                    }}>
                       {weatherData.current.temperature}{weatherData.units.temperature}
                     </div>
-                    <div className="text-xl text-blue-200">
+                    <div className="text-xl" style={{
+                      ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
+                    }}>
                       {weatherData.current.description}
                     </div>
                   </div>
                 </div>
                 
                 {/* Weather Details */}
-                <div className="grid grid-cols-2 gap-6 text-white">
+                <div className="grid grid-cols-2 gap-6">
                   <div className="text-center">
-                    <div className="text-lg font-semibold text-blue-200">Humidity</div>
-                    <div className="text-2xl">{weatherData.current.humidity}{weatherData.units.humidity}</div>
+                    <div className="text-lg font-semibold" style={{
+                      ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
+                    }}>Humidity</div>
+                    <div className="text-2xl" style={{
+                      ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
+                    }}>{weatherData.current.humidity}{weatherData.units.humidity}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-semibold text-blue-200">Wind Speed</div>
-                    <div className="text-2xl">{weatherData.current.windSpeed} {weatherData.units.windSpeed}</div>
+                    <div className="text-lg font-semibold" style={{
+                      ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
+                    }}>Wind Speed</div>
+                    <div className="text-2xl" style={{
+                      ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
+                    }}>{weatherData.current.windSpeed} {weatherData.units.windSpeed}</div>
                   </div>
                 </div>
                 
                 {/* Location Info - improved labeling */}
-                <div className="text-blue-300 text-lg">
+                <div className="text-lg" style={{
+                  ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#93c5fd')
+                }}>
                   📍 {locationError ? "Kuala Lumpur, Malaysia" : `${weatherData.location.city}, ${weatherData.location.country}`}
                 </div>
               </div>
