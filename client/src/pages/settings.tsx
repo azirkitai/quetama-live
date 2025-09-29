@@ -286,46 +286,10 @@ export default function Settings() {
     }));
   };
 
-  // Gradient presets for different elements
-  const gradientPresets = {
-    calling: [
-      "linear-gradient(45deg, #3b82f6, #1d4ed8)",
-      "linear-gradient(90deg, #06b6d4, #0891b2)",
-      "linear-gradient(135deg, #8b5cf6, #7c3aed)",
-      "linear-gradient(180deg, #10b981, #059669)"
-    ],
-    highlight: [
-      "linear-gradient(45deg, #ef4444, #dc2626)",
-      "linear-gradient(90deg, #f59e0b, #d97706)",
-      "linear-gradient(135deg, #ec4899, #db2777)",
-      "linear-gradient(180deg, #f97316, #ea580c)"
-    ],
-    history: [
-      "linear-gradient(45deg, #6b7280, #4b5563)",
-      "linear-gradient(90deg, #64748b, #475569)",
-      "linear-gradient(135deg, #78716c, #57534e)",
-      "linear-gradient(180deg, #71717a, #52525b)"
-    ],
-    clinic: [
-      "linear-gradient(45deg, #1f2937, #111827)",
-      "linear-gradient(90deg, #374151, #1f2937)",
-      "linear-gradient(135deg, #4b5563, #374151)",
-      "linear-gradient(180deg, #6b7280, #4b5563)"
-    ],
-    background: [
-      "linear-gradient(45deg, #ffffff, #f8fafc)",
-      "linear-gradient(90deg, #f1f5f9, #e2e8f0)",
-      "linear-gradient(135deg, #fef7cd, #fef3c7)",
-      "linear-gradient(180deg, #dcfce7, #bbf7d0)"
-    ]
-  };
 
-  // Handle gradient button clicks
+  // Handle gradient button clicks - open gradient picker
   const handleGradientClick = (element: 'calling' | 'highlight' | 'history' | 'clinic' | 'background') => {
-    console.log('Gradient button clicked:', element);
-    const presets = gradientPresets[element];
-    const randomGradient = presets[Math.floor(Math.random() * presets.length)];
-    console.log('Selected gradient:', randomGradient);
+    console.log('Opening gradient picker for:', element);
     
     const gradientFieldMap = {
       calling: 'callingGradient',
@@ -335,15 +299,42 @@ export default function Settings() {
       background: 'backgroundGradient'
     } as const;
     
-    const targetField = gradientFieldMap[element];
-    console.log('Target field:', targetField);
+    const currentValue = themeColors[gradientFieldMap[element]] || "";
     
-    handleThemeColorChange(targetField, randomGradient);
+    setGradientPicker({
+      isOpen: true,
+      elementType: element,
+      currentValue: currentValue
+    });
+  };
+
+  // Handle gradient picker apply
+  const handleGradientApply = (gradient: string) => {
+    if (!gradientPicker.elementType) return;
     
-    // Also show user feedback
+    const gradientFieldMap = {
+      calling: 'callingGradient',
+      highlight: 'highlightBoxGradient', 
+      history: 'historyNameGradient',
+      clinic: 'clinicNameGradient',
+      background: 'backgroundGradient'
+    } as const;
+    
+    const targetField = gradientFieldMap[gradientPicker.elementType];
+    handleThemeColorChange(targetField, gradient);
+    
     toast({
       title: "Gradient Applied",
-      description: `${randomGradient} applied to ${element}`,
+      description: `Gradient successfully applied to ${gradientPicker.elementType}`,
+    });
+  };
+
+  // Handle gradient picker close
+  const handleGradientPickerClose = () => {
+    setGradientPicker({
+      isOpen: false,
+      elementType: null,
+      currentValue: ""
     });
   };
 
@@ -1628,6 +1619,15 @@ export default function Settings() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Gradient Picker Modal */}
+      <GradientPicker
+        isOpen={gradientPicker.isOpen}
+        onClose={handleGradientPickerClose}
+        onApply={handleGradientApply}
+        currentValue={gradientPicker.currentValue}
+        title={`Select Gradient for ${gradientPicker.elementType ? gradientPicker.elementType.charAt(0).toUpperCase() + gradientPicker.elementType.slice(1) : ""}`}
+      />
     </div>
   );
 }
