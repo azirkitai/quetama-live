@@ -536,10 +536,31 @@ export default function Settings() {
   };
 
   // Test audio function
-  const playTestSequence = useCallback(() => {
-    // Test audio functionality would be implemented here
-    console.log('Testing audio preset:', currentSettings.presetKey, 'at volume:', currentSettings.volume);
-  }, [currentSettings.presetKey, currentSettings.volume]);
+  const playTestSequence = useCallback(async () => {
+    try {
+      console.log('Testing audio preset:', currentSettings.presetKey, 'at volume:', currentSettings.volume);
+      
+      const audioSettings = {
+        enableSound: currentSettings.enableSound,
+        volume: currentSettings.volume,
+        soundMode: 'preset' as const,
+        presetKey: currentSettings.presetKey,
+      };
+      
+      await audioSystem.playTestSequence(audioSettings);
+      toast({
+        title: "Audio Test",
+        description: `Memainkan bunyi: ${currentSettings.presetKey}`,
+      });
+    } catch (error) {
+      console.error('Error testing audio:', error);
+      toast({
+        title: "Audio Test Gagal",
+        description: "Tidak dapat memainkan audio. Pastikan browser membenarkan audio.",
+        variant: "destructive",
+      });
+    }
+  }, [currentSettings.presetKey, currentSettings.volume, currentSettings.enableSound, toast]);
 
   if (isLoading || mediaLoading) {
     return (
