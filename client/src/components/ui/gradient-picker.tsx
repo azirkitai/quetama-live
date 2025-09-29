@@ -4,7 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, Palette, Wand2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { X, Palette, Wand2, Plus, Trash2 } from "lucide-react";
 
 interface GradientPickerProps {
   isOpen: boolean;
@@ -83,15 +84,59 @@ const gradientCategories = {
   }
 };
 
+interface ColorStop {
+  color: string;
+  position: number;
+}
+
 export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", title = "Select Gradient" }: GradientPickerProps) {
   const [customGradient, setCustomGradient] = useState(currentValue);
   const [selectedPreset, setSelectedPreset] = useState("");
+  
+  // Visual gradient builder state
+  const [gradientDirection, setGradientDirection] = useState("45deg");
+  const [colorStops, setColorStops] = useState<ColorStop[]>([
+    { color: "#ff0000", position: 0 },
+    { color: "#00ff00", position: 100 }
+  ]);
 
   if (!isOpen) return null;
 
   const handlePresetSelect = (gradient: string) => {
     setSelectedPreset(gradient);
     setCustomGradient(gradient);
+  };
+
+  // Visual gradient builder functions
+  const addColorStop = () => {
+    const newPosition = colorStops.length > 0 ? Math.max(...colorStops.map(s => s.position)) + 20 : 50;
+    setColorStops([...colorStops, { color: "#0000ff", position: Math.min(newPosition, 100) }]);
+  };
+
+  const removeColorStop = (index: number) => {
+    if (colorStops.length > 2) { // Keep at least 2 color stops
+      setColorStops(colorStops.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateColorStop = (index: number, field: keyof ColorStop, value: string | number) => {
+    const updated = colorStops.map((stop, i) => 
+      i === index ? { ...stop, [field]: value } : stop
+    );
+    setColorStops(updated);
+  };
+
+  const generateGradientCSS = () => {
+    const sortedStops = [...colorStops].sort((a, b) => a.position - b.position);
+    const stopStrings = sortedStops.map(stop => `${stop.color} ${stop.position}%`);
+    return `linear-gradient(${gradientDirection}, ${stopStrings.join(", ")})`;
+  };
+
+  const applyVisualGradient = () => {
+    const generatedCSS = generateGradientCSS();
+    setCustomGradient(generatedCSS);
+    onApply(generatedCSS);
+    onClose();
   };
 
   const handleApply = () => {
@@ -144,31 +189,123 @@ export function GradientPicker({ isOpen, onClose, onApply, currentValue = "", ti
             </TabsContent>
             
             <TabsContent value="custom" className="space-y-4">
-              <div className="space-y-2">
-                <Label>Custom Gradient CSS</Label>
-                <Input
-                  value={customGradient}
-                  onChange={(e) => setCustomGradient(e.target.value)}
-                  placeholder="linear-gradient(45deg, #ff0000, #00ff00)"
-                  className="font-mono text-sm"
-                  data-testid="input-custom-gradient"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Enter CSS gradient syntax like: linear-gradient(45deg, #start, #end)
-                </p>
-              </div>
-              
-              {customGradient && (
-                <div className="space-y-2">
-                  <Label>Preview</Label>
-                  <div 
-                    className="h-16 rounded-md border"
-                    style={{ 
-                      background: customGradient.includes('gradient') ? customGradient : `linear-gradient(45deg, ${customGradient}, ${customGradient})`
-                    }}
-                  />
-                </div>
-              )}
+              <Tabs defaultValue="visual" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="visual" data-testid="tab-visual-builder">Visual Builder</TabsTrigger>
+                  <TabsTrigger value="css" data-testid="tab-css-code">CSS Code</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="visual" className="space-y-4">
+                  {/* Direction Selector */}
+                  <div className="space-y-2">
+                    <Label>Gradient Direction</Label>
+                    <Select value={gradientDirection} onValueChange={setGradientDirection}>
+                      <SelectTrigger data-testid="select-gradient-direction">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="45deg">↗ Top Right (45°)</SelectItem>
+                        <SelectItem value="90deg">→ Right (90°)</SelectItem>
+                        <SelectItem value="135deg">↘ Bottom Right (135°)</SelectItem>
+                        <SelectItem value="180deg">↓ Bottom (180°)</SelectItem>
+                        <SelectItem value="225deg">↙ Bottom Left (225°)</SelectItem>
+                        <SelectItem value="270deg">← Left (270°)</SelectItem>
+                        <SelectItem value="315deg">↖ Top Left (315°)</SelectItem>
+                        <SelectItem value="0deg">↑ Top (0°)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Live Preview */}
+                  <div className="space-y-2">
+                    <Label>Live Preview</Label>
+                    <div 
+                      className="h-16 rounded-md border"
+                      style={{ background: generateGradientCSS() }}
+                    />
+                  </div>
+
+                  {/* Color Stops */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label>Colors</Label>
+                      <Button size="sm" variant="outline" onClick={addColorStop} data-testid="button-add-color">
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Color
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                      {colorStops.map((stop, index) => (
+                        <div key={index} className="flex items-center gap-2 p-2 border rounded">
+                          <Input
+                            type="color"
+                            value={stop.color}
+                            onChange={(e) => updateColorStop(index, 'color', e.target.value)}
+                            className="w-12 h-8 p-1 border rounded"
+                            data-testid={`color-stop-${index}`}
+                          />
+                          <div className="flex-1">
+                            <Label className="text-xs text-muted-foreground">Position: {stop.position}%</Label>
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={stop.position}
+                              onChange={(e) => updateColorStop(index, 'position', parseInt(e.target.value))}
+                              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                              data-testid={`position-stop-${index}`}
+                            />
+                          </div>
+                          {colorStops.length > 2 && (
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => removeColorStop(index)}
+                              data-testid={`remove-stop-${index}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Apply Visual Gradient */}
+                  <Button onClick={applyVisualGradient} className="w-full" data-testid="button-apply-visual-gradient">
+                    Apply Visual Gradient
+                  </Button>
+                </TabsContent>
+
+                <TabsContent value="css" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Custom Gradient CSS</Label>
+                    <Input
+                      value={customGradient}
+                      onChange={(e) => setCustomGradient(e.target.value)}
+                      placeholder="linear-gradient(45deg, #ff0000, #00ff00)"
+                      className="font-mono text-sm"
+                      data-testid="input-custom-gradient"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Enter CSS gradient syntax like: linear-gradient(45deg, #start, #end)
+                    </p>
+                  </div>
+                  
+                  {customGradient && (
+                    <div className="space-y-2">
+                      <Label>Preview</Label>
+                      <div 
+                        className="h-16 rounded-md border"
+                        style={{ 
+                          background: customGradient.includes('gradient') ? customGradient : `linear-gradient(45deg, ${customGradient}, ${customGradient})`
+                        }}
+                      />
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             </TabsContent>
           </Tabs>
           
