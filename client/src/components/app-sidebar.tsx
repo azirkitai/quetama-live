@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import logoImage from "@assets/EZTURN (1)_1759062234605.png";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 
 import {
   Sidebar,
@@ -66,10 +68,23 @@ const administrationItems = [
 
 export function AppSidebar() {
   const [location] = useLocation();
+  const { logout, user } = useAuth();
+  const { toast } = useToast();
 
-  const handleLogout = () => {
-    console.log("Logout triggered");
-    // TODO: Remove mock functionality - implement real logout
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logout Berjaya",
+        description: "Anda telah berjaya logout dari sistem.",
+      });
+    } catch (error) {
+      toast({
+        title: "Logout Gagal",
+        description: "Terdapat masalah semasa logout. Sila cuba lagi.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -157,6 +172,23 @@ export function AppSidebar() {
           backgroundColor: 'transparent'
         }}
       >
+        {/* User Information */}
+        {user && (
+          <div className="mb-4 p-3 rounded-lg bg-sidebar-accent/20 border border-sidebar-border/30">
+            <div className="text-sidebar-foreground/90 text-sm font-medium">
+              {user.username}
+            </div>
+            <div className="text-sidebar-foreground/60 text-xs">
+              {user.role === 'admin' ? 'Administrator' : 'Pengguna'}
+            </div>
+            {user.clinicName && (
+              <div className="text-sidebar-foreground/60 text-xs mt-1">
+                {user.clinicName}
+              </div>
+            )}
+          </div>
+        )}
+
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton

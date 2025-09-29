@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useState, useEffect } from "react";
 
 // Import pages
@@ -17,6 +18,7 @@ import Queue from "@/pages/queue";
 import Settings from "@/pages/settings";
 import Account from "@/pages/account";
 import Administration from "@/pages/administration";
+import LoginPage from "@/pages/login";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -34,7 +36,8 @@ function Router() {
   );
 }
 
-export default function App() {
+// Authenticated app content
+function AuthenticatedApp() {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Listen for fullscreen changes
@@ -54,30 +57,60 @@ export default function App() {
   };
 
   return (
+    <SidebarProvider style={style as React.CSSProperties}>
+      <div className="flex h-screen w-full">
+        {/* Hide sidebar when in fullscreen */}
+        {!isFullscreen && <AppSidebar />}
+        <div className="flex flex-col flex-1">
+          {/* Hide header when in fullscreen */}
+          {!isFullscreen && (
+            <header className="flex items-center justify-between p-2 border-b bg-background">
+              <SidebarTrigger data-testid="button-sidebar-toggle" />
+              <ThemeToggle />
+            </header>
+          )}
+          <main className={`flex-1 ${isFullscreen ? 'h-screen' : 'overflow-auto'}`}>
+            <Router />
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+}
+
+// Main app with authentication logic
+function AppContent() {
+  const { isAuthenticated, isLoading, login } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-muted-foreground">Memeriksa sesi login...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPage onLoginSuccess={login} />;
+  }
+
+  return <AuthenticatedApp />;
+}
+
+export default function App() {
+  return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="clinic-ui-theme">
-        <TooltipProvider>
-          <SidebarProvider style={style as React.CSSProperties}>
-            <div className="flex h-screen w-full">
-              {/* Hide sidebar when in fullscreen */}
-              {!isFullscreen && <AppSidebar />}
-              <div className="flex flex-col flex-1">
-                {/* Hide header when in fullscreen */}
-                {!isFullscreen && (
-                  <header className="flex items-center justify-between p-2 border-b bg-background">
-                    <SidebarTrigger data-testid="button-sidebar-toggle" />
-                    <ThemeToggle />
-                  </header>
-                )}
-                <main className={`flex-1 ${isFullscreen ? 'h-screen' : 'overflow-auto'}`}>
-                  <Router />
-                </main>
-              </div>
-            </div>
+      <AuthProvider>
+        <ThemeProvider defaultTheme="light" storageKey="clinic-ui-theme">
+          <TooltipProvider>
+            <AppContent />
             <Toaster />
-          </SidebarProvider>
-        </TooltipProvider>
-      </ThemeProvider>
+          </TooltipProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
