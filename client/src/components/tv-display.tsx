@@ -724,12 +724,12 @@ export function TVDisplay({
                 fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
                 ...getHistoryNameStyle(),
                 ...getTextGroupStyles('Token Label', true)
-              }}>ROOM</div>
+              }}>NAME</div>
               <div className="font-bold text-center" style={{ 
                 fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
                 ...getHistoryNameStyle(),
                 ...getTextGroupStyles('Token Label', true)
-              }}>NAME</div>
+              }}>ROOM</div>
             </div>
           </div>
           
@@ -743,14 +743,14 @@ export function TVDisplay({
                          fontSize: 'clamp(1.25rem, 2vw, 2rem)',
                          ...getHistoryNameStyle()
                        }}>
-                    {item.room}
+                    {item.name}
                   </div>
                   <div className="text-center" 
                        style={{ 
                          fontSize: 'clamp(1.25rem, 2vw, 2rem)',
                          ...getHistoryNameStyle()
                        }}>
-                    {item.name}
+                    {item.room}
                   </div>
                 </div>
               ))
