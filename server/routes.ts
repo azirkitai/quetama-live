@@ -38,6 +38,14 @@ function sanitizeUser(user: any) {
   return sanitizedUser;
 }
 
+// Auth middleware to check session before any processing
+function requireAuth(req: any, res: any, next: any) {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: "Sesi tidak aktif" });
+  }
+  next();
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // Authentication routes
@@ -171,7 +179,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all patients
   app.get("/api/patients", async (req, res) => {
     try {
-      const patients = await storage.getPatients();
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const patients = await storage.getPatients(req.session.userId);
       res.json(patients);
     } catch (error) {
       console.error("Error fetching patients:", error);
@@ -182,8 +195,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get today's patients
   app.get("/api/patients/today", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const today = new Date().toISOString().split('T')[0];
-      const patients = await storage.getPatientsByDate(today);
+      const patients = await storage.getPatientsByDate(today, req.session.userId);
       res.json(patients);
     } catch (error) {
       console.error("Error fetching today's patients:", error);
@@ -194,7 +212,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get next patient number
   app.get("/api/patients/next-number", async (req, res) => {
     try {
-      const nextNumber = await storage.getNextPatientNumber();
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const nextNumber = await storage.getNextPatientNumber(req.session.userId);
       res.json({ nextNumber });
     } catch (error) {
       console.error("Error getting next patient number:", error);
@@ -205,26 +228,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update patient status (for queue management)
   app.patch("/api/patients/:id/status", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
       const { status, windowId, requeueReason } = req.body;
       
       // Clear windowId for completed or requeue status
       const finalWindowId = (status === "completed" || status === "requeue") ? null : windowId;
       
-      const patient = await storage.updatePatientStatus(id, status, finalWindowId, requeueReason);
+      const patient = await storage.updatePatientStatus(id, status, finalWindowId, requeueReason, req.session.userId);
       if (!patient) {
         return res.status(404).json({ error: "Patient not found" });
       }
       
       // Update window assignment if needed
       if (windowId && status === "called") {
-        await storage.updateWindowPatient(windowId, id);
+        await storage.updateWindowPatient(windowId, id, req.session.userId);
       } else if (status === "completed" || status === "requeue") {
         // Clear patient from window
-        const windows = await storage.getWindows();
+        const windows = await storage.getWindows(req.session.userId);
         const currentWindow = windows.find(w => w.currentPatientId === id);
         if (currentWindow) {
-          await storage.updateWindowPatient(currentWindow.id, undefined);
+          await storage.updateWindowPatient(currentWindow.id, undefined, req.session.userId);
         }
       }
       
@@ -238,8 +266,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete patient
   app.delete("/api/patients/:id", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
-      const deleted = await storage.deletePatient(id);
+      const deleted = await storage.deletePatient(id, req.session.userId);
       
       if (!deleted) {
         return res.status(404).json({ error: "Patient not found" });
@@ -254,35 +287,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // User management routes
   
-  // Get all users
+  // Get all users - REMOVED for tenant security
+  // In multi-tenant system, each clinic is a user - no need to list other clinics
   app.get("/api/users", async (req, res) => {
-    try {
-      const users = await storage.getUsers();
-      // Remove sensitive data like passwords from response
-      const sanitizedUsers = users.map(sanitizeUser);
-      res.json(sanitizedUsers);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      res.status(500).json({ error: "Failed to fetch users" });
-    }
+    res.status(403).json({ 
+      error: "Operasi tidak dibenarkan - dalam sistem multi-tenant, setiap klinik adalah pengguna berasingan"
+    });
   });
 
-  // Create new user
+  // Create new user - REMOVED for tenant security
+  // In multi-tenant system, clinic accounts created through different process
   app.post("/api/users", async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      const user = await storage.createUser(userData);
-      res.status(201).json(user);
-    } catch (error) {
-      console.error("Error creating user:", error);
-      res.status(400).json({ error: "Invalid user data" });
-    }
+    res.status(403).json({ 
+      error: "Operasi tidak dibenarkan - akaun klinik baru dibuat melalui proses registrasi berasingan"
+    });
   });
 
-  // Get specific user
+  // Get specific user (Self only - tenant isolation)
   app.get("/api/users/:id", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
+      
+      // TENANT SECURITY: Users can only view their own account
+      if (req.session.userId !== id) {
+        return res.status(403).json({ error: "Akses ditolak - hanya boleh lihat profil sendiri" });
+      }
+      
       const user = await storage.getUser(id);
       
       if (!user) {
@@ -298,13 +333,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update user
+  // Update user (Self only - tenant isolation)
   app.put("/api/users/:id", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
       const updates = req.body;
       
-      const user = await storage.updateUser(id, updates);
+      // TENANT SECURITY: Users can only update their own account
+      if (req.session.userId !== id) {
+        return res.status(403).json({ error: "Akses ditolak - hanya boleh update profil sendiri" });
+      }
+      
+      // SECURITY: Validate and whitelist allowed update fields
+      const allowedFields = ['username', 'clinicName', 'clinicLocation'];
+      const validatedUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([key]) => allowedFields.includes(key))
+      );
+      
+      if (Object.keys(validatedUpdates).length === 0) {
+        return res.status(400).json({ error: "Tiada medan yang sah untuk dikemaskini" });
+      }
+      
+      const user = await storage.updateUser(id, validatedUpdates);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
@@ -316,56 +371,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Toggle user status
+  // Toggle user status - REMOVED for tenant security
+  // In multi-tenant system, users cannot disable their own clinic accounts
   app.patch("/api/users/:id/status", async (req, res) => {
-    try {
-      const { id } = req.params;
-      
-      const user = await storage.toggleUserStatus(id);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-      
-      res.json(user);
-    } catch (error) {
-      console.error("Error toggling user status:", error);
-      res.status(500).json({ error: "Failed to toggle user status" });
-    }
+    res.status(403).json({ 
+      error: "Operasi tidak dibenarkan - akaun klinik tidak boleh dinyahaktifkan sendiri"
+    });
   });
 
-  // Delete user
+  // Delete user - REMOVED for tenant security
+  // In multi-tenant system, clinic accounts cannot be self-deleted
   app.delete("/api/users/:id", async (req, res) => {
-    try {
-      const { id } = req.params;
-      
-      const deleted = await storage.deleteUser(id);
-      if (!deleted) {
-        return res.status(404).json({ error: "User not found" });
-      }
-      
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      res.status(500).json({ error: "Failed to delete user" });
-    }
+    res.status(403).json({ 
+      error: "Operasi tidak dibenarkan - akaun klinik tidak boleh dihapuskan sendiri"
+    });
   });
 
   // Get user display configuration
   app.get("/api/users/:id/display-config", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
+      
+      // SECURITY: Only allow users to view their own config
+      if (req.session.userId !== id) {
+        return res.status(403).json({ error: "Tidak dibenarkan mengakses data pengguna lain" });
+      }
       
       const user = await storage.getUser(id);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
 
-      // Get all user-specific display configuration data
+      // Get all user-specific display configuration data using proper userId filtering
       const [settings, themes, media, textGroups] = await Promise.all([
-        storage.getSettings().then(settings => settings.filter(s => s.userId === id)),
-        storage.getThemes().then(themes => themes.filter(t => t.userId === id)),
-        storage.getMedia().then(media => media.filter(m => m.userId === id)),
-        storage.getTextGroups().then(groups => groups.filter(g => g.userId === id))
+        storage.getSettings(id),
+        storage.getThemes(id), 
+        storage.getMedia(id),
+        storage.getTextGroups(id)
       ]);
 
       const displayConfig = {
@@ -398,7 +445,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all windows
   app.get("/api/windows", async (req, res) => {
     try {
-      const windows = await storage.getWindows();
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const windows = await storage.getWindows(req.session.userId);
       res.json(windows);
     } catch (error) {
       console.error("Error fetching windows:", error);
@@ -432,6 +484,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update window
   app.put("/api/windows/:id", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
       const { name } = req.body;
       
@@ -439,7 +496,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Window name is required" });
       }
       
-      const window = await storage.updateWindow(id, name);
+      const window = await storage.updateWindow(id, name, req.session.userId);
       if (!window) {
         return res.status(404).json({ error: "Window not found" });
       }
@@ -454,9 +511,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete window
   app.delete("/api/windows/:id", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
       
-      const success = await storage.deleteWindow(id);
+      const success = await storage.deleteWindow(id, req.session.userId);
       if (!success) {
         return res.status(400).json({ error: "Cannot delete window - window not found or currently occupied" });
       }
@@ -471,9 +533,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Toggle window status
   app.patch("/api/windows/:id/status", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
       
-      const window = await storage.toggleWindowStatus(id);
+      const window = await storage.toggleWindowStatus(id, req.session.userId);
       if (!window) {
         return res.status(404).json({ error: "Window not found" });
       }
@@ -488,10 +555,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update window patient assignment
   app.patch("/api/windows/:id/patient", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
       const { patientId } = req.body;
       
-      const window = await storage.updateWindowPatient(id, patientId);
+      const window = await storage.updateWindowPatient(id, patientId, req.session.userId);
       if (!window) {
         return res.status(404).json({ error: "Window not found" });
       }
@@ -508,7 +580,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get dashboard statistics
   app.get("/api/dashboard/stats", async (req, res) => {
     try {
-      const stats = await storage.getDashboardStats();
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const stats = await storage.getDashboardStats(req.session.userId);
       res.json(stats);
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
@@ -519,7 +596,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get current call (currently called patient)
   app.get("/api/dashboard/current-call", async (req, res) => {
     try {
-      const currentCall = await storage.getCurrentCall();
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const currentCall = await storage.getCurrentCall(req.session.userId);
       res.json(currentCall || null);
     } catch (error) {
       console.error("Error fetching current call:", error);
@@ -530,8 +612,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get recent history (recently completed patients)
   app.get("/api/dashboard/history", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const limit = parseInt(req.query.limit as string) || 10;
-      const history = await storage.getRecentHistory(limit);
+      const history = await storage.getRecentHistory(limit, req.session.userId);
       res.json(history);
     } catch (error) {
       console.error("Error fetching recent history:", error);
@@ -544,7 +631,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all settings
   app.get("/api/settings", async (req, res) => {
     try {
-      const settings = await storage.getSettings();
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const settings = await storage.getSettings(req.session.userId);
       res.json(settings);
     } catch (error) {
       console.error("Error fetching settings:", error);
@@ -555,8 +647,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get settings by category
   app.get("/api/settings/category/:category", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { category } = req.params;
-      const settings = await storage.getSettingsByCategory(category);
+      const settings = await storage.getSettingsByCategory(category, req.session.userId);
       res.json(settings);
     } catch (error) {
       console.error("Error fetching settings by category:", error);
@@ -567,8 +664,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get specific setting
   app.get("/api/settings/:key", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { key } = req.params;
-      const setting = await storage.getSetting(key);
+      const setting = await storage.getSetting(key, req.session.userId);
       if (!setting) {
         return res.status(404).json({ error: "Setting not found" });
       }
@@ -589,12 +691,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Value and category are required" });
       }
 
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       // Try to update existing setting first
-      let setting = await storage.updateSetting(key, value);
+      let setting = await storage.updateSetting(key, value, req.session.userId);
       
       // If setting doesn't exist, create new one
       if (!setting) {
-        setting = await storage.setSetting(key, value, category);
+        setting = await storage.setSetting(key, value, category, req.session.userId);
       }
 
       res.json(setting);
@@ -607,6 +714,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update multiple settings
   app.put("/api/settings", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { settings } = req.body;
 
       if (!settings || !Array.isArray(settings)) {
@@ -621,11 +733,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Try to update existing setting first
-        let setting = await storage.updateSetting(key, value);
+        let setting = await storage.updateSetting(key, value, req.session.userId);
         
         // If setting doesn't exist, create new one
         if (!setting) {
-          setting = await storage.setSetting(key, value, category);
+          setting = await storage.setSetting(key, value, category, req.session.userId);
         }
         
         updatedSettings.push(setting);
@@ -641,8 +753,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete setting
   app.delete("/api/settings/:key", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { key } = req.params;
-      const deleted = await storage.deleteSetting(key);
+      const deleted = await storage.deleteSetting(key, req.session.userId);
       
       if (!deleted) {
         return res.status(404).json({ error: "Setting not found" });
@@ -660,7 +777,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all media files
   app.get("/api/media", async (req, res) => {
     try {
-      const media = await storage.getActiveMedia();
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const media = await storage.getActiveMedia(req.session.userId);
       res.json(media);
     } catch (error) {
       console.error("Error fetching media:", error);
@@ -671,8 +793,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get media by ID
   app.get("/api/media/:id", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
-      const media = await storage.getMediaById(id);
+      const media = await storage.getMediaById(id, req.session.userId);
       
       if (!media) {
         return res.status(404).json({ error: "Media not found" });
@@ -686,8 +813,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload media file with actual file handling
-  app.post("/api/media/upload", upload.single('file'), async (req, res) => {
+  app.post("/api/media/upload", requireAuth, upload.single('file'), async (req, res) => {
     try {
+      // Auth already checked by requireAuth middleware
+      
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
       }
@@ -745,7 +874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: 'image',
         mimeType: file.mimetype,
         size: file.size,
-        userId: 'system', // TODO: Replace with authenticated user ID
+        userId: req.session.userId,
       });
 
       res.status(201).json(media);
@@ -758,6 +887,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new media (for now simulated upload)
   app.post("/api/media", async (req, res) => {
     try {
+      // Check authentication FIRST, before any processing
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { name, type } = req.body;
       
       if (!name || !type) {
@@ -777,7 +911,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: type as 'image' | 'video',
         mimeType,
         size,
-        userId: 'system', // TODO: Replace with authenticated user ID
+        userId: req.session.userId,
       });
 
       res.status(201).json(media);
@@ -971,7 +1105,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all text groups
   app.get("/api/text-groups", async (req, res) => {
     try {
-      const textGroups = await storage.getTextGroups();
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const textGroups = await storage.getTextGroups(req.session.userId);
       res.json(textGroups);
     } catch (error) {
       console.error("Error fetching text groups:", error);
@@ -982,7 +1121,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get active text groups
   app.get("/api/text-groups/active", async (req, res) => {
     try {
-      const activeTextGroups = await storage.getActiveTextGroups();
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const activeTextGroups = await storage.getActiveTextGroups(req.session.userId);
       res.json(activeTextGroups);
     } catch (error) {
       console.error("Error fetching active text groups:", error);
@@ -993,8 +1137,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get text group by name
   app.get("/api/text-groups/name/:groupName", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { groupName } = req.params;
-      const textGroup = await storage.getTextGroupByName(groupName);
+      const textGroup = await storage.getTextGroupByName(groupName, req.session.userId);
       
       if (!textGroup) {
         return res.status(404).json({ error: "Text group not found" });
@@ -1010,8 +1159,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get text group by ID
   app.get("/api/text-groups/:id", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
-      const textGroup = await storage.getTextGroupById(id);
+      const textGroup = await storage.getTextGroupById(id, req.session.userId);
       
       if (!textGroup) {
         return res.status(404).json({ error: "Text group not found" });
@@ -1027,7 +1181,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new text group
   app.post("/api/text-groups", async (req, res) => {
     try {
-      const textGroupData = insertTextGroupSchema.parse(req.body);
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const textGroupData = insertTextGroupSchema.parse({ ...req.body, userId: req.session.userId });
       const textGroup = await storage.createTextGroup(textGroupData);
       res.status(201).json(textGroup);
     } catch (error) {
@@ -1039,10 +1198,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update text group
   app.put("/api/text-groups/:id", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
       const updates = req.body;
       
-      const textGroup = await storage.updateTextGroup(id, updates);
+      const textGroup = await storage.updateTextGroup(id, updates, req.session.userId);
       if (!textGroup) {
         return res.status(404).json({ error: "Text group not found" });
       }
@@ -1057,9 +1221,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Toggle text group status
   app.patch("/api/text-groups/:id/status", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
       
-      const textGroup = await storage.toggleTextGroupStatus(id);
+      const textGroup = await storage.toggleTextGroupStatus(id, req.session.userId);
       if (!textGroup) {
         return res.status(404).json({ error: "Text group not found" });
       }
@@ -1074,8 +1243,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete text group
   app.delete("/api/text-groups/:id", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
-      const deleted = await storage.deleteTextGroup(id);
+      const deleted = await storage.deleteTextGroup(id, req.session.userId);
       
       if (!deleted) {
         return res.status(404).json({ error: "Text group not found" });
@@ -1093,7 +1267,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all themes
   app.get("/api/themes", async (req, res) => {
     try {
-      const themes = await storage.getThemes();
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const themes = await storage.getThemes(req.session.userId);
       res.json(themes);
     } catch (error) {
       console.error("Error fetching themes:", error);
@@ -1104,7 +1283,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get active theme
   app.get("/api/themes/active", async (req, res) => {
     try {
-      const activeTheme = await storage.getActiveTheme();
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const activeTheme = await storage.getActiveTheme(req.session.userId);
       
       if (!activeTheme) {
         return res.status(404).json({ error: "No active theme found" });
@@ -1120,8 +1304,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get theme by ID
   app.get("/api/themes/:id", async (req, res) => {
     try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
       const { id } = req.params;
-      const theme = await storage.getThemeById(id);
+      const theme = await storage.getThemeById(id, req.session.userId);
       
       if (!theme) {
         return res.status(404).json({ error: "Theme not found" });
@@ -1137,7 +1326,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new theme
   app.post("/api/themes", async (req, res) => {
     try {
-      const themeData = insertThemeSchema.parse(req.body);
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const themeData = insertThemeSchema.parse({ ...req.body, userId: req.session.userId });
       const theme = await storage.createTheme(themeData);
       res.status(201).json(theme);
     } catch (error) {
@@ -1155,7 +1349,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updateThemeSchema = insertThemeSchema.partial();
       const updates = updateThemeSchema.parse(req.body);
       
-      const theme = await storage.updateTheme(id, updates);
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const theme = await storage.updateTheme(id, updates, req.session.userId);
       
       if (!theme) {
         return res.status(404).json({ error: "Theme not found" });
@@ -1172,7 +1371,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/themes/:id/activate", async (req, res) => {
     try {
       const { id } = req.params;
-      const theme = await storage.setActiveTheme(id);
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const theme = await storage.setActiveTheme(id, req.session.userId);
       
       if (!theme) {
         return res.status(404).json({ error: "Theme not found" });
@@ -1189,7 +1393,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/themes/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const deleted = await storage.deleteTheme(id);
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      const deleted = await storage.deleteTheme(id, req.session.userId);
       
       if (!deleted) {
         return res.status(404).json({ error: "Theme not found or cannot delete active theme" });
