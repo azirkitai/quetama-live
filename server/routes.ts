@@ -23,7 +23,89 @@ const upload = multer({
   }
 });
 
+// Extend Express session types
+declare module 'express-session' {
+  interface SessionData {
+    userId?: string;
+    username?: string;
+    role?: string;
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Authentication routes
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username dan password diperlukan" });
+      }
+      
+      const user = await storage.authenticateUser(username, password);
+      
+      if (!user) {
+        return res.status(401).json({ error: "Username atau password salah" });
+      }
+      
+      // Store user info in session
+      req.session.userId = user.id;
+      req.session.username = user.username;
+      req.session.role = user.role;
+      
+      res.json({
+        success: true,
+        user: {
+          id: user.id,
+          username: user.username,
+          role: user.role,
+          clinicName: user.clinicName,
+          clinicLocation: user.clinicLocation
+        }
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ error: "Ralat internal server" });
+    }
+  });
+  
+  app.post("/api/auth/logout", async (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+        return res.status(500).json({ error: "Gagal logout" });
+      }
+      res.json({ success: true, message: "Logout berjaya" });
+    });
+  });
+  
+  app.get("/api/auth/me", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Tidak ada sesi aktif" });
+    }
+    
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        return res.status(401).json({ error: "Pengguna tidak dijumpai" });
+      }
+      
+      res.json({
+        user: {
+          id: user.id,
+          username: user.username,
+          role: user.role,
+          clinicName: user.clinicName,
+          clinicLocation: user.clinicLocation
+        }
+      });
+    } catch (error) {
+      console.error("Auth check error:", error);
+      res.status(500).json({ error: "Ralat internal server" });
+    }
+  });
+
   // Setup static file serving for uploaded media
   const PUBLIC_OBJECT_SEARCH_PATHS = process.env.PUBLIC_OBJECT_SEARCH_PATHS;
   if (PUBLIC_OBJECT_SEARCH_PATHS) {
