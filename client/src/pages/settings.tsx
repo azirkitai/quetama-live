@@ -273,6 +273,19 @@ export default function Settings() {
         marqueeBackgroundMode: (settingsObj.marqueeBackgroundMode as 'solid' | 'gradient') || 'solid',
         marqueeBackgroundGradient: settingsObj.marqueeBackgroundGradient || 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
       };
+
+      console.log('🔄 CLINIC NAME DEBUG - From Server:', {
+        fromServer: {
+          clinicNameTextColor: settingsObj.clinicNameTextColor,
+          clinicNameTextMode: settingsObj.clinicNameTextMode,
+          clinicNameTextGradient: settingsObj.clinicNameTextGradient
+        },
+        processed: {
+          clinicNameTextColor: newSettings.clinicNameTextColor,
+          clinicNameTextMode: newSettings.clinicNameTextMode,
+          clinicNameTextGradient: newSettings.clinicNameTextGradient
+        }
+      });
       
       setCurrentSettings(prev => {
         // Only update if there are actual changes to prevent infinite loops
@@ -402,6 +415,12 @@ export default function Settings() {
   });
 
   const handleSaveDisplay = async () => {
+    console.log('💾 CLINIC NAME DEBUG - Current State:', {
+      clinicNameTextColor: currentSettings.clinicNameTextColor,
+      clinicNameTextMode: currentSettings.clinicNameTextMode,
+      clinicNameTextGradient: currentSettings.clinicNameTextGradient
+    });
+    
     const settingsToSave = [
       { key: 'theme', value: currentSettings.theme, category: 'display' },
       { key: 'showPrayerTimes', value: currentSettings.showPrayerTimes.toString(), category: 'display' },
