@@ -87,13 +87,16 @@ export default function Dashboard() {
 
   // Convert Patient to QueueItem for TV display
   const convertToQueueItem = (patient: Patient): QueueItem => {
+    // DEBUG: Log patient data before conversion
+    console.log("🔄 convertToQueueItem input:", patient);
+    
     // Use room name directly from API response, fallback to mapping windowId
     const roomName = (patient as any).room || (() => {
       const window = windows.find(w => w.id === patient.windowId);
       return window?.name || "Tidak tersedia";
     })();
     
-    return {
+    const result = {
       id: patient.id,
       name: patient.name || `No. ${patient.number}`,
       number: patient.number.toString(),
@@ -101,6 +104,11 @@ export default function Dashboard() {
       status: patient.status === "called" ? "calling" : patient.status === "completed" ? "completed" : "waiting",
       timestamp: new Date()
     };
+    
+    // DEBUG: Log conversion result
+    console.log("🔄 convertToQueueItem output:", result);
+    
+    return result;
   };
 
   const toggleFullscreen = () => {
@@ -116,7 +124,12 @@ export default function Dashboard() {
     return (
       <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-white m-0 p-0" style={{ width: "100vw", height: "100vh" }}>
         <TVDisplay
-          currentPatient={currentCall ? convertToQueueItem(currentCall) : undefined}
+          currentPatient={(() => {
+            console.log("🎯 Dashboard currentCall before conversion:", currentCall);
+            const result = currentCall ? convertToQueueItem(currentCall) : undefined;
+            console.log("🎯 Dashboard sending to TVDisplay:", result);
+            return result;
+          })()}
           queueHistory={history.map(convertToQueueItem)}
           clinicName={clinicName}
           mediaItems={activeMedia.map(media => ({
