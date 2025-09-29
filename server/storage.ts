@@ -195,7 +195,14 @@ export class MemStorage implements IStorage {
 
 
   async getUser(id: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    const result = await db.select({
+      id: users.id,
+      username: users.username,
+      password: users.password,
+      role: users.role,
+      isActive: users.isActive
+    }).from(users).where(eq(users.id, id)).limit(1);
+    
     if (!result[0]) return undefined;
     
     // Add missing fields for compatibility
@@ -209,7 +216,14 @@ export class MemStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    const result = await db.select({
+      id: users.id,
+      username: users.username,
+      password: users.password,
+      role: users.role,
+      isActive: users.isActive
+    }).from(users).where(eq(users.username, username)).limit(1);
+    
     if (!result[0]) return undefined;
     
     // Add missing fields for compatibility
@@ -247,7 +261,14 @@ export class MemStorage implements IStorage {
   }
 
   async getUsers(): Promise<User[]> {
-    const result = await db.select().from(users);
+    const result = await db.select({
+      id: users.id,
+      username: users.username,
+      password: users.password,
+      role: users.role,
+      isActive: users.isActive
+    }).from(users);
+    
     // Add missing fields for compatibility
     return result.map(user => ({
       ...user,
