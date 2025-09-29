@@ -17,9 +17,7 @@ export default function Administration() {
   const [newUser, setNewUser] = useState({
     username: "",
     password: "",
-    role: "user" as "admin" | "user",
-    clinicName: "",
-    clinicLocation: ""
+    role: "user" as "admin" | "user"
   });
   const [editingUser, setEditingUser] = useState<string | null>(null);
 
@@ -39,7 +37,7 @@ export default function Administration() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      setNewUser({ username: "", password: "", role: "user", clinicName: "", clinicLocation: "" });
+      setNewUser({ username: "", password: "", role: "user" });
       toast({
         title: "Pengguna Berjaya Ditambah",
         description: "Pengguna baru telah didaftarkan ke dalam sistem",
@@ -58,7 +56,7 @@ export default function Administration() {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!newUser.username.trim() || !newUser.password.trim() || !newUser.clinicName.trim() || !newUser.clinicLocation.trim()) {
+    if (!newUser.username.trim() || !newUser.password.trim()) {
       toast({
         title: "Ralat Validasi",
         description: "Sila lengkapkan semua maklumat",
@@ -79,9 +77,7 @@ export default function Administration() {
     createUserMutation.mutate({
       username: newUser.username.trim(),
       password: newUser.password.trim(),
-      role: newUser.role,
-      clinicName: newUser.clinicName.trim(),
-      clinicLocation: newUser.clinicLocation.trim()
+      role: newUser.role
     });
   };
 
@@ -220,31 +216,6 @@ export default function Administration() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="clinicName">Nama Klinik</Label>
-                <Input
-                  id="clinicName"
-                  type="text"
-                  value={newUser.clinicName}
-                  onChange={(e) => setNewUser(prev => ({ ...prev, clinicName: e.target.value }))}
-                  placeholder="Masukkan nama klinik"
-                  required
-                  data-testid="input-clinic-name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="clinicLocation">Lokasi Klinik</Label>
-                <Input
-                  id="clinicLocation"
-                  type="text"
-                  value={newUser.clinicLocation}
-                  onChange={(e) => setNewUser(prev => ({ ...prev, clinicLocation: e.target.value }))}
-                  placeholder="Masukkan lokasi klinik"
-                  required
-                  data-testid="input-clinic-location"
-                />
-              </div>
 
               <Button
                 type="submit"
@@ -290,15 +261,6 @@ export default function Administration() {
                         <div>
                           <div className="font-medium" data-testid={`text-username-${user.id}`}>
                             {user.username}
-                          </div>
-                          <div className="text-sm font-medium text-blue-600">
-                            {user.clinicName}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            📍 {user.clinicLocation}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {user.lastLogin ? `Last login: ${new Date(user.lastLogin).toLocaleDateString()}` : "Never logged in"}
                           </div>
                         </div>
                       </div>
