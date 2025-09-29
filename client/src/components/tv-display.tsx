@@ -433,6 +433,7 @@ export function TVDisplay({
   // Auto-resize text functionality
   const [patientNameFontSize, setPatientNameFontSize] = useState('4rem');
   const [roomNameFontSize, setRoomNameFontSize] = useState('2.5rem');
+  const [historyFontSizes, setHistoryFontSizes] = useState<Record<string, {name: string, room: string}>>({});
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Function to calculate optimal font size for text to fit container
@@ -534,6 +535,34 @@ export function TVDisplay({
       setRoomNameFontSize(newRoomSize);
     }
   }, [currentPatient?.name, currentPatient?.room, isFullscreen]);
+
+  // Auto-resize text effect for history items
+  useEffect(() => {
+    if (queueHistory.length > 0) {
+      const newHistoryFontSizes: Record<string, {name: string, room: string}> = {};
+      
+      // Calculate container widths for history items (smaller than main display)
+      const isFullSize = isFullscreen;
+      const historyNameContainerWidth = isFullSize ? 300 : 200; // Name column width in history
+      const historyRoomContainerWidth = isFullSize ? 200 : 150; // Room column width in history
+      
+      // Base font sizes for history (smaller than main display)
+      const historyNameBaseSize = isFullSize ? 28 : 24; // ~1.75rem equivalent
+      const historyRoomBaseSize = isFullSize ? 28 : 24; // Same size for room
+      
+      queueHistory.forEach((item) => {
+        const nameFontSize = calculateFontSize(item.name, historyNameContainerWidth, historyNameBaseSize, 14);
+        const roomFontSize = calculateFontSize(item.room, historyRoomContainerWidth, historyRoomBaseSize, 14);
+        
+        newHistoryFontSizes[item.id] = {
+          name: nameFontSize,
+          room: roomFontSize
+        };
+      });
+      
+      setHistoryFontSizes(newHistoryFontSizes);
+    }
+  }, [queueHistory, isFullscreen]);
 
   // Media slideshow management 
   useEffect(() => {
@@ -822,16 +851,22 @@ export function TVDisplay({
                   <div className="text-center" 
                        style={{ 
                          ...getHistoryNameStyle(),
-                         fontSize: 'clamp(1.75rem, 2.5vw, 2.5rem)',
-                         fontWeight: 'bold'
+                         fontSize: historyFontSizes[item.id]?.name || '24px',
+                         fontWeight: 'bold',
+                         lineHeight: '1.1',
+                         wordBreak: 'break-word',
+                         overflow: 'hidden'
                        }}>
                     {item.name}
                   </div>
                   <div className="text-center" 
                        style={{ 
                          ...getHistoryNameStyle(),
-                         fontSize: 'clamp(1.75rem, 2.5vw, 2.5rem)',
-                         fontWeight: 'normal'
+                         fontSize: historyFontSizes[item.id]?.room || '24px',
+                         fontWeight: 'normal',
+                         lineHeight: '1.1',
+                         wordBreak: 'break-word',
+                         overflow: 'hidden'
                        }}>
                     {item.room}
                   </div>
