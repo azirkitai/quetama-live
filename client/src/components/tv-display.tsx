@@ -115,7 +115,7 @@ export function TVDisplay({
 
   // Helper function to get text group styles
   const getTextGroupStyles = (groupName: string) => {
-    const group = textGroups.find((g: any) => g.groupName === groupName);
+    const group = (textGroups as any[]).find((g: any) => g.groupName === groupName);
     if (!group) return {};
 
     const styles: any = {};
