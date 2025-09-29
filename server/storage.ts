@@ -1,4 +1,6 @@
 import { type User, type InsertUser, type Patient, type InsertPatient, type Setting, type InsertSetting, type Media, type InsertMedia, type TextGroup, type InsertTextGroup, type Theme, type InsertTheme } from "@shared/schema";
+import * as bcrypt from "bcryptjs";
+import { randomUUID } from "crypto";
 
 interface Window {
   id: string;
@@ -6,7 +8,6 @@ interface Window {
   isActive: boolean;
   currentPatientId?: string;
 }
-import { randomUUID } from "crypto";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -20,6 +21,8 @@ export interface IStorage {
   updateUser(userId: string, updates: Partial<User>): Promise<User | undefined>;
   deleteUser(userId: string): Promise<boolean>;
   toggleUserStatus(userId: string): Promise<User | undefined>;
+  // Authentication methods
+  authenticateUser(username: string, password: string): Promise<User | null>;
   
   // Patient methods
   createPatient(patient: InsertPatient): Promise<Patient>;
@@ -220,8 +223,14 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
+    
+    // Hash the password before storing
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(insertUser.password, saltRounds);
+    
     const user: User = { 
       ...insertUser, 
+      password: hashedPassword, // Store hashed password
       id, 
       role: insertUser.role || "user",
       isActive: true,
@@ -257,6 +266,28 @@ export class MemStorage implements IStorage {
 
     const updatedUser = { ...user, isActive: !user.isActive };
     this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+
+  // Authentication method - verify user credentials
+  async authenticateUser(username: string, password: string): Promise<User | null> {
+    const user = await this.getUserByUsername(username);
+    
+    if (!user || !user.isActive) {
+      return null; // User not found or inactive
+    }
+    
+    // Compare provided password with hashed password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    
+    if (!isPasswordValid) {
+      return null; // Invalid password
+    }
+    
+    // Update last login timestamp
+    const updatedUser = { ...user, lastLogin: new Date() };
+    this.users.set(user.id, updatedUser);
+    
     return updatedUser;
   }
 
