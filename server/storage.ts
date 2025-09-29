@@ -1089,6 +1089,25 @@ export class DatabaseStorage implements IStorage {
   async toggleTextGroupStatus(id: string): Promise<TextGroup | undefined> {
     return this.memStorage.toggleTextGroupStatus(id);
   }
+
+  // Dashboard methods
+  async getDashboardStats(): Promise<{
+    totalWaiting: number;
+    totalCalled: number;
+    totalCompleted: number;
+    activeWindows: number;
+    totalWindows: number;
+  }> {
+    return this.memStorage.getDashboardStats();
+  }
+
+  async getCurrentCall(): Promise<Patient | undefined> {
+    return this.memStorage.getCurrentCall();
+  }
+
+  async getRecentHistory(limit?: number): Promise<Patient[]> {
+    return this.memStorage.getRecentHistory(limit);
+  }
 }
 
 export const storage = new DatabaseStorage();
