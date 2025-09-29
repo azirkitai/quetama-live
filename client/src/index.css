@@ -418,4 +418,60 @@
     color: rgba(255, 255, 255, 1) !important;
     font-weight: 600 !important;
   }
+
+  /* Circular Color Picker Styling - Professional Look */
+  input[type="color"] {
+    width: 50px !important;
+    height: 50px !important;
+    border-radius: 50% !important;
+    border: 3px solid hsl(var(--border)) !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    background: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.2s ease !important;
+  }
+
+  input[type="color"]:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  input[type="color"]:focus {
+    outline: none !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2) !important;
+  }
+
+  /* Remove default webkit appearance */
+  input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0 !important;
+    border-radius: 50% !important;
+    border: none !important;
+  }
+
+  input[type="color"]::-webkit-color-swatch {
+    border-radius: 50% !important;
+    border: none !important;
+  }
+
+  /* Firefox color input styling */
+  input[type="color"]::-moz-color-swatch {
+    border-radius: 50% !important;
+    border: none !important;
+  }
+
+  /* Small circular color picker variant */
+  .color-picker-small {
+    width: 32px !important;
+    height: 32px !important;
+    border-width: 2px !important;
+  }
+
+  /* Large circular color picker variant */
+  .color-picker-large {
+    width: 60px !important;
+    height: 60px !important;
+    border-width: 4px !important;
+  }
 }
