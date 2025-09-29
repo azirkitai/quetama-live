@@ -737,7 +737,10 @@ export function TVDisplay({
           <div className="space-y-1 overflow-y-auto flex-1" data-testid="queue-list">
             {queueHistory.length > 0 ? (
               queueHistory.slice(0, 4).map((item) => (
-                <div key={item.id} className="grid grid-cols-2 gap-1">
+                <div key={item.id} className="grid grid-cols-2 gap-1 p-2 rounded-lg"
+                     style={{
+                       ...getBackgroundStyle(queueItemBackgroundMode, queueItemBackgroundColor, queueItemBackgroundGradient, '#2563eb')
+                     }}>
                   <div className="font-bold text-center" 
                        style={{ 
                          fontSize: 'clamp(1.25rem, 2vw, 2rem)',
