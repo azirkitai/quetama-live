@@ -260,7 +260,7 @@ export default function Settings() {
   // Save settings mutation
   const saveSettingsMutation = useMutation({
     mutationFn: async (settings: Array<{key: string, value: string, category: string}>) => {
-      return apiRequest('/api/settings', 'PUT', { settings });
+      return apiRequest('PUT', '/api/settings', { settings });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/settings'] });
