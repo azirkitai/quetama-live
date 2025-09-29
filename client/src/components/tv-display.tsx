@@ -109,6 +109,7 @@ export function TVDisplay({
   }, {});
 
   // Extract marquee settings with fallbacks
+  const enableMarquee = settingsObj.enableMarquee === 'true';
   const marqueeText = settingsObj.marqueeText || "Selamat datang ke Klinik Kesihatan";
   const marqueeColor = settingsObj.marqueeColor || "#ffffff";
   const marqueeBackgroundColor = settingsObj.marqueeBackgroundColor || "#1e40af";
@@ -901,7 +902,7 @@ export function TVDisplay({
       </div>
       
       {/* Floating Marquee Overlay */}
-      {isFullscreen && (
+      {isFullscreen && enableMarquee && (
         <div 
           className="fixed bottom-0 left-0 w-full text-white py-2 z-50"
           style={{
