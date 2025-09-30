@@ -192,11 +192,11 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
       if (result.success && result.userId) {
         toast({
           title: "Login QR Berjaya",
-          description: "Anda berjaya log masuk",
+          description: "Mengalihkan ke paparan TV...",
         });
         
-        // Session is set on server, reload to get authenticated state
-        window.location.href = '/';
+        // Redirect to TV display
+        window.location.href = '/tv-display';
       } else {
         throw new Error(result.error || "Kod verifikasi tidak sah");
       }
