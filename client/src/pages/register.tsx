@@ -8,6 +8,24 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Patient } from "@shared/schema";
 
+// Helper: Get today's date range for filtering
+function getTodayRange() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return { today, tomorrow };
+}
+
+// Helper: Filter patients registered today
+function filterTodayPatients(patients: Patient[]) {
+  const { today, tomorrow } = getTodayRange();
+  return patients.filter(p => {
+    const regDate = new Date(p.registeredAt);
+    return regDate >= today && regDate < tomorrow;
+  });
+}
+
 export default function Register() {
   const { toast } = useToast();
 
@@ -57,16 +75,7 @@ export default function Register() {
       };
     }
 
-    // Filter patients registered today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const actualTodayPatients = todayPatients.filter(p => {
-      const regDate = new Date(p.registeredAt);
-      return regDate >= today && regDate < tomorrow;
-    });
+    const actualTodayPatients = filterTodayPatients(todayPatients);
 
     return {
       totalRegistered: actualTodayPatients.length,
@@ -75,11 +84,13 @@ export default function Register() {
     };
   }, [todayPatients]);
 
-  // Transform patients for recent list display
+  // Transform patients for recent list display (filter by today only)
   const recentPatients = useMemo(() => {
     if (!todayPatients) return [];
     
-    return todayPatients
+    const actualTodayPatients = filterTodayPatients(todayPatients);
+    
+    return actualTodayPatients
       .sort((a, b) => new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime())
       .slice(0, 10)
       .map(patient => ({

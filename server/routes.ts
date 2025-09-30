@@ -123,6 +123,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Serve standalone QR auth page (bypass React SPA routing/caching issues)
+  app.get("/qr-auth/:id", (req, res) => {
+    const htmlPath = path.join(process.cwd(), 'server', 'qr-auth.html');
+    res.sendFile(htmlPath);
+  });
+
   // QR Authentication routes
   app.post("/api/qr/init", async (req, res) => {
     try {
@@ -146,7 +152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         qrId: qrSession.id,
         tvVerifier,
         expiresAt: expiresAt.toISOString(),
-        qrUrl: `${req.protocol}://${req.get('host')}/#/qr-auth/${qrSession.id}`
+        qrUrl: `${req.protocol}://${req.get('host')}/qr-auth/${qrSession.id}`
       });
     } catch (error) {
       console.error("Error creating QR session:", error);
