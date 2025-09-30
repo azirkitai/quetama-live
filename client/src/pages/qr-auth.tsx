@@ -145,9 +145,12 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
   };
 
   const handleSubmit = (data: QrAuthFormData) => {
+    console.log('🚀 FORM SUBMIT! Step:', step, 'Data:', data);
     if (step === 'login') {
+      console.log('🔑 Calling handleLogin...');
       handleLogin(data);
     } else if (step === 'verify') {
+      console.log('✅ Calling handleVerification...');
       handleVerification(data);
     }
   };
@@ -286,6 +289,7 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
                     data-testid="button-qr-authorize"
                     className="w-full"
                     disabled={isLoading}
+                    onClick={() => console.log('👆 BUTTON CLICKED!')}
                   >
                     {isLoading ? (
                       <>
