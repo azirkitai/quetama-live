@@ -621,12 +621,12 @@ export function TVDisplay({
     ...getBackgroundStyle(headerBackgroundMode, headerBackgroundColor, headerBackgroundGradient, '#ffffff')
   };
 
-  // Use CSS classes for 16:9 letterbox in fullscreen, regular grid otherwise
+  // Use CSS classes for TRUE FIXED SIZE in fullscreen, regular grid otherwise
   return isFullscreen ? (
-    <div className="tv-frame" data-testid="tv-display-wrapper">
-      <div className="tv-content text-gray-900"
+    <div className="tv-screen" data-testid="tv-screen">
+      <div className="tv-canvas text-gray-900"
            style={gridStyle} 
-           data-testid="tv-display">
+           data-testid="tv-canvas">
       {/* Top Row - Advertisement Area with 16:9 ratio */}
       <div className={`${isFullscreen ? 'm-0 p-0 w-full h-full' : 'p-4 w-full'}`}>
         <div className="overflow-hidden flex items-center justify-center w-full h-full relative" style={{ aspectRatio: '16/9', backgroundColor: '#f3f4f6' }}>

@@ -598,54 +598,51 @@
   /* Override all previous TV display rules */
   /* ============================================ */
 
-  /* TV Frame wrapper - centers the 16:9 box */
-  .tv-frame {
-    height: 100vh;
+  /* TV Screen - Outer wrapper (RESIZES with viewport) */
+  .tv-screen {
+    position: fixed;
+    inset: 0;
     width: 100vw;
+    height: 100vh;
     display: grid;
     place-items: center;
-    background: #000;           /* Black letterbox/pillarbox */
+    background: #000;           /* Black borders fill remaining space */
     overflow: hidden;           /* No scrollbars */
   }
 
-  /* TV Content - FIXED 1920x1080 size, scaled to fit screen */
-  .tv-content {
-    width: 1920px;              /* Fixed width - tak berubah */
-    height: 1080px;             /* Fixed height - tak berubah */
-    overflow: hidden;           /* Prevent inner elements from escaping */
-    transform-origin: center center;
-    /* Scale to fit screen while maintaining fixed content size */
-    transform: scale(min(calc(100vw / 1920), calc(100vh / 1080)));
+  /* TV Canvas - Inner content (TRUE FIXED 1920x1080 - NEVER scales/moves) */
+  .tv-canvas {
+    width: 1920px;              /* Fixed width - never changes */
+    height: 1080px;             /* Fixed height - never changes */
+    position: relative;
+    overflow: hidden;           /* Contain content within canvas */
+    
+    /* Override responsive tokens to fixed px inside canvas */
+    --tv-fs-xs: 12px;
+    --tv-fs-sm: 14px;
+    --tv-fs-md: 18px;
+    --tv-fs-lg: 24px;
+    --tv-fs-xl: 32px;
+    --tv-fs-2xl: 48px;
+    --tv-fs-3xl: 64px;
+    --tv-fs-4xl: 96px;
+    --tv-fs-5xl: 128px;
   }
 
-  /* All elements inside TV content use FIXED px sizes */
-  .tv-content h1 { 
+  /* All elements inside TV canvas use FIXED px sizes */
+  .tv-canvas h1 { 
     margin: 0 0 20px;
-    font-size: 80px;            /* Fixed px - tak berubah */
+    font-size: 80px;            /* Fixed px - never changes */
     line-height: 1.1;
   }
 
-  /* Media elements stay safe */
-  .tv-content img,
-  .tv-content video,
-  .tv-content iframe {
+  /* Media elements inside canvas */
+  .tv-canvas img,
+  .tv-canvas video,
+  .tv-canvas iframe {
     max-width: 100%;
     height: auto;
     display: block;
     object-fit: cover;
-  }
-
-  /* Prevent shadow/transform overflow */
-  .tv-content .shadow-safe { 
-    filter: none;
-    box-shadow: none; 
-  }
-
-  /* Fallback for older browsers without transform support - maintain fixed size */
-  @supports not (transform: scale(1)) {
-    .tv-content {
-      width: 1920px;
-      height: 1080px;
-    }
   }
 }
