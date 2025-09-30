@@ -1,4 +1,4 @@
-import { Switch, Route, useParams } from "wouter";
+import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -79,13 +79,6 @@ function AuthenticatedApp() {
   );
 }
 
-// QR Auth component wrapper to get param from wouter
-function QrAuthWrapper() {
-  const params = useParams();
-  const sessionId = params.id || '';
-  return <QrAuthPage sessionId={sessionId} />;
-}
-
 // Main app with authentication logic  
 function AppContent() {
   const { isAuthenticated, isLoading, login } = useAuth();
@@ -94,7 +87,7 @@ function AppContent() {
     <Switch>
       {/* QR Auth route - accessible without authentication */}
       <Route path="/qr-auth/:id">
-        <QrAuthWrapper />
+        {(params) => <QrAuthPage sessionId={params.id} />}
       </Route>
       
       {/* All other routes require authentication check */}
