@@ -24,6 +24,7 @@ interface DashboardStats {
 
 export default function Dashboard() {
   const [fullscreen, setFullscreen] = useState(false);
+  const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(false);
 
   // Listen for browser fullscreen changes
   useEffect(() => {
@@ -35,16 +36,22 @@ export default function Dashboard() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  // Auto-trigger fullscreen from URL parameter
+  // Show fullscreen prompt from URL parameter
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('fullscreen') === '1') {
       // Remove parameter from URL
       window.history.replaceState({}, '', '/');
-      // Enter fullscreen mode
-      document.documentElement.requestFullscreen().catch(console.error);
+      // Show prompt to enter fullscreen
+      setShowFullscreenPrompt(true);
     }
   }, []);
+
+  // Handle fullscreen prompt click
+  const handleEnterFullscreen = () => {
+    document.documentElement.requestFullscreen().catch(console.error);
+    setShowFullscreenPrompt(false);
+  };
 
   // Fetch dashboard statistics
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats & { totalWindows: number }>({
@@ -168,6 +175,41 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Fullscreen Prompt Overlay */}
+      {showFullscreenPrompt && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center">
+          <Card className="max-w-md mx-4 text-center">
+            <CardHeader>
+              <CardTitle className="text-2xl">Paparan TV Sedia</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">
+                QR login berjaya! Klik butang di bawah untuk mula paparan TV skrin penuh.
+              </p>
+              <div className="space-y-2">
+                <Button
+                  onClick={handleEnterFullscreen}
+                  className="w-full btn-gradient"
+                  size="lg"
+                  data-testid="button-start-tv-display"
+                >
+                  <Monitor className="h-5 w-5 mr-2" />
+                  Mula Paparan TV
+                </Button>
+                <Button
+                  onClick={() => setShowFullscreenPrompt(false)}
+                  variant="outline"
+                  className="w-full"
+                  data-testid="button-cancel-tv-display"
+                >
+                  Batal
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
