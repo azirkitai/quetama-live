@@ -1,0 +1,152 @@
+✅ FIX DELTA (INSIDE SAFE 16:9 BOX)
+
+Goal: Content muat sepenuhnya dalam .tv-content (16:9) — tiada potong, tiada scroll, tiada stretch.
+Punca biasa (nampak dari UI kau):
+
+Ada elemen dalaman guna height/width px (poster/column kanan) → tak scale.
+
+Grid/flex child tak boleh shrink (perlukan min-height:0; min-width:0).
+
+Imej/iframe tak set object-fit → melimpah.
+
+Container dalaman tak height:100% → layout push keluar.
+
+1) Pastikan shell 16:9 (yang ini agent kena kekalkan)
+html, body {
+  margin:0; padding:0; height:100%;
+  background:#000; overflow:hidden;
+}
+.tv-frame {
+  height:100vh; width:100vw;
+  display:grid; place-items:center;
+}
+/* SAFE BOX – jangan ubah ratio */
+.tv-content {
+  aspect-ratio:16/9;
+  width:min(100vw, 177.78vh);
+  height:auto;
+  background:#0f1d3a; color:#fff;
+  overflow:hidden;           /* penting */
+  display:flex; flex-direction:column;
+}
+@supports not (aspect-ratio: 16/9){
+  .tv-content{
+    width:min(100vw, 177.78vh);
+    height:calc((min(100vw, 177.78vh))*9/16);
+  }
+}
+
+2) Critical fix untuk layout dalaman (root cause cropping)
+/* ——— GRID UTAMA DI DALAM 16:9 ——— */
+.tv-grid {
+  height:100%;              /* Wajib: guna penuh, elak push keluar */
+  width:100%;
+  display:grid;
+  grid-template-columns: 2fr 1.15fr;   /* kiri poster, kanan info */
+  gap:2%;
+  padding:2.5%;
+  /* benarkan shrink: */
+  min-height:0; min-width:0;
+}
+
+/* Kolum kiri & kanan mesti boleh shrink */
+.tv-left, .tv-right {
+  min-height:0; min-width:0;
+  overflow:hidden;           /* elak keluar kotak */
+  display:flex; flex-direction:column;
+  gap:2%;
+}
+
+/* Kolum kanan selalunya: logo + “CALLING” + kad nama */
+.tv-right {
+  display:grid;
+  grid-template-rows: auto auto 1fr;   /* bahagian bawah fleksibel */
+  align-content:start;
+  /* penting: biar boleh shrink */
+  min-height:0;
+}
+
+/* Jika ada row/list bawah (NAME/ROOM table) */
+.tv-list {
+  flex:1 1 auto;            /* ambil baki ruang, shrink jika perlu */
+  min-height:0;
+  overflow:hidden;          /* jangan scroll di TV */
+}
+
+/* Imej poster/banner dalaman */
+.tv-left img,
+.poster img,
+.banner img {
+  width:100%;
+  height:100%;
+  object-fit:cover;     /* atau 'contain' jika tak mahu crop */
+  display:block;
+}
+
+/* Pastikan tiada set height/px tegar pada blok dalaman */
+.fixed-height, .h-1080, .h-600 { height:auto !important; }
+
+/* Teks & komponen skala ikut SAFE BOX, bukan device */
+h1 { margin:0 0 1%;
+     font-size: clamp(24px, 4.2vw, 72px);
+     line-height:1.1; }
+.badge, .btn, .label, .tile {
+  font-size: clamp(14px, 2.4vw, 36px);
+  border-radius: .8vw;
+  padding: 1% 2%;
+}
+
+/* Halang overflow kerana min-content (bug biasa grid/flex) */
+.tv-content, .tv-grid, .tv-left, .tv-right, .tv-list, .card, .panel {
+  min-width:0; min-height:0;
+}
+
+/* Kalau ada shadow/transform yang buat leak pixel → matikan di TV */
+.shadow-heavy { box-shadow:none !important; filter:none !important; }
+
+3) Jangan guna ini dalam content dalaman (punca utama):
+
+height: 1080px; / width: 1920px; / min-height: 1000px;
+
+position: absolute tanpa parent relative & tanpa kiraan responsif.
+
+Imej/poster tanpa object-fit (akan melimpah).
+
+Grid tanpa min-height:0 pada parent/child (akan “kunci” tinggi & potong bawah).
+
+4) Debug cepat yang agent kena buat sekarang
+
+Tambahkan sementara untuk nampak sempadan safe box dan cari elemen yang melimpah:
+
+/* DEBUG ONLY */
+.tv-content { outline: 6px solid #ff0066aa; }
+.leak-check * { outline: 1px dashed #00ff9e55; } /* letak class 'leak-check' pada .tv-content */
+
+
+Jika ada elemen melepasi outline merah → pastikan parentnya ada min-height:0; overflow:hidden; dan buang height px pada elemen itu.
+
+5) Struktur HTML dalaman yang betul (contoh ringkas)
+<div class="tv-frame">
+  <div class="tv-content leak-check">
+    <div class="tv-grid">
+      <section class="tv-left">
+        <!-- Poster/banner kiri -->
+        <img src="poster.jpg" alt="">
+      </section>
+
+      <section class="tv-right">
+        <div class="logo-card">…</div>
+        <div class="calling-card">
+          <div class="badge">CALLING</div>
+          <div class="bigname">KAMAL</div>
+          <div class="room">BILIK 1</div>
+        </div>
+        <div class="tv-list">…table nama/room…</div>
+      </section>
+    </div>
+  </div>
+</div>
+
+“Bahasa paling direct” untuk agent
+
+Kekalkan kotak .tv-content 16:9 di tengah. Semua konten DALAM kotak mesti responsif tanpa px height. Set .tv-grid{height:100%} dan letak min-height:0; min-width:0; overflow:hidden pada .tv-content, .tv-grid, .tv-left, .tv-right, dan list/table bawah supaya boleh shrink dan tak potong. Semua imej guna object-fit:cover dan width:100%; height:100%. Buang semua height:***px pada poster/kanan. Buktikan di 1366×768, 1920×1080 & 4K: tiada scroll, tiada potong, border hitam luar sahaja yang berubah.

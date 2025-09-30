@@ -598,19 +598,18 @@ export function TVDisplay({
   // Get current media item
   const currentMedia = mediaItems.length > 0 ? mediaItems[currentMediaIndex] : null;
 
-  // FIXED SIZE content - 1920x1080 (16:9) - TAK BERUBAH bila screen resize
-  const FIXED_WIDTH = 1920;
-  const FIXED_HEIGHT = 1080;
-
+  // Responsive grid layout dalam 16:9 safe box - TANPA fixed px heights
   const gridStyle = isFullscreen ? {
     display: 'grid',
-    gridTemplateRows: `${FIXED_HEIGHT * 0.65}px ${FIXED_HEIGHT * 0.35}px`, // Fixed px - Ad 702px, Queue 378px
-    gridTemplateColumns: `${FIXED_WIDTH * 0.65}px ${FIXED_WIDTH * 0.35}px`, // Fixed px - Left 1248px, Right 672px
+    gridTemplateRows: '65% 35%',        // Responsive % - Ad area 65%, Queue 35%
+    gridTemplateColumns: '65% 35%',     // Responsive % - Left 65%, Right 35%
     gap: 0,
-    width: `${FIXED_WIDTH}px`,
-    height: `${FIXED_HEIGHT}px`,
-    padding: '48px', // Fixed padding
+    height: '100%',                      // WAJIB: guna penuh 16:9 box
+    width: '100%',
+    padding: '2.5%',                     // Responsive padding
     boxSizing: 'border-box' as const,
+    minHeight: 0,                        // Allow shrinking
+    minWidth: 0,
     ...getBackgroundStyle(headerBackgroundMode, headerBackgroundColor, headerBackgroundGradient, '#ffffff')
   } : {
     display: 'grid',
@@ -621,12 +620,12 @@ export function TVDisplay({
     ...getBackgroundStyle(headerBackgroundMode, headerBackgroundColor, headerBackgroundGradient, '#ffffff')
   };
 
-  // Use CSS classes for TRUE FIXED SIZE in fullscreen, regular grid otherwise
+  // Use 16:9 safe box approach in fullscreen
   return isFullscreen ? (
-    <div className="tv-screen" data-testid="tv-screen">
-      <div className="tv-canvas text-gray-900"
-           style={gridStyle} 
-           data-testid="tv-canvas">
+    <div className="tv-frame" data-testid="tv-frame">
+      <div className="tv-content text-gray-900"
+           data-testid="tv-display">
+        <div className="tv-grid" style={gridStyle}>
       {/* Top Row - Advertisement Area with 16:9 ratio */}
       <div className={`${isFullscreen ? 'm-0 p-0 w-full h-full' : 'p-4 w-full'}`}>
         <div className="overflow-hidden flex items-center justify-center w-full h-full relative" style={{ aspectRatio: '16/9', backgroundColor: '#f3f4f6' }}>
@@ -1125,8 +1124,9 @@ export function TVDisplay({
           </div>
         </div>
       )}
-    </div>
-  </div>
+      </div>  {/* Close tv-grid */}
+    </div>    {/* Close tv-content */}
+  </div>      {/* Close tv-frame */}
   ) : (
     <div className="h-screen text-gray-900" style={gridStyle} data-testid="tv-display">
       {/* Top Row - Advertisement Area with 16:9 ratio */}

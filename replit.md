@@ -10,17 +10,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### September 30, 2025 - TV Display Fixed Size Letterbox (Latest)
-- Implemented strict 16:9 letterbox approach with FIXED content dimensions
-- Content container set to fixed 1920x1080px size that NEVER resizes or moves
-- Uses CSS transform: scale() to fit fixed content within any screen size
-- Grid layout uses fixed pixel dimensions (not responsive units):
-  - Ad area: 702px height, Queue: 378px height
-  - Left panel: 1248px width, Right panel: 672px width
-- Font sizes use fixed pixels (e.g., 80px) instead of responsive vw/vh units
+### September 30, 2025 - TV Display 16:9 Responsive Safe Box (Latest)
+- Implemented 16:9 aspect ratio safe box that scales to fit screen
+- Uses aspect-ratio CSS with min(100vw, 177.78vh) for responsive sizing
+- Grid layout uses percentage-based dimensions for proportional scaling:
+  - Ad area: 65% height, Queue: 35% height
+  - Left panel: 65% width, Right panel: 35% width
+- Inner grid set to height: 100% with min-height:0 for proper shrinking
+- Font sizes use clamp() with vw units for responsive scaling
 - Black letterbox borders automatically adjust to fill remaining screen space
-- Content maintains exact same size regardless of screen resolution
-- Outer wrapper scales entire fixed content to fit viewport while preserving aspect ratio
+- Content scales proportionally with screen size while maintaining 16:9 ratio
+- Structure: .tv-frame (full screen centering) > .tv-content (16:9 box) > .tv-grid (layout grid)
 
 ## System Architecture
 

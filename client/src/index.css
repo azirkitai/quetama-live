@@ -594,55 +594,72 @@
   }
 
   /* ============================================ */
-  /* FINAL FIX: Strict 16:9 Letterbox - No Scroll, No Stretch */
-  /* Override all previous TV display rules */
+  /* FINAL FIX: 16:9 SAFE BOX - Content muat sepenuhnya, tiada potong/scroll */
   /* ============================================ */
 
-  /* TV Screen - Outer wrapper (RESIZES with viewport) */
-  .tv-screen {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
+  /* TV Frame - Outer wrapper centers the 16:9 box */
+  .tv-frame {
     height: 100vh;
+    width: 100vw;
     display: grid;
     place-items: center;
-    background: #000;           /* Black borders fill remaining space */
+    background: #000;           /* Black letterbox borders */
     overflow: hidden;           /* No scrollbars */
   }
 
-  /* TV Canvas - Inner content (TRUE FIXED 1920x1080 - NEVER scales/moves) */
-  .tv-canvas {
-    width: 1920px;              /* Fixed width - never changes */
-    height: 1080px;             /* Fixed height - never changes */
-    position: relative;
-    overflow: hidden;           /* Contain content within canvas */
-    
-    /* Override responsive tokens to fixed px inside canvas */
-    --tv-fs-xs: 12px;
-    --tv-fs-sm: 14px;
-    --tv-fs-md: 18px;
-    --tv-fs-lg: 24px;
-    --tv-fs-xl: 32px;
-    --tv-fs-2xl: 48px;
-    --tv-fs-3xl: 64px;
-    --tv-fs-4xl: 96px;
-    --tv-fs-5xl: 128px;
-  }
-
-  /* All elements inside TV canvas use FIXED px sizes */
-  .tv-canvas h1 { 
-    margin: 0 0 20px;
-    font-size: 80px;            /* Fixed px - never changes */
-    line-height: 1.1;
-  }
-
-  /* Media elements inside canvas */
-  .tv-canvas img,
-  .tv-canvas video,
-  .tv-canvas iframe {
-    max-width: 100%;
+  /* TV Content - SAFE 16:9 BOX yang scales to fit screen */
+  .tv-content {
+    aspect-ratio: 16 / 9;
+    width: min(100vw, 177.78vh);    /* Fit dalam screen, maintain 16:9 */
     height: auto;
+    overflow: hidden;                /* Prevent inner content overflow */
+    display: flex;
+    flex-direction: column;
+    /* Allow shrinking */
+    min-width: 0;
+    min-height: 0;
+  }
+
+  /* Fallback untuk browsers tanpa aspect-ratio support */
+  @supports not (aspect-ratio: 16 / 9) {
+    .tv-content {
+      width: min(100vw, 177.78vh);
+      height: calc((min(100vw, 177.78vh)) * 9 / 16);
+    }
+  }
+
+  /* Grid utama dalam 16:9 box - MESTI height: 100% */
+  .tv-grid {
+    height: 100%;               /* Wajib: guna penuh safe box */
+    width: 100%;
+    display: grid;
+    gap: 0;
+    /* Allow children to shrink */
+    min-height: 0;
+    min-width: 0;
+  }
+
+  /* All sections dalam grid kena boleh shrink */
+  .tv-left, .tv-right, .tv-section {
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;           /* Prevent overflow */
+  }
+
+  /* Images dalam TV - WAJIB object-fit */
+  .tv-content img,
+  .tv-content video,
+  .tv-content iframe {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;          /* atau 'contain' jika tak mahu crop */
     display: block;
-    object-fit: cover;
+  }
+
+  /* Teks skala ikut safe box (bukan device) */
+  .tv-content h1 {
+    margin: 0 0 1%;
+    font-size: clamp(24px, 4.2vw, 72px);
+    line-height: 1.1;
   }
 }
