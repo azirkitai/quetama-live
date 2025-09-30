@@ -803,7 +803,7 @@ export function TVDisplay({
                   <div className="text-center" 
                        style={{ 
                          ...getHistoryNameStyle(),
-                         fontSize: historyFontSizes[item.id]?.name || 'var(--tv-fs-md, 20px)', // Responsive fallback
+                         fontSize: 'var(--tv-fs-xl, 32px)', // Responsive: auto-scales from 22px to 48px based on screen
                          fontWeight: 'bold',
                          lineHeight: '1.1',
                          wordBreak: 'break-word',
@@ -814,7 +814,7 @@ export function TVDisplay({
                   <div className="text-center" 
                        style={{ 
                          ...getHistoryNameStyle(),
-                         fontSize: historyFontSizes[item.id]?.room || 'var(--tv-fs-md, 20px)', // Responsive fallback
+                         fontSize: 'var(--tv-fs-xl, 32px)', // Responsive: auto-scales from 22px to 48px based on screen
                          fontWeight: 'normal',
                          lineHeight: '1.1',
                          wordBreak: 'break-word',
