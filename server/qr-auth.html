@@ -64,9 +64,11 @@
 
         <div class="text-center">
           <p class="text-sm text-gray-600 mb-2">Sila masukkan kod ini pada paparan TV/desktop anda</p>
+          <p id="redirectMessage" class="text-xs text-blue-600 mt-2"></p>
           <button 
+            id="reloadButton"
             onclick="location.reload()" 
-            class="text-sm text-blue-600 hover:text-blue-700 underline"
+            class="text-sm text-blue-600 hover:text-blue-700 underline mt-2"
           >
             Login Akaun Lain
           </button>
@@ -156,6 +158,21 @@
           document.getElementById('successPanel').classList.remove('hidden');
           document.getElementById('tvCode').textContent = data.tvVerifier;
           console.log('✅ TV Verifier displayed:', data.tvVerifier);
+          
+          // Show redirect countdown
+          let countdown = 3;
+          const msgEl = document.getElementById('redirectMessage');
+          const updateCountdown = () => {
+            msgEl.textContent = `Mengalihkan ke paparan TV dalam ${countdown}s...`;
+            countdown--;
+            if (countdown < 0) {
+              console.log('🔄 Redirecting to TV display...');
+              window.location.href = '/tv-display';
+            } else {
+              setTimeout(updateCountdown, 1000);
+            }
+          };
+          updateCountdown();
         } else {
           throw new Error(data.error || 'Login gagal');
         }

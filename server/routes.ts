@@ -189,6 +189,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Sesi QR tidak dijumpai atau sudah tamat tempoh" });
       }
 
+      // Set session for PHONE (will redirect to TV display)
+      req.session.userId = user.id;
+      req.session.username = user.username;
+      req.session.role = user.role;
+
       // SERVER-AUTHORITATIVE: Emit authorization event to QR room (desktop listens)
       if (globalIo) {
         const qrRoom = `qr:${id}`;
