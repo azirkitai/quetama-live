@@ -8,6 +8,16 @@ This is a comprehensive clinic patient calling system designed for healthcare fa
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### September 30, 2025 - TV Display Responsive Text Sizing
+- Removed all JavaScript-based dynamic font sizing to eliminate browser compatibility issues
+- Implemented pure CSS responsive tokens (--tv-fs-xs through --tv-fs-5xl) for all text elements
+- Updated calling panel, history sections, date/time display, weather info, prayer times, and marquee text
+- Removed fontSize override from getTextGroupStyles to ensure CSS tokens always control sizing
+- All text now auto-resizes based on screen dimensions using CSS clamp() with vmin units
+- Supports screen resolutions from 720p to 4K with consistent scaling
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -43,6 +53,9 @@ The system uses four main entities:
 - **Real-time Queue Management**: Live updates for patient status and queue position
 - **Multi-window Support**: Flexible room/station configuration with individual patient assignments
 - **TV Display Mode**: Large-format display for patient calling with Islamic prayer times integration
+  - **Responsive Text Sizing**: Pure CSS-based responsive tokens (--tv-fs-xs to --tv-fs-5xl) using clamp() with vmin units
+  - **Auto-scaling**: All text including numbers automatically resize based on screen dimensions (720p to 4K support)
+  - **Browser Compatibility**: Chrome 88+, Edge 88+, Firefox 75+ for optimal CSS clamp() and CSS variables support
 - **Audio Integration**: Configurable sound alerts and text-to-speech capabilities
 - **Theme Customization**: Medical blue color scheme with accessibility considerations
 
