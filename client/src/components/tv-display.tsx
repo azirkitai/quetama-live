@@ -1124,9 +1124,9 @@ export function TVDisplay({
           </div>
         </div>
       )}
-      </div>  {/* Close tv-grid */}
-    </div>    {/* Close tv-content */}
-  </div>      {/* Close tv-frame */}
+      </div>
+    </div>
+  </div>
   ) : (
     <div className="h-screen text-gray-900" style={gridStyle} data-testid="tv-display">
       {/* Top Row - Advertisement Area with 16:9 ratio */}
