@@ -121,7 +121,7 @@ export interface IStorage {
   // QR Session methods
   createQrSession(qrSession: InsertQrSession): Promise<QrSession>;
   getQrSession(id: string): Promise<QrSession | undefined>;
-  authorizeQrSession(id: string, userId: string): Promise<QrSession | undefined>;
+  authorizeQrSession(id: string, userId: string, tvVerifierHash?: string): Promise<QrSession | undefined>;
   finalizeQrSession(id: string, tvVerifier: string): Promise<{ success: boolean; userId?: string }>;
   expireOldQrSessions(): Promise<void>;
   
@@ -956,7 +956,7 @@ export class MemStorage implements IStorage {
     return session;
   }
 
-  async authorizeQrSession(id: string, userId: string): Promise<QrSession | undefined> {
+  async authorizeQrSession(id: string, userId: string, tvVerifierHash?: string): Promise<QrSession | undefined> {
     const session = this.qrSessions.get(id);
     if (!session || session.status !== "pending" || session.expiresAt < new Date()) {
       return undefined;
@@ -966,6 +966,7 @@ export class MemStorage implements IStorage {
       ...session,
       status: "authorized" as const,
       authorizedUserId: userId,
+      tvVerifierHash: tvVerifierHash || session.tvVerifierHash, // Update hash if provided
     };
     this.qrSessions.set(id, updatedSession);
     return updatedSession;
@@ -1700,17 +1701,24 @@ export class DatabaseStorage implements IStorage {
     return session;
   }
 
-  async authorizeQrSession(id: string, userId: string): Promise<QrSession | undefined> {
+  async authorizeQrSession(id: string, userId: string, tvVerifierHash?: string): Promise<QrSession | undefined> {
     const session = await this.getQrSession(id);
     if (!session || session.status !== "pending" || session.expiresAt < new Date()) {
       return undefined;
     }
 
+    const updateData: any = { 
+      status: "authorized",
+      authorizedUserId: userId
+    };
+    
+    // Update tvVerifierHash if provided
+    if (tvVerifierHash) {
+      updateData.tvVerifierHash = tvVerifierHash;
+    }
+
     const result = await db.update(schema.qrSessions)
-      .set({ 
-        status: "authorized",
-        authorizedUserId: userId
-      })
+      .set(updateData)
       .where(eq(schema.qrSessions.id, id))
       .returning();
     

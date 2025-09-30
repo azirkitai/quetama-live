@@ -132,13 +132,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // QR Authentication routes
   app.post("/api/qr/init", async (req, res) => {
     try {
-      const tvVerifier = randomBytes(32).toString('hex');
-      const tvVerifierHash = createHash('sha256').update(tvVerifier).digest('hex');
+      // Don't generate tvVerifier yet - will be created when phone authorizes
       const expiresAt = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes from now
 
       const qrSession = await storage.createQrSession({
         status: "pending",
-        tvVerifierHash,
+        tvVerifierHash: "", // Will be set during authorization
         authorizedUserId: null,
         expiresAt,
         usedAt: null,
@@ -150,7 +149,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         qrId: qrSession.id,
-        tvVerifier,
         expiresAt: expiresAt.toISOString(),
         qrUrl: `${req.protocol}://${req.get('host')}/qr-auth/${qrSession.id}`
       });
@@ -181,27 +179,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Username atau password salah" });
       }
 
-      // Authorize QR session
-      const authorizedSession = await storage.authorizeQrSession(id, user.id);
+      // Generate 6-digit TV verifier code (shown on phone, entered on desktop)
+      const tvVerifier = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
+      const tvVerifierHash = createHash('sha256').update(tvVerifier).digest('hex');
+
+      // Authorize QR session and store the verifier hash
+      const authorizedSession = await storage.authorizeQrSession(id, user.id, tvVerifierHash);
       if (!authorizedSession) {
         return res.status(404).json({ error: "Sesi QR tidak dijumpai atau sudah tamat tempoh" });
       }
 
-      // SERVER-AUTHORITATIVE: Emit authorization event to QR room
+      // SERVER-AUTHORITATIVE: Emit authorization event to QR room (desktop listens)
       if (globalIo) {
         const qrRoom = `qr:${id}`;
         globalIo.to(qrRoom).emit("qr:authorization_complete", {
           qrId: id,
           user: { username: user.username, id: user.id },
-          message: "QR berjaya disahkan",
+          message: "QR berjaya disahkan - sila masukkan kod dari telefon",
           timestamp: new Date()
         });
         console.log(`✅ Server emitted QR authorization to room: ${qrRoom}`);
       }
 
+      // Return 6-digit code to PHONE to display
       res.json({ 
         success: true, 
         message: "QR berjaya disahkan",
+        tvVerifier, // Phone displays this code
         user: sanitizeUser(user)
       });
     } catch (error) {

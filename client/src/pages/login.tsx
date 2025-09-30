@@ -35,10 +35,11 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [qrSessionId, setQrSessionId] = useState<string | null>(null);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
-  const [tvVerifier, setTvVerifier] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
   const [qrStatus, setQrStatus] = useState<'loading' | 'active' | 'authorized' | 'expired'>('loading');
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [verifierInput, setVerifierInput] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -94,7 +95,6 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
       if (result.qrId) {
         const sessionId = result.qrId;
         setQrSessionId(sessionId);
-        setTvVerifier(result.tvVerifier);
         
         // Calculate countdown from expiresAt
         const expiresAt = new Date(result.expiresAt);
@@ -172,13 +172,53 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     setSocket(newSocket);
   };
 
+  const handleVerifierSubmit = async () => {
+    if (!qrSessionId || !verifierInput || verifierInput.length !== 6) {
+      toast({
+        title: "Kod Tidak Lengkap",
+        description: "Sila masukkan 6-digit kod dari telefon anda",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsVerifying(true);
+      const response = await apiRequest("POST", `/api/qr/${qrSessionId}/finalize`, {
+        tvVerifier: verifierInput
+      });
+      const result = await response.json();
+
+      if (result.success && result.userId) {
+        toast({
+          title: "Login QR Berjaya",
+          description: "Anda berjaya log masuk",
+        });
+        
+        // Session is set on server, reload to get authenticated state
+        window.location.href = '/';
+      } else {
+        throw new Error(result.error || "Kod verifikasi tidak sah");
+      }
+    } catch (err: any) {
+      toast({
+        title: "Verifikasi Gagal",
+        description: err.message || "Kod tidak sah. Sila cuba lagi.",
+        variant: "destructive",
+      });
+      setVerifierInput('');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   const closeQrModal = () => {
     setIsQrModalOpen(false);
     setQrSessionId(null);
     setQrUrl(null);
-    setTvVerifier(null);
     setQrStatus('loading');
     setCountdown(0);
+    setVerifierInput('');
     
     // Disconnect WebSocket
     if (socket) {
@@ -421,43 +461,39 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                     Pengesahan Berjaya!
                   </h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Masukkan kod pengesahan di bawah pada telefon anda
+                    Masukkan kod 6-digit yang dipaparkan di telefon anda
                   </p>
                 </div>
 
-                {/* TV Verifier Code Display */}
-                {tvVerifier && (
-                  <div className="w-full max-w-xs">
-                    <div className="text-center mb-2">
-                      <p className="text-sm font-medium">Kod Pengesahan TV</p>
-                    </div>
-                    <div className="relative">
-                      <div 
-                        className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                        onClick={() => {
-                          navigator.clipboard.writeText(tvVerifier);
-                          toast({
-                            title: "Kod Disalin",
-                            description: "Kod pengesahan telah disalin ke clipboard",
-                          });
-                        }}
-                        data-testid="tv-verifier-code"
-                      >
-                        <div className="font-mono text-2xl font-bold text-blue-700 dark:text-blue-300 tracking-widest">
-                          {tvVerifier.substring(0, 8).toUpperCase()}
-                        </div>
-                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                          Klik untuk salin
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-center mt-2">
-                      <p className="text-xs text-muted-foreground">
-                        Masukkan kod ini pada telefon untuk melengkapkan login
-                      </p>
-                    </div>
+                {/* Verifier Input Field */}
+                <div className="w-full max-w-xs space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Kod Pengesahan</label>
+                    <Input
+                      type="text"
+                      maxLength={6}
+                      value={verifierInput}
+                      onChange={(e) => setVerifierInput(e.target.value.replace(/[^0-9]/g, ''))}
+                      placeholder="000000"
+                      className="text-center text-2xl font-mono tracking-widest"
+                      disabled={isVerifying}
+                      data-testid="input-verifier"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && verifierInput.length === 6) {
+                          handleVerifierSubmit();
+                        }
+                      }}
+                    />
                   </div>
-                )}
+                  <Button
+                    onClick={handleVerifierSubmit}
+                    disabled={verifierInput.length !== 6 || isVerifying}
+                    className="w-full"
+                    data-testid="button-verify"
+                  >
+                    {isVerifying ? "Mengesahkan..." : "Sahkan"}
+                  </Button>
+                </div>
 
                 {/* Countdown if still active */}
                 {countdown > 0 && (
