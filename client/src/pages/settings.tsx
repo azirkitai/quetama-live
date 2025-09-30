@@ -2302,6 +2302,37 @@ export default function Settings() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* NEW 16:9 PREVIEW CARD - EMPTY CANVAS */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Eye className="h-5 w-5 mr-2" />
+              Pratonton Susunan Baru (16:9)
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Canvas kosong 16:9 - kita akan susun content satu persatu di sini
+            </p>
+          </CardHeader>
+          <CardContent>
+            {/* 16:9 aspect ratio container with black letterbox */}
+            <div 
+              className="w-full bg-black flex items-center justify-center p-4"
+              style={{ aspectRatio: '16/9' }}
+            >
+              <div 
+                className="w-full h-full bg-white rounded-lg flex items-center justify-center text-gray-400"
+                style={{ aspectRatio: '16/9' }}
+              >
+                <div className="text-center">
+                  <Monitor className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-semibold">Canvas Kosong 16:9</p>
+                  <p className="text-sm">Kita akan susun content di sini</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* SECTION 4: AUDIO SETTINGS */}
