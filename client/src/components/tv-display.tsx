@@ -740,7 +740,7 @@ export function TVDisplay({
                }}>
             <div className="font-bold"
                  style={{ 
-                   fontSize: patientNameFontSize,
+                   fontSize: 'var(--tv-fs-4xl, 96px)', // Responsive: auto-scales from 48px to 128px based on screen
                    opacity: isBlinking ? (blinkVisible ? '1' : '0') : '1',
                    transition: isBlinking ? 'none' : 'opacity 300ms ease-in-out',
                    lineHeight: '1.1',
@@ -753,7 +753,7 @@ export function TVDisplay({
             </div>
             <div
                  style={{ 
-                   fontSize: roomNameFontSize,
+                   fontSize: 'var(--tv-fs-3xl, 64px)', // Responsive: auto-scales from 36px to 96px based on screen
                    opacity: isBlinking ? (blinkVisible ? '1' : '0') : '1',
                    transition: isBlinking ? 'none' : 'opacity 300ms ease-in-out',
                    lineHeight: '1.1',
