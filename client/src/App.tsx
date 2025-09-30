@@ -84,11 +84,20 @@ function AppContent() {
   const { isAuthenticated, isLoading, login } = useAuth();
   const [location] = useLocation();
 
-  // Check if this is a QR auth route BEFORE any auth logic
-  console.log('Current location:', location);
+  // Check HASH routing for QR auth (hash-based URL like /#/qr-auth/sessionId)
+  const hash = window.location.hash;
+  console.log('Current location:', location, 'Hash:', hash);
+  
+  if (hash.startsWith('#/qr-auth/')) {
+    const sessionId = hash.replace('#/qr-auth/', '').replace(/\/$/, '');
+    console.log('QR Auth detected from HASH! SessionId:', sessionId);
+    return <QrAuthPage sessionId={sessionId} />;
+  }
+
+  // Check regular path routing for QR auth
   if (location.startsWith('/qr-auth/')) {
-    const sessionId = location.replace('/qr-auth/', '').replace(/\/$/, ''); // Remove trailing slash
-    console.log('QR Auth detected! SessionId:', sessionId);
+    const sessionId = location.replace('/qr-auth/', '').replace(/\/$/, '');
+    console.log('QR Auth detected from PATH! SessionId:', sessionId);
     return <QrAuthPage sessionId={sessionId} />;
   }
 

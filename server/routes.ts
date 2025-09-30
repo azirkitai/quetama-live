@@ -146,7 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         qrId: qrSession.id,
         tvVerifier,
         expiresAt: expiresAt.toISOString(),
-        qrUrl: `${req.protocol}://${req.get('host')}/qr-auth/${qrSession.id}`
+        qrUrl: `${req.protocol}://${req.get('host')}/#/qr-auth/${qrSession.id}`
       });
     } catch (error) {
       console.error("Error creating QR session:", error);
