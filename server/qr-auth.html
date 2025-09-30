@@ -159,35 +159,8 @@
           document.getElementById('tvCode').textContent = data.tvVerifier;
           console.log('✅ TV Verifier displayed:', data.tvVerifier);
           
-          // Check session before redirect
-          const checkSessionAndRedirect = async () => {
-            try {
-              const sessionCheck = await fetch('/api/auth/me');
-              const sessionData = await sessionCheck.json();
-              
-              if (sessionData.user) {
-                console.log('✅ Session confirmed, redirecting to TV display');
-                window.location.href = '/tv-display';
-              } else {
-                console.log('⚠️ No session found, showing manual redirect button');
-                document.getElementById('redirectMessage').textContent = 'Klik butang di bawah untuk ke paparan TV';
-                document.getElementById('reloadButton').textContent = 'Ke Paparan TV';
-                document.getElementById('reloadButton').onclick = () => {
-                  window.location.href = '/tv-display';
-                };
-              }
-            } catch (err) {
-              console.error('❌ Session check failed:', err);
-              document.getElementById('redirectMessage').textContent = 'Klik butang di bawah untuk ke paparan TV';
-              document.getElementById('reloadButton').textContent = 'Ke Paparan TV';
-              document.getElementById('reloadButton').onclick = () => {
-                window.location.href = '/tv-display';
-              };
-            }
-          };
-          
-          // Wait 1 second for session to be saved, then check and redirect
-          setTimeout(checkSessionAndRedirect, 1000);
+          // Update message - phone stays here, no redirect
+          document.getElementById('redirectMessage').textContent = 'Masukkan kod ini pada paparan TV/desktop anda';
         } else {
           throw new Error(data.error || 'Login gagal');
         }

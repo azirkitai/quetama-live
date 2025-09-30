@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { TVDisplay } from "@/components/tv-display";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +24,18 @@ interface DashboardStats {
 
 export default function Dashboard() {
   const [fullscreen, setFullscreen] = useState(false);
+
+  // Auto-trigger fullscreen from URL parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('fullscreen') === '1') {
+      // Remove parameter from URL
+      window.history.replaceState({}, '', '/');
+      // Enter fullscreen mode
+      document.documentElement.requestFullscreen().catch(console.error);
+      setFullscreen(true);
+    }
+  }, []);
 
   // Fetch dashboard statistics
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats & { totalWindows: number }>({

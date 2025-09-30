@@ -192,11 +192,11 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
       if (result.success && result.userId) {
         toast({
           title: "Login QR Berjaya",
-          description: "Mengalihkan ke paparan TV...",
+          description: "Mengalihkan ke dashboard...",
         });
         
-        // Redirect to TV display
-        window.location.href = '/tv-display';
+        // Redirect to dashboard (which has fullscreen TV display mode)
+        window.location.href = '/?fullscreen=1';
       } else {
         throw new Error(result.error || "Kod verifikasi tidak sah");
       }
