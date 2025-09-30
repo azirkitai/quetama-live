@@ -11,6 +11,8 @@ interface Window {
   name: string;
   isActive: boolean;
   currentPatientId?: string;
+  currentPatientName?: string;
+  currentPatientNumber?: number;
   userId: string;
 }
 
@@ -475,7 +477,22 @@ export class MemStorage implements IStorage {
   }
 
   async getWindows(userId: string): Promise<Window[]> {
-    return Array.from(this.windows.values()).filter(w => w.userId === userId);
+    const windows = Array.from(this.windows.values()).filter(w => w.userId === userId);
+    
+    // Enrich with patient details if currentPatientId exists
+    return windows.map(w => {
+      if (w.currentPatientId) {
+        const patient = this.patients.get(w.currentPatientId);
+        if (patient) {
+          return {
+            ...w,
+            currentPatientName: patient.name || undefined,
+            currentPatientNumber: patient.number
+          };
+        }
+      }
+      return w;
+    });
   }
 
   async createWindow(insertWindow: InsertWindow): Promise<Window> {
@@ -1199,13 +1216,27 @@ export class DatabaseStorage implements IStorage {
   async getWindows(userId: string): Promise<Window[]> {
     // For now, use database for windows to ensure persistence
     try {
-      const result = await db.select().from(schema.windows)
+      const result = await db
+        .select({
+          id: schema.windows.id,
+          name: schema.windows.name,
+          isActive: schema.windows.isActive,
+          currentPatientId: schema.windows.currentPatientId,
+          userId: schema.windows.userId,
+          patientName: schema.patients.name,
+          patientNumber: schema.patients.number,
+        })
+        .from(schema.windows)
+        .leftJoin(schema.patients, eq(schema.windows.currentPatientId, schema.patients.id))
         .where(eq(schema.windows.userId, userId));
+      
       return result.map(w => ({
         id: w.id,
         name: w.name,
         isActive: w.isActive,
         currentPatientId: w.currentPatientId || undefined,
+        currentPatientName: w.patientName || undefined,
+        currentPatientNumber: w.patientNumber || undefined,
         userId: w.userId
       }));
     } catch (error) {
