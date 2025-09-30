@@ -303,19 +303,34 @@ export class MemStorage implements IStorage {
 
   // Authentication method - verify user credentials
   async authenticateUser(username: string, password: string): Promise<User | null> {
+    console.log('🔐 AUTH: Attempting login for username:', username);
     const user = await this.getUserByUsername(username);
     
-    if (!user || !user.isActive) {
-      return null; // User not found or inactive
+    if (!user) {
+      console.log('❌ AUTH: User not found');
+      return null;
     }
+    
+    if (!user.isActive) {
+      console.log('❌ AUTH: User is inactive');
+      return null;
+    }
+    
+    console.log('🔑 AUTH: User found, verifying password...');
+    console.log('🔑 AUTH: Provided password length:', password.length);
+    console.log('🔑 AUTH: Stored hash starts with:', user.password.substring(0, 10));
     
     // Compare provided password with hashed password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     
+    console.log('🔑 AUTH: Password valid?', isPasswordValid);
+    
     if (!isPasswordValid) {
+      console.log('❌ AUTH: Invalid password');
       return null; // Invalid password
     }
     
+    console.log('✅ AUTH: Login successful for user:', username);
     // Return user without updating lastLogin since column doesn't exist in database
     return user;
   }
