@@ -152,6 +152,13 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="w-full max-w-sm">
+        {/* Debug: Show version and sessionId */}
+        <div className="mb-2 p-2 bg-yellow-200 text-black text-xs rounded">
+          <div>VERSION: v3.0-HASH</div>
+          <div>SessionID: {sessionId || 'KOSONG!'}</div>
+          <div>Step: {step}</div>
+        </div>
+        
         {/* Logo and Brand */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-full mb-3">
