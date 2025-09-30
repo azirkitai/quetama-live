@@ -40,41 +40,8 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
     },
   });
 
-  // Check QR session validity on mount
-  useEffect(() => {
-    checkSessionValidity();
-  }, [sessionId]);
-
-  const checkSessionValidity = async () => {
-    try {
-      // Check if session exists and is still valid
-      const response = await apiRequest("POST", `/api/qr/${sessionId}/authorize`, {
-        username: "",
-        password: "",
-      });
-      const result = await response.json();
-      
-      // If we get a specific "session not found" or "expired" error, set to expired
-      if (result.error && (
-        result.error.includes("tidak dijumpai") || 
-        result.error.includes("tamat tempoh") ||
-        result.error.includes("expired")
-      )) {
-        setStep('expired');
-      }
-      // Otherwise, session exists (even if credentials are wrong, which is expected)
-    } catch (err: any) {
-      // If we get network error or server error, assume session might be expired
-      if (err.message && (
-        err.message.includes("tidak dijumpai") ||
-        err.message.includes("tamat tempoh") ||
-        err.message.includes("expired") ||
-        err.message.includes("404")
-      )) {
-        setStep('expired');
-      }
-    }
-  };
+  // Note: Session validity is checked naturally when user submits credentials
+  // No need for pre-validation as it causes unnecessary API calls and errors
 
   const handleLogin = async (data: QrAuthFormData) => {
     setIsLoading(true);
