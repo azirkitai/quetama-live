@@ -31,6 +31,16 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
   const [authorizedUser, setAuthorizedUser] = useState<any>(null);
   const { toast } = useToast();
 
+  // Debug: Check if sessionId is received
+  useEffect(() => {
+    console.log('QR Auth Page loaded with sessionId:', sessionId);
+    if (!sessionId) {
+      console.error('ERROR: sessionId is empty!');
+      setStep('expired');
+      setError('Sesi QR tidak sah. Tiada sessionId diterima.');
+    }
+  }, [sessionId]);
+
   const form = useForm<QrAuthFormData>({
     resolver: zodResolver(qrAuthSchema),
     defaultValues: {
