@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Lock, Save } from "lucide-react";
+import { Lock, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -72,14 +71,6 @@ export default function Account() {
     }
   };
 
-  // TODO: Remove mock functionality - get real user data from backend
-  const mockUserData = {
-    username: "admin",
-    role: "Admin",
-    lastLogin: "27 September 2025, 10:30 AM",
-    accountCreated: "1 Januari 2025"
-  };
-
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -88,58 +79,7 @@ export default function Account() {
         <p className="text-muted-foreground">Urus maklumat akaun dan kata laluan</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* User Profile */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <User className="h-5 w-5 mr-2" />
-              Maklumat Pengguna
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Avatar */}
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src="" alt="User Avatar" />
-                <AvatarFallback className="text-lg font-semibold">
-                  {mockUserData.username.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h3 className="font-semibold text-lg" data-testid="text-username">
-                  {mockUserData.username}
-                </h3>
-                <p className="text-muted-foreground" data-testid="text-user-role">
-                  {mockUserData.role}
-                </p>
-              </div>
-            </div>
-
-            {/* User Details */}
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="font-medium text-muted-foreground">Username:</p>
-                  <p data-testid="text-account-username">{mockUserData.username}</p>
-                </div>
-                <div>
-                  <p className="font-medium text-muted-foreground">Role:</p>
-                  <p data-testid="text-account-role">{mockUserData.role}</p>
-                </div>
-                <div>
-                  <p className="font-medium text-muted-foreground">Last Login:</p>
-                  <p data-testid="text-last-login">{mockUserData.lastLogin}</p>
-                </div>
-                <div>
-                  <p className="font-medium text-muted-foreground">Account Created:</p>
-                  <p data-testid="text-account-created">{mockUserData.accountCreated}</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
+      <div className="max-w-2xl">
         {/* Change Password */}
         <Card>
           <CardHeader>
