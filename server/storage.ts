@@ -1167,37 +1167,84 @@ export class DatabaseStorage implements IStorage {
   // For now, I'll delegate to MemStorage for non-settings methods
   private memStorage = new MemStorage();
 
-  // User methods
+  // User methods - use database directly for persistence
   async getUsers(): Promise<User[]> {
-    return this.memStorage.getUsers();
+    const result = await db.select().from(users);
+    return result;
   }
 
   async getUser(id: string): Promise<User | undefined> {
-    return this.memStorage.getUser(id);
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return this.memStorage.getUserByUsername(username);
+    const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    return this.memStorage.createUser(insertUser);
+    // Hash the password before storing
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(insertUser.password, saltRounds);
+    
+    const userToInsert = {
+      username: insertUser.username,
+      password: hashedPassword,
+      role: insertUser.role || "user",
+      isActive: true,
+    };
+    
+    const result = await db.insert(users).values(userToInsert).returning();
+    return result[0];
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
-    return this.memStorage.updateUser(id, updates);
+    // Hash password if it's being updated
+    if (updates.password) {
+      const saltRounds = 10;
+      updates.password = await bcrypt.hash(updates.password, saltRounds);
+    }
+
+    const result = await db.update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
+    
+    return result[0];
   }
 
   async deleteUser(id: string): Promise<boolean> {
-    return this.memStorage.deleteUser(id);
+    const result = await db.delete(users).where(eq(users.id, id)).returning();
+    return result.length > 0;
   }
 
   async authenticateUser(username: string, password: string): Promise<User | null> {
-    return this.memStorage.authenticateUser(username, password);
+    const user = await this.getUserByUsername(username);
+    
+    if (!user || !user.isActive) {
+      return null;
+    }
+    
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    
+    if (!isPasswordValid) {
+      return null;
+    }
+    
+    return user;
   }
 
   async toggleUserStatus(id: string): Promise<User | undefined> {
-    return this.memStorage.toggleUserStatus(id);
+    const currentUser = await this.getUser(id);
+    if (!currentUser) return undefined;
+
+    const result = await db.update(users)
+      .set({ isActive: !currentUser.isActive })
+      .where(eq(users.id, id))
+      .returning();
+    
+    return result[0];
   }
 
   // TV Token methods - use database query for efficiency
