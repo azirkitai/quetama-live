@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -82,48 +82,33 @@ function AuthenticatedApp() {
 // Main app with authentication logic  
 function AppContent() {
   const { isAuthenticated, isLoading, login } = useAuth();
+  const [location] = useLocation();
 
-  return (
-    <Switch>
-      {/* QR Auth route - accessible without authentication */}
-      <Route path="/qr-auth/:id">
-        {(params: any) => {
-          console.log('QR Route matched! Params:', params);
-          return <QrAuthPage sessionId={params.id || ''} />;
-        }}
-      </Route>
-      
-      {/* QR Auth route with trailing slash */}
-      <Route path="/qr-auth/:id/">
-        {(params: any) => {
-          console.log('QR Route with slash matched! Params:', params);
-          return <QrAuthPage sessionId={params.id || ''} />;
-        }}
-      </Route>
-      
-      {/* All other routes require authentication check */}
-      <Route>
-        {() => {
-          if (isLoading) {
-            return (
-              <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                  <p className="text-muted-foreground">Memeriksa sesi login...</p>
-                </div>
-              </div>
-            );
-          }
+  // Check if this is a QR auth route BEFORE any auth logic
+  console.log('Current location:', location);
+  if (location.startsWith('/qr-auth/')) {
+    const sessionId = location.replace('/qr-auth/', '').replace(/\/$/, ''); // Remove trailing slash
+    console.log('QR Auth detected! SessionId:', sessionId);
+    return <QrAuthPage sessionId={sessionId} />;
+  }
 
-          if (!isAuthenticated) {
-            return <LoginPage onLoginSuccess={login} />;
-          }
+  // Regular authentication flow
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-muted-foreground">Memeriksa sesi login...</p>
+        </div>
+      </div>
+    );
+  }
 
-          return <AuthenticatedApp />;
-        }}
-      </Route>
-    </Switch>
-  );
+  if (!isAuthenticated) {
+    return <LoginPage onLoginSuccess={login} />;
+  }
+
+  return <AuthenticatedApp />;
 }
 
 export default function App() {
