@@ -848,55 +848,55 @@ export function TVDisplay({
            style={{
              ...getBackgroundStyle(prayerTimesBackgroundMode, prayerTimesBackgroundColor, prayerTimesBackgroundGradient, '#1e40af')
            }}>
-        {/* Date/Time Section - Larger */}
-        <div className={`bg-white text-gray-900 p-6 ${isFullscreen ? 'rounded-md mb-6' : 'rounded-lg mb-6'} flex items-center justify-center space-x-8`}>
+        {/* Date/Time Section - Compact for 16:9 fit */}
+        <div className={`bg-white text-gray-900 p-3 ${isFullscreen ? 'rounded-md mb-3' : 'rounded-lg mb-6'} flex items-center justify-center space-x-4`}>
           <div className="text-center">
-            <div className="font-bold text-black" style={{ fontSize: 'var(--tv-fs-4xl, 96px)' }}>{dateInfo.day}</div>
+            <div className="font-bold text-black" style={{ fontSize: 'var(--tv-fs-2xl, 48px)' }}>{dateInfo.day}</div>
           </div>
           <div className="text-center">
-            <div className="font-bold" style={{ fontSize: 'var(--tv-fs-2xl, 48px)' }}>{dateInfo.dayName}</div>
-            <div className="text-gray-600" style={{ fontSize: 'var(--tv-fs-xl, 32px)' }}>{dateInfo.month} {dateInfo.year}</div>
+            <div className="font-bold" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>{dateInfo.dayName}</div>
+            <div className="text-gray-600" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>{dateInfo.month} {dateInfo.year}</div>
           </div>
           <div className="text-center">
-            <div className="font-mono font-bold" style={{ fontSize: 'var(--tv-fs-4xl, 96px)' }} data-testid="display-time">
+            <div className="font-mono font-bold" style={{ fontSize: 'var(--tv-fs-2xl, 48px)' }} data-testid="display-time">
               {formatTime(currentTime)}
             </div>
           </div>
         </div>
 
-        {/* Prayer Times Section - Conditional with Loading/Error States */}
+        {/* Prayer Times Section - Compact */}
         {showPrayerTimes && (
           <div className="text-center">
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <span className="text-yellow-400" style={{ fontSize: 'var(--tv-fs-xl, 32px)' }}>🕌</span>
-              <span className="font-bold" style={{ fontSize: 'var(--tv-fs-xl, 32px)', ...getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') }}>PRAYER TIME</span>
+            <div className="flex items-center justify-center space-x-2 mb-2">
+              <span className="text-yellow-400" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>🕌</span>
+              <span className="font-bold" style={{ fontSize: 'var(--tv-fs-lg, 24px)', ...getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') }}>PRAYER TIME</span>
             </div>
             
             {prayerTimesLoading ? (
-              <div className="text-white" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>
+              <div className="text-white" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>
                 Loading prayer times...
               </div>
             ) : location ? (
-              <div className="text-yellow-300 mb-4" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>
+              <div className="text-yellow-300 mb-2" style={{ fontSize: 'var(--tv-fs-sm, 16px)' }}>
                 📍 {locationError ? "Kuala Lumpur, Malaysia" : prayerTimesData?.location ? `${prayerTimesData.location.city}, ${prayerTimesData.location.country}` : "Kuala Lumpur, Malaysia"}
               </div>
             ) : null}
             
             {!prayerTimesLoading && displayPrayerTimes.length > 0 && (
-              <div className="grid grid-cols-5 gap-4">
+              <div className="grid grid-cols-5 gap-2">
                 {displayPrayerTimes.map((prayer, index) => {
                   const isCurrentPrayer = nextPrayer === prayer.key && shouldHighlight;
                   
                   return (
                     <div key={prayer.key || index} className="text-center">
                       <div className={`font-bold ${isCurrentPrayer ? 'animate-pulse' : ''}`} style={{
-                        fontSize: 'var(--tv-fs-lg, 24px)',
+                        fontSize: 'var(--tv-fs-md, 20px)',
                         ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
                       }}>
                         {prayer.name}
                       </div>
                       <div className={`${isCurrentPrayer ? 'font-bold' : ''}`} style={{
-                        fontSize: 'var(--tv-fs-lg, 24px)',
+                        fontSize: 'var(--tv-fs-md, 20px)',
                         ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
                       }}>
                         {prayer.time}
@@ -908,50 +908,43 @@ export function TVDisplay({
             )}
             
             {!prayerTimesLoading && displayPrayerTimes.length === 0 && (
-              <div className="text-white" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>
+              <div className="text-white" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>
                 Prayer times not available
               </div>
             )}
           </div>
         )}
 
-        {/* Weather Section - Real Location-Based Weather */}
+        {/* Weather Section - Compact */}
         {showWeather && (
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <span className="text-blue-400" style={{ fontSize: 'var(--tv-fs-xl, 32px)' }}>🌤️</span>
-              <span className="font-bold" style={{ fontSize: 'var(--tv-fs-xl, 32px)', ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#60a5fa') }}>WEATHER</span>
+          <div className="text-center mt-2">
+            <div className="flex items-center justify-center space-x-2 mb-2">
+              <span className="text-blue-400" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>🌤️</span>
+              <span className="font-bold" style={{ fontSize: 'var(--tv-fs-lg, 24px)', ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#60a5fa') }}>WEATHER</span>
             </div>
             
-            {/* Fix rendering race condition - better conditional logic */}
             {!location ? (
-              <div className="text-white" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>
+              <div className="text-white" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>
                 Detecting location...
               </div>
             ) : weatherLoading ? (
-              <div className="text-white" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>
+              <div className="text-white" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>
                 Loading weather data...
               </div>
             ) : weatherData ? (
-              <div className="space-y-4">
-                {locationError && (
-                  <div className="text-yellow-300 mb-2" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>
-                    Using default location
-                  </div>
-                )}
-                
+              <div className="space-y-2">
                 {/* Temperature and Icon */}
-                <div className="flex items-center justify-center space-x-6">
-                  <span style={{ fontSize: 'var(--tv-fs-4xl, 96px)' }}>{weatherData.current.icon}</span>
+                <div className="flex items-center justify-center space-x-3">
+                  <span style={{ fontSize: 'var(--tv-fs-2xl, 48px)' }}>{weatherData.current.icon}</span>
                   <div className="text-center">
                     <div className="font-bold" style={{
-                      fontSize: 'var(--tv-fs-3xl, 64px)',
+                      fontSize: 'var(--tv-fs-xl, 32px)',
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
                     }}>
                       {weatherData.current.temperature}{weatherData.units.temperature}
                     </div>
                     <div style={{
-                      fontSize: 'var(--tv-fs-lg, 24px)',
+                      fontSize: 'var(--tv-fs-sm, 16px)',
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
                     }}>
                       {weatherData.current.description}
@@ -959,41 +952,25 @@ export function TVDisplay({
                   </div>
                 </div>
                 
-                {/* Weather Details */}
-                <div className="grid grid-cols-2 gap-6">
+                {/* Weather Details - Inline */}
+                <div className="flex items-center justify-center space-x-4">
                   <div className="text-center">
-                    <div className="font-semibold" style={{
-                      fontSize: 'var(--tv-fs-md, 20px)',
+                    <span className="font-semibold" style={{
+                      fontSize: 'var(--tv-fs-sm, 16px)',
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
-                    }}>Humidity</div>
-                    <div style={{
-                      fontSize: 'var(--tv-fs-lg, 24px)',
-                      ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
-                    }}>{weatherData.current.humidity}{weatherData.units.humidity}</div>
+                    }}>💧 {weatherData.current.humidity}{weatherData.units.humidity}</span>
                   </div>
                   <div className="text-center">
-                    <div className="font-semibold" style={{
-                      fontSize: 'var(--tv-fs-md, 20px)',
+                    <span className="font-semibold" style={{
+                      fontSize: 'var(--tv-fs-sm, 16px)',
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
-                    }}>Wind Speed</div>
-                    <div style={{
-                      fontSize: 'var(--tv-fs-lg, 24px)',
-                      ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
-                    }}>{weatherData.current.windSpeed} {weatherData.units.windSpeed}</div>
+                    }}>💨 {weatherData.current.windSpeed} {weatherData.units.windSpeed}</span>
                   </div>
-                </div>
-                
-                {/* Location Info - improved labeling */}
-                <div style={{
-                  fontSize: 'var(--tv-fs-md, 20px)',
-                  ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#93c5fd')
-                }}>
-                  📍 {locationError ? "Kuala Lumpur, Malaysia" : `${weatherData.location.city}, ${weatherData.location.country}`}
                 </div>
               </div>
             ) : (
-              <div className="text-white" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>
-                Weather data unavailable, retrying...
+              <div className="text-white" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>
+                Weather data unavailable
               </div>
             )}
           </div>
