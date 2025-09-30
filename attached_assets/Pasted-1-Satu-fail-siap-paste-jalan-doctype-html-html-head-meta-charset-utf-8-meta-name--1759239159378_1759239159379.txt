@@ -1,0 +1,153 @@
+1) Satu fail siap (paste & jalan)
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TV Display (Scaled 1920×1080)</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  /* KANVAS TETAP 1920×1080 — hanya elemen ini yang di-scale */
+  #stage{
+    position:fixed; left:50%; top:50%;
+    width:1920px; height:1080px;           /* DESIGN AREA */
+    transform:translate(-50%,-50%) scale(1);
+    transform-origin:top left;
+    background:#0f1d3a; color:#fff; overflow:hidden;
+  }
+  /* Layout DALAM kanvas — bebas guna px sebab skala dijaga secara global */
+  .wrap{padding:48px; display:flex; gap:32px; height:100%; box-sizing:border-box}
+  .col{flex:1; min-width:0; display:flex; flex-direction:column; gap:16px}
+  h1{margin:0 0 8px; font-size:72px; line-height:1.05; font-weight:800}
+  .card{background:#162a5c; border-radius:24px; padding:24px}
+  .big{font-size:96px; font-weight:900; line-height:1}
+  .muted{opacity:.8; font-size:36px}
+  img,video{max-width:100%; height:auto; display:block; object-fit:cover}
+  /* Optional grid/list contoh */
+  .list{flex:1; overflow:hidden; display:grid; grid-auto-rows:minmax(0,1fr); gap:12px}
+  .row{background:#10224a; border-radius:16px; padding:18px 24px; display:flex; justify-content:space-between; align-items:center; font-size:40px}
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <div class="wrap">
+    <!-- KIRI: poster / info -->
+    <div class="col">
+      <div class="card">
+        <h1>PAPARAN GILIRAN</h1>
+        <div class="muted">Klinik Utama 24 Jam</div>
+      </div>
+      <div class="card" style="flex:1; display:flex; align-items:center; justify-content:center;">
+        <!-- contoh poster -->
+        <img src="https://picsum.photos/900/600" alt="">
+      </div>
+    </div>
+
+    <!-- KANAN: calling + senarai -->
+    <div class="col">
+      <div class="card">
+        <div class="muted">CALLING</div>
+        <div class="big">KAMAL</div>
+        <div class="muted">Bilik 1</div>
+      </div>
+      <div class="list">
+        <div class="row"><span>A102</span><span>Kaunter 1</span></div>
+        <div class="row"><span>B205</span><span>Kaunter 2</span></div>
+        <div class="row"><span>C033</span><span>Kaunter 3</span></div>
+        <div class="row"><span>D410</span><span>Kaunter 4</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Auto-scale 1920×1080 ke mana-mana skrin, border luar kekal hitam
+  (function(){
+    const W=1920, H=1080, stage=document.getElementById('stage');
+    function fit(){
+      const s = Math.min(window.innerWidth/W, window.innerHeight/H);
+      stage.style.transform = `translate(-50%,-50%) scale(${s})`;
+    }
+    window.addEventListener('resize', fit);
+    window.addEventListener('orientationchange', fit);
+    fit();
+
+    // (Opsyen) “unlock” audio sekali bila user interact
+    window.addEventListener('click', onceUnlock, { once:true });
+    window.addEventListener('keydown', onceUnlock, { once:true });
+    function onceUnlock(){
+      const a = new Audio(); a.muted=true; a.play().finally(()=>a.pause());
+    }
+
+    // (Opsyen) Toggle debug frame: tekan "D"
+    document.addEventListener('keydown', e=>{
+      if(e.key.toLowerCase()==='d'){
+        stage.style.outline = stage.style.outline ? '' : '6px solid rgba(255,0,102,.5)';
+      }
+    });
+  })();
+</script>
+</body>
+</html>
+
+
+Cara guna: letak SEMUA UI kau (logo, “CALLING”, senarai giliran, poster) di dalam #stage sahaja. Jangan ubah width:1920px; height:1080px—itu “kanvas”. Luarannya akan jadi border hitam ikut TV.
+
+2) Integrasi cepat dengan projek sedia ada
+
+Jika kau dah ada page TV:
+
+Balut content asal dengan <div id="stage"><div class="wrap">…</div></div>.
+
+Tambah CSS #stage{...} dan JS fit() di atas.
+
+Buang height: 100vh/px pada container lama—biar #stage yang jaga scale.
+
+React? Buat komponen Stage1920 dan render children dalamnya; panggil fit() dalam useEffect.
+
+// React contoh ringkas
+function Stage1920({children}) {
+  const ref = React.useRef(null);
+  React.useEffect(()=>{
+    const W=1920,H=1080,stage=ref.current;
+    const fit=()=>stage.style.transform=`translate(-50%,-50%) scale(${Math.min(innerWidth/W, innerHeight/H)})`;
+    addEventListener('resize',fit); fit(); return ()=>removeEventListener('resize',fit);
+  },[]);
+  return (
+    <div id="stage" ref={ref} style={{
+      position:'fixed',left:'50%',top:'50%',width:1920,height:1080,
+      transform:'translate(-50%,-50%) scale(1)',transformOrigin:'top left',
+      background:'#0f1d3a',color:'#fff',overflow:'hidden'
+    }}>
+      <div className="wrap">{children}</div>
+    </div>
+  );
+}
+
+3) Ujian “siap atau belum”
+
+1366×768, 1920×1080, 4K (Chrome DevTools):
+
+Tiada scrollbar ✅
+
+Tiada elemen terpotong ✅
+
+Border hitam luar menyesuaikan diri ✅
+
+Fullscreen (F11 / kiosk): kekal kemas ✅
+
+Audio: selepas 1 klik pertama, boleh play ✅
+
+4) Kiosk cepat (pilih satu)
+
+Mac (Chrome):
+open -a "Google Chrome" --args --kiosk --app="https://url-paparan"
+
+Windows (Chrome shortcut): tambah pada Target:
+--kiosk --app="https://url-paparan"
+
+Android TV (Fully Kiosk): set Start URL ke paparan, enable Fullscreen + Keep Screen On.
+
+Commit message (bagi agent)
+feat(tv-display): lock UI to 1920x1080 stage and autoscale to any TV; add black letterbox, remove viewport-driven layout drift; zero scroll & no overflow across 1366/1080p/4K
