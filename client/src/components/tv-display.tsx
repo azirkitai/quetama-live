@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, Volume2, Calendar } from "lucide-react";
 import { createGradientStyle, createTextGradientStyle } from "@/hooks/useActiveTheme";
 import { useQuery } from "@tanstack/react-query";
+import { audioSystem } from "@/lib/audio-system";
+import type { AudioSettings } from "@/lib/audio-system";
 
 interface QueueItem {
   id: string;
@@ -279,6 +281,10 @@ export function TVDisplay({
   const [location, setLocation] = useState<{lat: number; lon: number} | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
 
+  // Track previous patient for audio notification
+  const previousPatientIdRef = useRef<string | undefined>(undefined);
+  const audioUnlockedRef = useRef(false);
+
   // Get user location on component mount
   useEffect(() => {
     if (!showPrayerTimes && !showWeather) return;
@@ -469,7 +475,7 @@ export function TVDisplay({
     return () => clearInterval(timer);
   }, []);
 
-  // Detect new patient call and trigger animation sequence
+  // Detect new patient call and trigger animation sequence + AUDIO
   useEffect(() => {
     if (currentPatient && currentPatient.id !== prevPatientId) {
       // Clean up any existing timers
@@ -484,6 +490,25 @@ export function TVDisplay({
       setShowHighlight(false);
       setIsBlinking(false);
       setBlinkVisible(true);
+      
+      // AUDIO PLAYBACK: Parse audio settings and play sound
+      const audioSettings: AudioSettings = {
+        enableSound: settings.find(s => s.key === 'enable_sound')?.value === 'true' ?? true,
+        volume: parseInt(settings.find(s => s.key === 'sound_volume')?.value || '70', 10),
+        soundMode: 'preset',
+        presetKey: (settings.find(s => s.key === 'preset_sound_key')?.value || 'notification_sound') as any
+      };
+
+      // Play notification sound for new patient
+      if (audioSettings.enableSound) {
+        audioSystem.playCallingSequence({
+          patientName: currentPatient.name,
+          patientNumber: parseInt(currentPatient.number, 10),
+          windowName: currentPatient.room
+        }, audioSettings).catch(error => {
+          console.error('Failed to play calling sound:', error);
+        });
+      }
       
       // Step 1: Show highlight card for 5 seconds
       setShowHighlight(true);
