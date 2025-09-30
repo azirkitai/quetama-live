@@ -538,20 +538,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // User management routes
   
-  // Get all users - REMOVED for tenant security
-  // In multi-tenant system, each clinic is a user - no need to list other clinics
+  // Get all users - Admin only
   app.get("/api/users", async (req, res) => {
-    res.status(403).json({ 
-      error: "Operasi tidak dibenarkan - dalam sistem multi-tenant, setiap klinik adalah pengguna berasingan"
-    });
+    try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      // Check if user is admin
+      if (req.session.role !== 'admin') {
+        return res.status(403).json({ error: "Akses ditolak - hanya admin boleh lihat senarai pengguna" });
+      }
+      
+      const users = await storage.getUsers();
+      
+      // Remove sensitive data like passwords from response
+      const sanitizedUsers = users.map(sanitizeUser);
+      res.json(sanitizedUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
   });
 
-  // Create new user - REMOVED for tenant security
-  // In multi-tenant system, clinic accounts created through different process
+  // Create new user - Admin only
   app.post("/api/users", async (req, res) => {
-    res.status(403).json({ 
-      error: "Operasi tidak dibenarkan - akaun klinik baru dibuat melalui proses registrasi berasingan"
-    });
+    try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      // Check if user is admin
+      if (req.session.role !== 'admin') {
+        return res.status(403).json({ error: "Akses ditolak - hanya admin boleh tambah pengguna" });
+      }
+      
+      const { username, password, role } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username dan password diperlukan" });
+      }
+      
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Username sudah wujud" });
+      }
+      
+      const user = await storage.createUser({
+        username,
+        password,
+        role: role || 'user'
+      });
+      
+      // Remove sensitive data from response
+      const sanitizedUser = sanitizeUser(user);
+      res.json(sanitizedUser);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ error: "Failed to create user" });
+    }
   });
 
   // Get specific user (Self only - tenant isolation)
