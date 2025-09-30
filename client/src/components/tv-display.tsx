@@ -664,10 +664,10 @@ export function TVDisplay({
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center text-gray-500">
-                <div className="text-5xl font-bold mb-4" data-testid="no-display-message">
+                <div className="font-bold mb-4" style={{ fontSize: 'var(--tv-fs-3xl, 64px)' }} data-testid="no-display-message">
                   NO DISPLAY
                 </div>
-                <p className="text-lg">Tiada media dimuatnaik</p>
+                <p style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>Tiada media dimuatnaik</p>
               </div>
             </div>
           )}
@@ -848,14 +848,14 @@ export function TVDisplay({
         {/* Date/Time Section - Larger */}
         <div className={`bg-white text-gray-900 p-6 ${isFullscreen ? 'rounded-md mb-6' : 'rounded-lg mb-6'} flex items-center justify-center space-x-8`}>
           <div className="text-center">
-            <div className="text-6xl font-bold text-black">{dateInfo.day}</div>
+            <div className="font-bold text-black" style={{ fontSize: 'var(--tv-fs-4xl, 96px)' }}>{dateInfo.day}</div>
           </div>
           <div className="text-center">
-            <div className="font-bold text-4xl">{dateInfo.dayName}</div>
-            <div className="text-3xl text-gray-600">{dateInfo.month} {dateInfo.year}</div>
+            <div className="font-bold" style={{ fontSize: 'var(--tv-fs-2xl, 48px)' }}>{dateInfo.dayName}</div>
+            <div className="text-gray-600" style={{ fontSize: 'var(--tv-fs-xl, 32px)' }}>{dateInfo.month} {dateInfo.year}</div>
           </div>
           <div className="text-center">
-            <div className="font-mono font-bold text-6xl" data-testid="display-time">
+            <div className="font-mono font-bold" style={{ fontSize: 'var(--tv-fs-4xl, 96px)' }} data-testid="display-time">
               {formatTime(currentTime)}
             </div>
           </div>
@@ -865,16 +865,16 @@ export function TVDisplay({
         {showPrayerTimes && (
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
-              <span className="text-yellow-400 text-3xl">🕌</span>
-              <span className="font-bold text-3xl" style={{ ...getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') }}>PRAYER TIME</span>
+              <span className="text-yellow-400" style={{ fontSize: 'var(--tv-fs-xl, 32px)' }}>🕌</span>
+              <span className="font-bold" style={{ fontSize: 'var(--tv-fs-xl, 32px)', ...getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') }}>PRAYER TIME</span>
             </div>
             
             {prayerTimesLoading ? (
-              <div className="text-white text-xl">
+              <div className="text-white" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>
                 Loading prayer times...
               </div>
             ) : location ? (
-              <div className="text-yellow-300 text-lg mb-4">
+              <div className="text-yellow-300 mb-4" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>
                 📍 {locationError ? "Kuala Lumpur, Malaysia" : prayerTimesData?.location ? `${prayerTimesData.location.city}, ${prayerTimesData.location.country}` : "Kuala Lumpur, Malaysia"}
               </div>
             ) : null}
@@ -886,12 +886,14 @@ export function TVDisplay({
                   
                   return (
                     <div key={prayer.key || index} className="text-center">
-                      <div className={`font-bold text-2xl ${isCurrentPrayer ? 'animate-pulse' : ''}`} style={{
+                      <div className={`font-bold ${isCurrentPrayer ? 'animate-pulse' : ''}`} style={{
+                        fontSize: 'var(--tv-fs-lg, 24px)',
                         ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
                       }}>
                         {prayer.name}
                       </div>
-                      <div className={`text-2xl ${isCurrentPrayer ? 'font-bold' : ''}`} style={{
+                      <div className={`${isCurrentPrayer ? 'font-bold' : ''}`} style={{
+                        fontSize: 'var(--tv-fs-lg, 24px)',
                         ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
                       }}>
                         {prayer.time}
@@ -903,7 +905,7 @@ export function TVDisplay({
             )}
             
             {!prayerTimesLoading && displayPrayerTimes.length === 0 && (
-              <div className="text-white text-xl">
+              <div className="text-white" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>
                 Prayer times not available
               </div>
             )}
@@ -914,37 +916,39 @@ export function TVDisplay({
         {showWeather && (
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
-              <span className="text-blue-400 text-3xl">🌤️</span>
-              <span className="font-bold text-3xl" style={{ ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#60a5fa') }}>WEATHER</span>
+              <span className="text-blue-400" style={{ fontSize: 'var(--tv-fs-xl, 32px)' }}>🌤️</span>
+              <span className="font-bold" style={{ fontSize: 'var(--tv-fs-xl, 32px)', ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#60a5fa') }}>WEATHER</span>
             </div>
             
             {/* Fix rendering race condition - better conditional logic */}
             {!location ? (
-              <div className="text-white text-xl">
+              <div className="text-white" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>
                 Detecting location...
               </div>
             ) : weatherLoading ? (
-              <div className="text-white text-xl">
+              <div className="text-white" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>
                 Loading weather data...
               </div>
             ) : weatherData ? (
               <div className="space-y-4">
                 {locationError && (
-                  <div className="text-yellow-300 text-lg mb-2">
+                  <div className="text-yellow-300 mb-2" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>
                     Using default location
                   </div>
                 )}
                 
                 {/* Temperature and Icon */}
                 <div className="flex items-center justify-center space-x-6">
-                  <span className="text-6xl">{weatherData.current.icon}</span>
+                  <span style={{ fontSize: 'var(--tv-fs-4xl, 96px)' }}>{weatherData.current.icon}</span>
                   <div className="text-center">
-                    <div className="text-5xl font-bold" style={{
+                    <div className="font-bold" style={{
+                      fontSize: 'var(--tv-fs-3xl, 64px)',
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
                     }}>
                       {weatherData.current.temperature}{weatherData.units.temperature}
                     </div>
-                    <div className="text-xl" style={{
+                    <div style={{
+                      fontSize: 'var(--tv-fs-lg, 24px)',
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
                     }}>
                       {weatherData.current.description}
@@ -955,32 +959,37 @@ export function TVDisplay({
                 {/* Weather Details */}
                 <div className="grid grid-cols-2 gap-6">
                   <div className="text-center">
-                    <div className="text-lg font-semibold" style={{
+                    <div className="font-semibold" style={{
+                      fontSize: 'var(--tv-fs-md, 20px)',
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
                     }}>Humidity</div>
-                    <div className="text-2xl" style={{
+                    <div style={{
+                      fontSize: 'var(--tv-fs-lg, 24px)',
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
                     }}>{weatherData.current.humidity}{weatherData.units.humidity}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-semibold" style={{
+                    <div className="font-semibold" style={{
+                      fontSize: 'var(--tv-fs-md, 20px)',
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
                     }}>Wind Speed</div>
-                    <div className="text-2xl" style={{
+                    <div style={{
+                      fontSize: 'var(--tv-fs-lg, 24px)',
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
                     }}>{weatherData.current.windSpeed} {weatherData.units.windSpeed}</div>
                   </div>
                 </div>
                 
                 {/* Location Info - improved labeling */}
-                <div className="text-lg" style={{
+                <div style={{
+                  fontSize: 'var(--tv-fs-md, 20px)',
                   ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#93c5fd')
                 }}>
                   📍 {locationError ? "Kuala Lumpur, Malaysia" : `${weatherData.location.city}, ${weatherData.location.country}`}
                 </div>
               </div>
             ) : (
-              <div className="text-white text-xl">
+              <div className="text-white" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>
                 Weather data unavailable, retrying...
               </div>
             )}
@@ -1000,18 +1009,18 @@ export function TVDisplay({
           <div className="overflow-hidden w-full">
             <div className="inline-flex whitespace-nowrap animate-marquee" data-testid="marquee-container" aria-hidden="false">
               <span 
-                className="px-8 font-bold text-2xl" 
+                className="px-8 font-bold" 
                 style={{ 
-                  fontSize: 'clamp(1.5rem, 2vw, 2rem)',
+                  fontSize: 'var(--tv-fs-lg, 24px)',
                   color: marqueeColor
                 }}
               >
                 {marqueeText}
               </span>
               <span 
-                className="px-8 font-bold text-2xl" 
+                className="px-8 font-bold" 
                 style={{ 
-                  fontSize: 'clamp(1.5rem, 2vw, 2rem)',
+                  fontSize: 'var(--tv-fs-lg, 24px)',
                   color: marqueeColor
                 }} 
                 aria-hidden="true"
