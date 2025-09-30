@@ -234,6 +234,15 @@
 
 }
 
+/* 16:9 Letterbox Fallback for older browsers/TVs that don't support aspect-ratio */
+@supports not (aspect-ratio: 16 / 9) {
+  [data-testid="tv-display"] {
+    position: relative !important;
+    width: min(100vw, 177.78vh) !important;
+    height: calc((min(100vw, 177.78vh)) * 9 / 16) !important;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

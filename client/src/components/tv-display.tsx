@@ -598,18 +598,18 @@ export function TVDisplay({
   // Get current media item
   const currentMedia = mediaItems.length > 0 ? mediaItems[currentMediaIndex] : null;
 
-  const containerStyle = isFullscreen ? {
-    gridTemplateRows: `36.5625vw 1fr`,
-    gridTemplateColumns: `65vw 35vw`,
+  // Strict 16:9 letterbox container - scales content to fit while maintaining aspect ratio
+  const contentBoxStyle = isFullscreen ? {
+    aspectRatio: '16 / 9',
+    width: 'min(100vw, 177.78vh)', // Scale to fit without overflow (177.78vh = 100vh * 16/9)
+    height: 'auto',
+    overflow: 'hidden',
+    display: 'grid',
+    gridTemplateRows: `65% 35%`, // Ad area takes 65% height, queue takes 35%
+    gridTemplateColumns: `65% 35%`, // Left panel 65%, right panel 35%
     gap: 0,
-    height: "calc(100dvh - 4vh)", // Leave space for border/margin
-    width: "calc(100vw - 4vw)", // Leave space for border/margin
-    margin: "2vh 2vw", // Center with margin
-    padding: "2vh 2vw", // TV Safe Zone - internal padding
-    boxSizing: "border-box" as const,
-    border: "8px solid rgba(0, 0, 0, 0.3)", // Border frame
-    borderRadius: "12px", // Rounded corners for modern look
-    boxShadow: "0 10px 40px rgba(0, 0, 0, 0.5)", // Depth shadow
+    boxSizing: 'border-box' as const,
+    padding: '2.5%', // Safe margins inside the 16:9 box
     ...getBackgroundStyle(headerBackgroundMode, headerBackgroundColor, headerBackgroundGradient, '#ffffff')
   } : {
     gridTemplateRows: 'auto 1fr',
@@ -619,13 +619,13 @@ export function TVDisplay({
   };
 
   const wrapperClass = isFullscreen 
-    ? "fixed inset-0 w-screen h-screen overflow-hidden text-gray-900 flex items-center justify-center bg-black"
+    ? "fixed inset-0 w-screen h-screen overflow-hidden flex items-center justify-center bg-black"
     : "h-screen text-gray-900 grid";
 
   return (
     <div className={wrapperClass} data-testid="tv-display-wrapper">
-      <div className={isFullscreen ? "grid text-gray-900" : ""}
-           style={containerStyle} 
+      <div className={isFullscreen ? "text-gray-900" : "text-gray-900"}
+           style={contentBoxStyle} 
            data-testid="tv-display">
       {/* Top Row - Advertisement Area with 16:9 ratio */}
       <div className={`${isFullscreen ? 'm-0 p-0 w-full h-full' : 'p-4 w-full'}`}>
