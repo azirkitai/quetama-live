@@ -608,20 +608,20 @@
     overflow: hidden;           /* No scrollbars */
   }
 
-  /* TV Content - The ONLY element that scales, locked to 16:9 */
+  /* TV Content - FIXED 1920x1080 size, scaled to fit screen */
   .tv-content {
-    aspect-ratio: 16 / 9;
-    width: min(100vw, 177.78vh); /* Scale to fit without overflow */
-    height: auto;
-    overflow: hidden;            /* Prevent inner elements from escaping */
-    display: flex;
-    flex-direction: column;
+    width: 1920px;              /* Fixed width - tak berubah */
+    height: 1080px;             /* Fixed height - tak berubah */
+    overflow: hidden;           /* Prevent inner elements from escaping */
+    transform-origin: center center;
+    /* Scale to fit screen while maintaining fixed content size */
+    transform: scale(min(calc(100vw / 1920), calc(100vh / 1080)));
   }
 
-  /* All elements inside TV content use relative units */
+  /* All elements inside TV content use FIXED px sizes */
   .tv-content h1 { 
-    margin: 0 0 1%;
-    font-size: 4.2vw;           /* Scale with box, not device */
+    margin: 0 0 20px;
+    font-size: 80px;            /* Fixed px - tak berubah */
     line-height: 1.1;
   }
 
@@ -641,16 +641,11 @@
     box-shadow: none; 
   }
 
-  /* Tweak for small TVs (≤1366) */
-  @media (max-width: 1400px) {
-    .tv-content h1 { font-size: 5vw; }
-  }
-
-  /* Fallback for older browsers without aspect-ratio support */
-  @supports not (aspect-ratio: 16 / 9) {
+  /* Fallback for older browsers without transform support - maintain fixed size */
+  @supports not (transform: scale(1)) {
     .tv-content {
-      width: min(100vw, 177.78vh);
-      height: calc((min(100vw, 177.78vh)) * 9 / 16);
+      width: 1920px;
+      height: 1080px;
     }
   }
 }

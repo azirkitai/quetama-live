@@ -598,15 +598,18 @@ export function TVDisplay({
   // Get current media item
   const currentMedia = mediaItems.length > 0 ? mediaItems[currentMediaIndex] : null;
 
-  // Grid layout style for content inside 16:9 box
+  // FIXED SIZE content - 1920x1080 (16:9) - TAK BERUBAH bila screen resize
+  const FIXED_WIDTH = 1920;
+  const FIXED_HEIGHT = 1080;
+
   const gridStyle = isFullscreen ? {
     display: 'grid',
-    gridTemplateRows: `65% 35%`, // Ad area takes 65% height, queue takes 35%
-    gridTemplateColumns: `65% 35%`, // Left panel 65%, right panel 35%
+    gridTemplateRows: `${FIXED_HEIGHT * 0.65}px ${FIXED_HEIGHT * 0.35}px`, // Fixed px - Ad 702px, Queue 378px
+    gridTemplateColumns: `${FIXED_WIDTH * 0.65}px ${FIXED_WIDTH * 0.35}px`, // Fixed px - Left 1248px, Right 672px
     gap: 0,
-    width: '100%',
-    height: '100%',
-    padding: '2.5%', // Safe margins inside the 16:9 box
+    width: `${FIXED_WIDTH}px`,
+    height: `${FIXED_HEIGHT}px`,
+    padding: '48px', // Fixed padding
     boxSizing: 'border-box' as const,
     ...getBackgroundStyle(headerBackgroundMode, headerBackgroundColor, headerBackgroundGradient, '#ffffff')
   } : {
