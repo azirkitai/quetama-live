@@ -123,6 +123,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  app.post("/api/auth/change-password", requireAuth, async (req, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: "Kata laluan semasa dan baru diperlukan" });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: "Kata laluan baru mestilah sekurang-kurangnya 6 aksara" });
+      }
+
+      const username = req.session.username!;
+
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        return res.status(404).json({ error: "Pengguna tidak dijumpai" });
+      }
+
+      const bcrypt = await import("bcryptjs");
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      
+      if (!isCurrentPasswordValid) {
+        return res.status(401).json({ error: "Kata laluan semasa tidak sah" });
+      }
+
+      await storage.updateUser(user.id, { password: newPassword });
+
+      res.json({ 
+        success: true, 
+        message: "Kata laluan berjaya dikemaskini" 
+      });
+    } catch (error) {
+      console.error("Password change error:", error);
+      res.status(500).json({ error: "Gagal menukar kata laluan" });
+    }
+  });
+
   // Serve standalone QR auth page (bypass React SPA routing/caching issues)
   app.get("/qr-auth/:id", (req, res) => {
     const htmlPath = path.join(process.cwd(), 'server', 'qr-auth.html');

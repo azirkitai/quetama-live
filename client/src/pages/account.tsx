@@ -5,8 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Lock, Save } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Account() {
+  const { toast } = useToast();
   const [userInfo, setUserInfo] = useState({
     username: "admin",
     currentPassword: "",
@@ -20,21 +23,30 @@ export default function Account() {
     e.preventDefault();
     
     if (userInfo.newPassword !== userInfo.confirmPassword) {
-      alert("Password baru tidak sepadan");
+      toast({
+        title: "Ralat",
+        description: "Kata laluan baru tidak sepadan",
+        variant: "destructive"
+      });
       return;
     }
 
     if (userInfo.newPassword.length < 6) {
-      alert("Password mestilah sekurang-kurangnya 6 aksara");
+      toast({
+        title: "Ralat",
+        description: "Kata laluan mestilah sekurang-kurangnya 6 aksara",
+        variant: "destructive"
+      });
       return;
     }
 
     setIsChangingPassword(true);
     
     try {
-      console.log("Changing password for user:", userInfo.username);
-      // TODO: Remove mock functionality - send to backend
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await apiRequest("POST", "/api/auth/change-password", {
+        currentPassword: userInfo.currentPassword,
+        newPassword: userInfo.newPassword
+      });
       
       // Clear password fields
       setUserInfo(prev => ({
@@ -44,10 +56,17 @@ export default function Account() {
         confirmPassword: ""
       }));
       
-      alert("Password berjaya dikemaskini");
+      toast({
+        title: "Berjaya",
+        description: "Kata laluan berjaya dikemaskini"
+      });
     } catch (error) {
       console.error("Password change failed:", error);
-      alert("Gagal menukar password");
+      toast({
+        title: "Ralat",
+        description: error instanceof Error ? error.message : "Gagal menukar kata laluan",
+        variant: "destructive"
+      });
     } finally {
       setIsChangingPassword(false);
     }
