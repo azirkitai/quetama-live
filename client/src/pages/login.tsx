@@ -333,8 +333,12 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                 <Button
                   type="submit"
                   data-testid="button-login"
-                  className="w-full"
+                  className="w-full text-white border-0"
                   disabled={isLoading}
+                  style={{
+                    background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #020617 100%)',
+                    backgroundImage: 'linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #020617 100%)'
+                  }}
                 >
                   {isLoading ? (
                     <>
