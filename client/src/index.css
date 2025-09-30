@@ -91,6 +91,33 @@
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
+  /* TV Display Responsive Tokens - Auto-scale based on viewport size */
+  /* Using vmin (smallest viewport dimension) for consistent scaling across screen sizes */
+  
+  /* Overscan safe padding for TV displays - 4vmin for proper 3-5% safety margin */
+  --tv-overscan: clamp(16px, 4vmin, 96px);
+  
+  /* Responsive font sizes - auto-adapt from 720p to 4K */
+  --tv-fs-xs: clamp(10px, 1.2vmin, 14px);
+  --tv-fs-sm: clamp(12px, 1.6vmin, 18px);
+  --tv-fs-md: clamp(14px, 2.0vmin, 22px);
+  --tv-fs-lg: clamp(18px, 2.8vmin, 32px);
+  --tv-fs-xl: clamp(22px, 3.6vmin, 48px);
+  --tv-fs-2xl: clamp(28px, 5.0vmin, 64px);
+  --tv-fs-3xl: clamp(32px, 7.0vmin, 90px);
+  --tv-fs-4xl: clamp(40px, 10.0vmin, 120px);
+  --tv-fs-5xl: clamp(48px, 14.0vmin, 160px);
+  
+  /* TV-specific spacing - scales with screen */
+  --tv-gap-xs: clamp(4px, 0.5vmin, 8px);
+  --tv-gap-sm: clamp(8px, 1.0vmin, 16px);
+  --tv-gap-md: clamp(12px, 1.5vmin, 24px);
+  --tv-gap-lg: clamp(16px, 2.0vmin, 32px);
+  --tv-gap-xl: clamp(24px, 3.0vmin, 48px);
+  
+  /* TV border radius - scales proportionally */
+  --tv-radius: clamp(8px, 1.0vmin, 24px);
+
   /* Automatically computed borders - intensity can be controlled by the user by the --opaque-button-border-intensity setting */
 
   /* Fallback for older browsers */

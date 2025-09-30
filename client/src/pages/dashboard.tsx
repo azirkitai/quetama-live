@@ -181,9 +181,6 @@ export default function Dashboard() {
   };
 
   if (fullscreen) {
-    // TV overscan padding (default 3vw for safety on most TVs)
-    const overscanPadding = '3vw';
-    
     return (
       <div 
         id="tv-container"
@@ -192,7 +189,7 @@ export default function Dashboard() {
           inset: 0,
           width: '100vw',
           height: '100dvh', // dvh for better TV browser support
-          padding: overscanPadding // Overscan safe padding
+          padding: 'var(--tv-overscan, 3vw)' // Responsive overscan with fallback for older TV browsers
         }}
       >
         <TVDisplay

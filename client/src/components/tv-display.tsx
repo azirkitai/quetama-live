@@ -763,7 +763,7 @@ export function TVDisplay({
               style={{ 
                 ...getTextGroupStyles('clinic_name', true), // Exclude color overrides so Settings can override
                 ...getTextStyle(clinicNameTextMode, clinicNameTextColor, clinicNameTextGradient, '#ffffff'),
-                fontSize: '30px' // Put fontSize LAST to override getTextGroupStyles
+                fontSize: 'var(--tv-fs-2xl, 48px)' // Responsive: auto-scales from 28px to 64px based on screen
               }} 
               data-testid="clinic-name">
             {clinicName}
@@ -774,7 +774,7 @@ export function TVDisplay({
                  color: '#ffffff'
                }}>
             <h2 className="font-bold" style={{ 
-              fontSize: 'clamp(1.75rem, 2.5vw, 2.5rem)',
+              fontSize: 'var(--tv-fs-xl, 32px)', // Responsive: auto-scales from 22px to 48px
               ...getTextGroupStyles('title', true), // Exclude color overrides so Settings can override
               ...getTextStyle(callNameTextMode, callNameTextColor, callNameTextGradient, '#ffffff')
             }}>CALLING</h2>
@@ -819,7 +819,7 @@ export function TVDisplay({
                style={{
                  ...getBackgroundStyle(callBackgroundMode, callBackgroundColor, callBackgroundGradient, '#2563eb')
                }}>
-            <div className="text-white" style={{ fontSize: 'clamp(2.5rem, 4vw, 4rem)' }}>N/A</div>
+            <div className="text-white" style={{ fontSize: 'var(--tv-fs-2xl, 48px)' }}>N/A</div>
           </div>
         )}
 
@@ -829,12 +829,12 @@ export function TVDisplay({
           <div className="mb-4">
             <div className="grid grid-cols-2 gap-1">
               <div className="font-bold text-center" style={{ 
-                fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
+                fontSize: 'var(--tv-fs-lg, 24px)', // Responsive: auto-scales from 18px to 32px
                 ...getHistoryNameStyle(),
                 ...getTextGroupStyles('Token Label', true)
               }}>NAME</div>
               <div className="font-bold text-center" style={{ 
-                fontSize: 'clamp(1.5rem, 2.5vw, 2.5rem)',
+                fontSize: 'var(--tv-fs-lg, 24px)', // Responsive: auto-scales from 18px to 32px
                 ...getHistoryNameStyle(),
                 ...getTextGroupStyles('Token Label', true)
               }}>ROOM</div>
@@ -852,7 +852,7 @@ export function TVDisplay({
                   <div className="text-center" 
                        style={{ 
                          ...getHistoryNameStyle(),
-                         fontSize: historyFontSizes[item.id]?.name || '24px',
+                         fontSize: historyFontSizes[item.id]?.name || 'var(--tv-fs-md, 20px)', // Responsive fallback
                          fontWeight: 'bold',
                          lineHeight: '1.1',
                          wordBreak: 'break-word',
@@ -863,7 +863,7 @@ export function TVDisplay({
                   <div className="text-center" 
                        style={{ 
                          ...getHistoryNameStyle(),
-                         fontSize: historyFontSizes[item.id]?.room || '24px',
+                         fontSize: historyFontSizes[item.id]?.room || 'var(--tv-fs-md, 20px)', // Responsive fallback
                          fontWeight: 'normal',
                          lineHeight: '1.1',
                          wordBreak: 'break-word',
@@ -878,7 +878,7 @@ export function TVDisplay({
                 <p style={{ 
                   ...getTextGroupStyles('Patient History', true),
                   ...getHistoryNameStyle(),
-                  fontSize: 'clamp(2rem, 4vw, 4rem)',
+                  fontSize: 'var(--tv-fs-xl, 32px)', // Responsive: auto-scales from 22px to 48px
                   fontWeight: 'bold'
                 }} 
                 data-testid="text-no-queue">N/A</p>
@@ -1116,7 +1116,7 @@ export function TVDisplay({
             <div className="text-center space-y-6 relative z-10">
               {/* NAME Label */}
               <div className="font-semibold tracking-wider mb-2" 
-                   style={{ color: modalTextColor, opacity: 0.8, fontSize: '36px' }}>
+                   style={{ color: modalTextColor, opacity: 0.8, fontSize: 'var(--tv-fs-xl, 32px)' }}>
                 NAME
               </div>
               
@@ -1128,7 +1128,7 @@ export function TVDisplay({
                    }}>
                 <div className="font-bold" 
                      style={{ 
-                       fontSize: '80px',
+                       fontSize: 'var(--tv-fs-4xl, 96px)', // Responsive with fallback for older TV browsers
                        color: modalTextColor
                      }}
                      data-testid="highlight-patient-name">
@@ -1138,7 +1138,7 @@ export function TVDisplay({
 
               {/* ROOM Label */}
               <div className="font-semibold tracking-wider mb-2" 
-                   style={{ color: modalTextColor, opacity: 0.8, fontSize: '36px' }}>
+                   style={{ color: modalTextColor, opacity: 0.8, fontSize: 'var(--tv-fs-xl, 32px)' }}>
                 ROOM
               </div>
 
@@ -1150,7 +1150,7 @@ export function TVDisplay({
                    }}>
                 <div className="font-bold" 
                      style={{ 
-                       fontSize: '70px',
+                       fontSize: 'var(--tv-fs-3xl, 64px)', // Responsive with fallback for older TV browsers
                        color: modalTextColor
                      }}
                      data-testid="highlight-patient-room">
