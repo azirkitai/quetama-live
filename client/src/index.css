@@ -97,17 +97,17 @@
   /* Overscan safe padding for TV displays - 4vmin for proper 3-5% safety margin */
   --tv-overscan: clamp(16px, 4vmin, 96px);
   
-  /* Responsive font sizes - auto-adapt from 720p to 4K */
-  /* Minimum values reduced significantly for better small screen support */
-  --tv-fs-xs: clamp(6px, 1.2vmin, 14px);
-  --tv-fs-sm: clamp(8px, 1.6vmin, 18px);
-  --tv-fs-md: clamp(8px, 2.0vmin, 22px);
-  --tv-fs-lg: clamp(10px, 2.8vmin, 32px);
-  --tv-fs-xl: clamp(12px, 3.6vmin, 48px);
-  --tv-fs-2xl: clamp(14px, 5.0vmin, 64px);
-  --tv-fs-3xl: clamp(16px, 7.0vmin, 90px);
-  --tv-fs-4xl: clamp(20px, 10.0vmin, 120px);
-  --tv-fs-5xl: clamp(24px, 14.0vmin, 160px);
+  /* Responsive font sizes - auto-adapt from 600px to 4K displays */
+  /* Using vw units for width-based scaling - better for landscape TVs */
+  --tv-fs-xs: clamp(6px, 1vw, 14px);
+  --tv-fs-sm: clamp(8px, 1.2vw, 18px);
+  --tv-fs-md: clamp(10px, 1.5vw, 24px);
+  --tv-fs-lg: clamp(12px, 2vw, 32px);
+  --tv-fs-xl: clamp(14px, 2.5vw, 48px);
+  --tv-fs-2xl: clamp(16px, 3vw, 64px);
+  --tv-fs-3xl: clamp(18px, 4vw, 90px);
+  --tv-fs-4xl: clamp(22px, 5vw, 120px);
+  --tv-fs-5xl: clamp(26px, 6vw, 160px);
   
   /* TV-specific spacing - scales with screen */
   --tv-gap-xs: clamp(2px, 0.5vmin, 8px);
