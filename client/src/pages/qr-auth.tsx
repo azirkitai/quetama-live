@@ -25,6 +25,9 @@ interface QrAuthPageProps {
 }
 
 export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
+  // IMMEDIATE debug log - before any hooks
+  console.log('🔥 QR AUTH PAGE RENDERING! SessionId:', sessionId);
+  
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<'login' | 'verify' | 'success' | 'expired'>('login');
@@ -33,9 +36,9 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
 
   // Debug: Check if sessionId is received
   useEffect(() => {
-    console.log('QR Auth Page loaded with sessionId:', sessionId);
+    console.log('🔥 QR Auth useEffect - sessionId:', sessionId);
     if (!sessionId) {
-      console.error('ERROR: sessionId is empty!');
+      console.error('❌ ERROR: sessionId is empty!');
       setStep('expired');
       setError('Sesi QR tidak sah. Tiada sessionId diterima.');
     }
