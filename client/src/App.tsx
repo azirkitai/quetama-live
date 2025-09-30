@@ -87,7 +87,10 @@ function AppContent() {
     <Switch>
       {/* QR Auth route - accessible without authentication */}
       <Route path="/qr-auth/:id">
-        {(params) => <QrAuthPage sessionId={params.id} />}
+        {(params) => {
+          console.log('QR Route matched! Params:', params);
+          return <QrAuthPage sessionId={params.id} />;
+        }}
       </Route>
       
       {/* All other routes require authentication check */}
