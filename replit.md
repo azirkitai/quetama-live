@@ -10,19 +10,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### September 30, 2025 - TV Display Responsive Text Sizing (Final)
-- Removed all JavaScript-based dynamic font sizing to eliminate browser compatibility issues
-- Implemented pure CSS responsive tokens (--tv-fs-xs through --tv-fs-5xl) for all text elements
-- Changed from vmin to vw units for better landscape TV scaling (TVs are wider than tall)
-- All text elements in TV display properly use var(--tv-fs-*) CSS tokens for auto-sizing
-- Added comprehensive media queries for different TV resolutions:
-  - 720p and below (≤1366px): Larger relative sizing for visibility
-  - 1080p (1367-1920px): Standard HD optimized sizing
-  - 2K/QHD (1921-2560px): Fine-tuned scaling for high resolution
-  - 4K/UHD (≥2561px): Ultra HD optimized sizing with smaller vw percentages
-  - Portrait mode: Switches from vw to vh units for vertical displays
-- Supports screen resolutions from 600px to 4K+ with consistent auto-scaling
-- Browser compatibility: Chrome 88+, Edge 88+, Firefox 75+ (CSS clamp() support)
+### September 30, 2025 - TV Display Fixed Size Letterbox (Latest)
+- Implemented strict 16:9 letterbox approach with FIXED content dimensions
+- Content container set to fixed 1920x1080px size that NEVER resizes or moves
+- Uses CSS transform: scale() to fit fixed content within any screen size
+- Grid layout uses fixed pixel dimensions (not responsive units):
+  - Ad area: 702px height, Queue: 378px height
+  - Left panel: 1248px width, Right panel: 672px width
+- Font sizes use fixed pixels (e.g., 80px) instead of responsive vw/vh units
+- Black letterbox borders automatically adjust to fill remaining screen space
+- Content maintains exact same size regardless of screen resolution
+- Outer wrapper scales entire fixed content to fit viewport while preserving aspect ratio
 
 ## System Architecture
 
