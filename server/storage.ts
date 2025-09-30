@@ -62,6 +62,7 @@ export interface IStorage {
   getNextPatientNumber(userId: string): Promise<number>;
   updatePatientStatus(patientId: string, status: string, userId: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined>;
   deletePatient(patientId: string, userId: string): Promise<boolean>;
+  archiveCompletedPatients(userId: string): Promise<number>; // Soft delete completed patients for queue reset
   
   // Window methods
   getWindows(userId: string): Promise<Window[]>;
@@ -343,6 +344,7 @@ export class MemStorage implements IStorage {
       completedAt: null,
       requeueReason: null,
       trackingHistory: [],
+      archivedAt: null,
       userId: insertPatient.userId
     };
     this.patients.set(id, patient);
@@ -350,7 +352,8 @@ export class MemStorage implements IStorage {
   }
 
   async getPatients(userId: string): Promise<Patient[]> {
-    return Array.from(this.patients.values()).filter(p => p.userId === userId);
+    // Filter out archived patients (soft delete)
+    return Array.from(this.patients.values()).filter(p => p.userId === userId && !p.archivedAt);
   }
 
   async getPatientsByDate(date: string, userId: string): Promise<Patient[]> {
@@ -361,6 +364,7 @@ export class MemStorage implements IStorage {
     return Array.from(this.patients.values()).filter(
       (patient) => 
         patient.userId === userId &&
+        !patient.archivedAt &&
         patient.registeredAt >= startOfDay && 
         patient.registeredAt <= endOfDay
     );
@@ -449,6 +453,25 @@ export class MemStorage implements IStorage {
     }
     
     return deleted;
+  }
+
+  async archiveCompletedPatients(userId: string): Promise<number> {
+    const allPatients = Array.from(this.patients.values()).filter(p => p.userId === userId);
+    const completedPatients = allPatients.filter(p => p.status === "completed");
+    
+    let archivedCount = 0;
+    const now = new Date();
+    
+    for (const patient of completedPatients) {
+      const archivedPatient = {
+        ...patient,
+        archivedAt: now
+      };
+      this.patients.set(patient.id, archivedPatient);
+      archivedCount++;
+    }
+    
+    return archivedCount;
   }
 
   async getWindows(userId: string): Promise<Window[]> {
@@ -1301,7 +1324,14 @@ export class DatabaseStorage implements IStorage {
 
   // Patient methods (using memStorage for now due to type complexity)
   async getPatients(userId: string): Promise<Patient[]> {
-    return await db.select().from(schema.patients).where(eq(schema.patients.userId, userId));
+    // Filter out archived patients (soft delete)
+    return await db.select().from(schema.patients)
+      .where(
+        and(
+          eq(schema.patients.userId, userId),
+          sql`${schema.patients.archivedAt} IS NULL`
+        )
+      );
   }
 
   async getPatient(id: string): Promise<Patient | undefined> {
@@ -1319,6 +1349,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(schema.patients.userId, userId),
+          sql`${schema.patients.archivedAt} IS NULL`,
           sql`${schema.patients.registeredAt} >= ${startOfDay.toISOString()}`,
           sql`${schema.patients.registeredAt} <= ${endOfDay.toISOString()}`
         )
@@ -1406,6 +1437,20 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(schema.patients)
       .where(and(eq(schema.patients.id, patientId), eq(schema.patients.userId, userId)));
     return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  async archiveCompletedPatients(userId: string): Promise<number> {
+    // Soft delete completed patients by setting archivedAt timestamp
+    const result = await db.update(schema.patients)
+      .set({ archivedAt: new Date() })
+      .where(
+        and(
+          eq(schema.patients.userId, userId),
+          eq(schema.patients.status, "completed"),
+          sql`${schema.patients.archivedAt} IS NULL`
+        )
+      );
+    return result.rowCount || 0;
   }
 
   // Media methods
@@ -1553,6 +1598,7 @@ export class DatabaseStorage implements IStorage {
         completedAt: schema.patients.completedAt,
         requeueReason: schema.patients.requeueReason,
         trackingHistory: schema.patients.trackingHistory,
+        archivedAt: schema.patients.archivedAt,
         userId: schema.patients.userId,
         // Add room name from windows table
         room: schema.windows.name,
@@ -1604,6 +1650,7 @@ export class DatabaseStorage implements IStorage {
       completedAt: schema.patients.completedAt,
       requeueReason: schema.patients.requeueReason,
       trackingHistory: schema.patients.trackingHistory,
+      archivedAt: schema.patients.archivedAt,
       userId: schema.patients.userId,
       currentRoom: schema.windows.name, // Room name from current windowId
       lastRoom: sql<string>`lw.name` // Room name from lastWindowId

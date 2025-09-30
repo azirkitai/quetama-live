@@ -11,9 +11,9 @@ import { type Patient } from "@shared/schema";
 export default function Register() {
   const { toast } = useToast();
 
-  // Fetch today's patients
+  // Fetch all patients (24-hour clinic operation)
   const { data: todayPatients = [], isLoading: patientsLoading } = useQuery<Patient[]>({
-    queryKey: ['/api/patients/today'],
+    queryKey: ['/api/patients'],
   });
 
   // Fetch next patient number
@@ -29,7 +29,7 @@ export default function Register() {
     },
     onSuccess: () => {
       // Invalidate and refetch relevant queries
-      queryClient.invalidateQueries({ queryKey: ['/api/patients/today'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
       queryClient.invalidateQueries({ queryKey: ['/api/patients/next-number'] });
       
       toast({
@@ -47,7 +47,7 @@ export default function Register() {
     },
   });
 
-  // Calculate stats from today's patients
+  // Calculate stats from today's patients (client-side filtering for 24-hour clinics)
   const todayStats = useMemo(() => {
     if (!todayPatients) {
       return {
@@ -57,10 +57,21 @@ export default function Register() {
       };
     }
 
+    // Filter patients registered today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const actualTodayPatients = todayPatients.filter(p => {
+      const regDate = new Date(p.registeredAt);
+      return regDate >= today && regDate < tomorrow;
+    });
+
     return {
-      totalRegistered: todayPatients.length,
-      nameRegistrations: todayPatients.filter(p => p.name).length,
-      numberRegistrations: todayPatients.filter(p => !p.name).length
+      totalRegistered: actualTodayPatients.length,
+      nameRegistrations: actualTodayPatients.filter(p => p.name).length,
+      numberRegistrations: actualTodayPatients.filter(p => !p.name).length
     };
   }, [todayPatients]);
 

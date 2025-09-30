@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ClipboardList, Users, RefreshCw } from "lucide-react";
+import { ClipboardList, Users, RefreshCw, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Patient, type Setting } from "@shared/schema";
@@ -29,9 +29,9 @@ export default function Queue() {
   const [selectedWindow, setSelectedWindow] = useState<string>("");
   const { toast } = useToast();
 
-  // Fetch today's patients
+  // Fetch all patients (24-hour clinic operation)
   const { data: patients = [], isLoading: patientsLoading, refetch: refetchPatients } = useQuery<Patient[]>({
-    queryKey: ['/api/patients/today'],
+    queryKey: ['/api/patients'],
   });
 
   // Fetch windows
@@ -52,15 +52,15 @@ export default function Queue() {
     },
     onMutate: async ({ patientId, status, windowId }) => {
       // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
-      await queryClient.cancelQueries({ queryKey: ['/api/patients/today'] });
+      await queryClient.cancelQueries({ queryKey: ['/api/patients'] });
       await queryClient.cancelQueries({ queryKey: ['/api/windows'] });
 
       // Snapshot the previous values
-      const previousPatients = queryClient.getQueryData(['/api/patients/today']);
+      const previousPatients = queryClient.getQueryData(['/api/patients']);
       const previousWindows = queryClient.getQueryData(['/api/windows']);
 
       // Optimistically update patients
-      queryClient.setQueryData(['/api/patients/today'], (old: any) => {
+      queryClient.setQueryData(['/api/patients'], (old: any) => {
         if (!old) return old;
         return old.map((patient: any) => 
           patient.id === patientId 
@@ -100,14 +100,14 @@ export default function Queue() {
     onError: (err, { patientId, status, windowId }, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousPatients) {
-        queryClient.setQueryData(['/api/patients/today'], context.previousPatients);
+        queryClient.setQueryData(['/api/patients'], context.previousPatients);
       }
       if (context?.previousWindows) {
         queryClient.setQueryData(['/api/windows'], context.previousWindows);
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/patients/today'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
       queryClient.invalidateQueries({ queryKey: ['/api/windows'] });
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/current-call'] });
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/history'] });
@@ -119,7 +119,7 @@ export default function Queue() {
     },
     onSettled: () => {
       // Always refetch after mutation settles, whether success or error
-      queryClient.invalidateQueries({ queryKey: ['/api/patients/today'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
       queryClient.invalidateQueries({ queryKey: ['/api/windows'] });
     },
   });
@@ -131,7 +131,7 @@ export default function Queue() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/patients/today'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
       queryClient.invalidateQueries({ queryKey: ['/api/windows'] });
       toast({
         title: "Berjaya",
@@ -143,6 +143,31 @@ export default function Queue() {
       toast({
         title: "Ralat",
         description: "Gagal memadam pesakit",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Manual reset/clear queue mutation (for 24-hour clinics)
+  const resetQueueMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/patients/reset-queue");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/windows'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
+      toast({
+        title: "Queue Reset Berjaya",
+        description: `${data.archivedCount || 0} pesakit selesai telah diarkibkan`,
+      });
+    },
+    onError: (error) => {
+      console.error("Error resetting queue:", error);
+      toast({
+        title: "Ralat Reset Queue",
+        description: "Gagal reset queue. Sila cuba semula.",
         variant: "destructive",
       });
     },
@@ -358,6 +383,12 @@ export default function Queue() {
     refetchWindows();
   };
 
+  const handleResetQueue = () => {
+    if (confirm("Adakah anda pasti ingin reset queue? Semua pesakit 'Selesai' akan diarkibkan. Tindakan ini tidak boleh dibatalkan.")) {
+      resetQueueMutation.mutate();
+    }
+  };
+
   const activeWindows = windows.filter(w => w.isActive);
   const waitingPatients = enhancedPatients.filter(p => p.status === "waiting" || p.status === "requeue");
   const activePatients = enhancedPatients.filter(p => p.status === "called" || p.status === "in-progress");
@@ -370,15 +401,26 @@ export default function Queue() {
           <h1 className="text-2xl font-bold text-foreground">Queue Management</h1>
           <p className="text-muted-foreground">Urus panggilan pesakit dan bilik rawatan</p>
         </div>
-        <Button
-          variant="outline"
-          onClick={handleRefresh}
-          disabled={patientsLoading || windowsLoading}
-          data-testid="button-refresh-queue"
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          {patientsLoading || windowsLoading ? "Loading..." : "Refresh"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={patientsLoading || windowsLoading}
+            data-testid="button-refresh-queue"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            {patientsLoading || windowsLoading ? "Loading..." : "Refresh"}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleResetQueue}
+            disabled={resetQueueMutation.isPending}
+            data-testid="button-reset-queue"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            {resetQueueMutation.isPending ? "Resetting..." : "Reset Queue"}
+          </Button>
+        </div>
       </div>
 
       {/* Window Selection */}

@@ -54,6 +54,7 @@ export const patients = pgTable("patients", {
   completedAt: timestamp("completed_at"),
   requeueReason: text("requeue_reason"), // Reason for requeue: NEBULISER, AMBIL UBATAN, MENUNGGU KEPUTUSAN UJIAN, MGTT
   trackingHistory: text("tracking_history").array().default(sql`'{}'::text[]`), // Array of status changes
+  archivedAt: timestamp("archived_at"), // Soft delete timestamp for queue reset (24-hour clinics)
   // Account isolation
   userId: varchar("user_id").notNull(),
 });

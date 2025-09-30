@@ -445,6 +445,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Manual reset/clear queue (for 24-hour clinics)
+  app.post("/api/patients/reset-queue", async (req, res) => {
+    try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Sesi tidak aktif" });
+      }
+      
+      // Archive completed patients by setting archivedAt (soft delete for medical records)
+      const archivedCount = await storage.archiveCompletedPatients(req.session.userId);
+      
+      // Clear all windows
+      const windows = await storage.getWindows(req.session.userId);
+      for (const window of windows) {
+        if (window.currentPatientId) {
+          await storage.updateWindowPatient(window.id, req.session.userId, undefined);
+        }
+      }
+      
+      res.json({ 
+        success: true, 
+        archivedCount,
+        message: `${archivedCount} pesakit selesai telah diarkibkan` 
+      });
+    } catch (error) {
+      console.error("Error resetting queue:", error);
+      res.status(500).json({ error: "Failed to reset queue" });
+    }
+  });
+
   // User management routes
   
   // Get all users - REMOVED for tenant security
