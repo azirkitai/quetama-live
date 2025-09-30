@@ -46,6 +46,33 @@
         <p class="text-sm text-red-800"></p>
       </div>
 
+      <!-- Success - Show TV Verifier Code -->
+      <div id="successPanel" class="hidden">
+        <div class="mb-4 p-4 bg-green-50 border-2 border-green-500 rounded-lg text-center">
+          <svg class="w-12 h-12 text-green-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <p class="text-sm text-green-800 font-medium mb-1">Login Berjaya!</p>
+          <p class="text-xs text-green-700">Masukkan kod di bawah pada skrin TV</p>
+        </div>
+
+        <!-- TV Verifier Display -->
+        <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg p-6 mb-4">
+          <p class="text-white text-sm text-center mb-2">KOD PENGESAHAN TV</p>
+          <div id="tvCode" class="text-white text-5xl font-bold text-center tracking-widest font-mono"></div>
+        </div>
+
+        <div class="text-center">
+          <p class="text-sm text-gray-600 mb-2">Sila masukkan kod ini pada paparan TV/desktop anda</p>
+          <button 
+            onclick="location.reload()" 
+            class="text-sm text-blue-600 hover:text-blue-700 underline"
+          >
+            Login Akaun Lain
+          </button>
+        </div>
+      </div>
+
       <!-- Form -->
       <form id="loginForm" class="space-y-4">
         <div>
@@ -123,9 +150,12 @@
         const data = await response.json();
         console.log('📥 Response:', data);
         
-        if (data.success) {
-          alert('✅ Login berjaya! Sila masukkan kod TV di desktop.');
-          // Could redirect or show TV verifier input here
+        if (data.success && data.tvVerifier) {
+          // Hide form, show success panel with TV code
+          document.getElementById('loginForm').classList.add('hidden');
+          document.getElementById('successPanel').classList.remove('hidden');
+          document.getElementById('tvCode').textContent = data.tvVerifier;
+          console.log('✅ TV Verifier displayed:', data.tvVerifier);
         } else {
           throw new Error(data.error || 'Login gagal');
         }
