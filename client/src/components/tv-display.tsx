@@ -601,12 +601,12 @@ export function TVDisplay({
   // Responsive grid layout dalam 16:9 safe box - TANPA fixed px heights
   const gridStyle = isFullscreen ? {
     display: 'grid',
-    gridTemplateRows: '65% 35%',        // Responsive % - Ad area 65%, Queue 35%
+    gridTemplateRows: '60% 40%',        // Responsive % - Ad area 60%, Queue 40% (more space for bottom)
     gridTemplateColumns: '65% 35%',     // Responsive % - Left 65%, Right 35%
     gap: 0,
     height: '100%',                      // WAJIB: guna penuh 16:9 box
     width: '100%',
-    padding: '2.5%',                     // Responsive padding
+    padding: '1.5%',                     // Reduced padding for more content space
     boxSizing: 'border-box' as const,
     minHeight: 0,                        // Allow shrinking
     minWidth: 0,
@@ -844,59 +844,59 @@ export function TVDisplay({
       </div>
 
       {/* Second Row Left - Date & Prayer Times Expanded */}
-      <div className={`${isFullscreen ? 'px-4 py-2 m-0' : 'px-4 py-2'} text-white w-full h-full flex flex-col justify-center`}
+      <div className={`${isFullscreen ? 'px-2 py-1 m-0' : 'px-4 py-2'} text-white w-full h-full flex flex-col justify-center`}
            style={{
              ...getBackgroundStyle(prayerTimesBackgroundMode, prayerTimesBackgroundColor, prayerTimesBackgroundGradient, '#1e40af')
            }}>
-        {/* Date/Time Section - Compact for 16:9 fit */}
-        <div className={`bg-white text-gray-900 p-3 ${isFullscreen ? 'rounded-md mb-3' : 'rounded-lg mb-6'} flex items-center justify-center space-x-4`}>
+        {/* Date/Time Section - Ultra Compact */}
+        <div className={`bg-white text-gray-900 p-2 ${isFullscreen ? 'rounded-md mb-1' : 'rounded-lg mb-6'} flex items-center justify-center space-x-2`}>
           <div className="text-center">
-            <div className="font-bold text-black" style={{ fontSize: 'var(--tv-fs-2xl, 48px)' }}>{dateInfo.day}</div>
+            <div className="font-bold text-black" style={{ fontSize: 'var(--tv-fs-xl, 32px)' }}>{dateInfo.day}</div>
           </div>
           <div className="text-center">
-            <div className="font-bold" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>{dateInfo.dayName}</div>
-            <div className="text-gray-600" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>{dateInfo.month} {dateInfo.year}</div>
+            <div className="font-bold" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>{dateInfo.dayName}</div>
+            <div className="text-gray-600" style={{ fontSize: 'var(--tv-fs-sm, 16px)' }}>{dateInfo.month} {dateInfo.year}</div>
           </div>
           <div className="text-center">
-            <div className="font-mono font-bold" style={{ fontSize: 'var(--tv-fs-2xl, 48px)' }} data-testid="display-time">
+            <div className="font-mono font-bold" style={{ fontSize: 'var(--tv-fs-xl, 32px)' }} data-testid="display-time">
               {formatTime(currentTime)}
             </div>
           </div>
         </div>
 
-        {/* Prayer Times Section - Compact */}
+        {/* Prayer Times Section - Ultra Compact */}
         {showPrayerTimes && (
           <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-2">
-              <span className="text-yellow-400" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>🕌</span>
-              <span className="font-bold" style={{ fontSize: 'var(--tv-fs-lg, 24px)', ...getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') }}>PRAYER TIME</span>
+            <div className="flex items-center justify-center space-x-1 mb-1">
+              <span className="text-yellow-400" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>🕌</span>
+              <span className="font-bold" style={{ fontSize: 'var(--tv-fs-md, 20px)', ...getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') }}>PRAYER TIME</span>
             </div>
             
             {prayerTimesLoading ? (
-              <div className="text-white" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>
+              <div className="text-white" style={{ fontSize: 'var(--tv-fs-sm, 16px)' }}>
                 Loading prayer times...
               </div>
             ) : location ? (
-              <div className="text-yellow-300 mb-2" style={{ fontSize: 'var(--tv-fs-sm, 16px)' }}>
+              <div className="text-yellow-300 mb-1" style={{ fontSize: 'var(--tv-fs-xs, 14px)' }}>
                 📍 {locationError ? "Kuala Lumpur, Malaysia" : prayerTimesData?.location ? `${prayerTimesData.location.city}, ${prayerTimesData.location.country}` : "Kuala Lumpur, Malaysia"}
               </div>
             ) : null}
             
             {!prayerTimesLoading && displayPrayerTimes.length > 0 && (
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-5 gap-1">
                 {displayPrayerTimes.map((prayer, index) => {
                   const isCurrentPrayer = nextPrayer === prayer.key && shouldHighlight;
                   
                   return (
                     <div key={prayer.key || index} className="text-center">
                       <div className={`font-bold ${isCurrentPrayer ? 'animate-pulse' : ''}`} style={{
-                        fontSize: 'var(--tv-fs-md, 20px)',
+                        fontSize: 'var(--tv-fs-sm, 16px)',
                         ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
                       }}>
                         {prayer.name}
                       </div>
                       <div className={`${isCurrentPrayer ? 'font-bold' : ''}`} style={{
-                        fontSize: 'var(--tv-fs-md, 20px)',
+                        fontSize: 'var(--tv-fs-sm, 16px)',
                         ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
                       }}>
                         {prayer.time}
@@ -908,17 +908,17 @@ export function TVDisplay({
             )}
             
             {!prayerTimesLoading && displayPrayerTimes.length === 0 && (
-              <div className="text-white" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>
+              <div className="text-white" style={{ fontSize: 'var(--tv-fs-sm, 16px)' }}>
                 Prayer times not available
               </div>
             )}
           </div>
         )}
 
-        {/* Weather Section - Compact */}
+        {/* Weather Section - Ultra Compact */}
         {showWeather && (
-          <div className="text-center mt-2">
-            <div className="flex items-center justify-center space-x-2 mb-2">
+          <div className="text-center mt-1">
+            <div className="flex items-center justify-center space-x-1 mb-1">
               <span className="text-blue-400" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>🌤️</span>
               <span className="font-bold" style={{ fontSize: 'var(--tv-fs-lg, 24px)', ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#60a5fa') }}>WEATHER</span>
             </div>
