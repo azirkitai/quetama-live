@@ -36,6 +36,26 @@ export default function Dashboard() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  // JS fallback for dvh support (for older TV browsers)
+  useEffect(() => {
+    if (!fullscreen) return;
+
+    const setTVHeight = () => {
+      const container = document.getElementById('tv-container');
+      // Guard for missing CSS.supports or lack of dvh support
+      if (container && (typeof CSS === 'undefined' || !CSS.supports('height', '100dvh'))) {
+        // Fallback for browsers without dvh support
+        const vh = window.innerHeight;
+        container.style.height = `${vh}px`;
+        container.style.minHeight = `${vh}px`; // Handle dynamic UI chrome on TVs
+      }
+    };
+
+    setTVHeight();
+    window.addEventListener('resize', setTVHeight);
+    return () => window.removeEventListener('resize', setTVHeight);
+  }, [fullscreen]);
+
   // Show fullscreen prompt from URL parameter
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -47,10 +67,20 @@ export default function Dashboard() {
     }
   }, []);
 
-  // Handle fullscreen prompt click
-  const handleEnterFullscreen = () => {
-    document.documentElement.requestFullscreen().catch(console.error);
-    setShowFullscreenPrompt(false);
+  // Handle fullscreen prompt click (from QR auth)
+  const handleEnterFullscreen = async () => {
+    try {
+      // Unlock audio BEFORE entering fullscreen (user gesture required)
+      const { audioSystem } = await import("@/lib/audio-system");
+      await audioSystem.unlock();
+      
+      // Enter fullscreen
+      await document.documentElement.requestFullscreen();
+      setShowFullscreenPrompt(false);
+    } catch (error) {
+      console.error('Failed to enter fullscreen or unlock audio:', error);
+      setShowFullscreenPrompt(false);
+    }
   };
 
   // Fetch dashboard statistics
@@ -132,9 +162,18 @@ export default function Dashboard() {
     };
   };
 
-  const toggleFullscreen = () => {
+  const toggleFullscreen = async () => {
     if (!fullscreen) {
-      document.documentElement.requestFullscreen().catch(console.error);
+      try {
+        // Unlock audio BEFORE entering fullscreen (user gesture required)
+        const { audioSystem } = await import("@/lib/audio-system");
+        await audioSystem.unlock();
+        
+        // Enter fullscreen
+        await document.documentElement.requestFullscreen();
+      } catch (error) {
+        console.error('Failed to enter fullscreen or unlock audio:', error);
+      }
     } else {
       document.exitFullscreen().catch(console.error);
     }
@@ -142,8 +181,20 @@ export default function Dashboard() {
   };
 
   if (fullscreen) {
+    // TV overscan padding (default 3vw for safety on most TVs)
+    const overscanPadding = '3vw';
+    
     return (
-      <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-white m-0 p-0" style={{ width: "100vw", height: "100vh" }}>
+      <div 
+        id="tv-container"
+        className="fixed overflow-hidden bg-white m-0" 
+        style={{ 
+          inset: 0,
+          width: '100vw',
+          height: '100dvh', // dvh for better TV browser support
+          padding: overscanPadding // Overscan safe padding
+        }}
+      >
         <TVDisplay
           currentPatient={currentCall ? convertToQueueItem(currentCall) : undefined}
           queueHistory={history.map(convertToQueueItem)}

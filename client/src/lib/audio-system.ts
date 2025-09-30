@@ -64,6 +64,19 @@ export class AudioSystem {
     AudioSystem.PRESET_DEFS.map(def => [def.key, def.src])
   ) as Record<PresetSoundKeyType, string>;
 
+  // Check codec capability (prefer MP3 on TVs)
+  private checkCodecSupport(): { mp3: boolean; wav: boolean } {
+    try {
+      const audio = new Audio();
+      return {
+        mp3: !!audio.canPlayType('audio/mpeg'),
+        wav: !!audio.canPlayType('audio/wav')
+      };
+    } catch {
+      return { mp3: true, wav: true }; // Assume support if check fails
+    }
+  }
+
   private constructor() {}
 
   public static getInstance(): AudioSystem {
@@ -106,12 +119,31 @@ export class AudioSystem {
     }
   }
 
-  // Play audio file from buffer
+  // HTMLAudio fallback for TVs with limited Web Audio support
+  private async playAudioWithHTMLAudio(url: string, volume: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const audio = new Audio(url);
+      audio.volume = volume / 100;
+      
+      audio.onended = () => resolve();
+      audio.onerror = () => reject(new Error('HTMLAudio playback failed'));
+      
+      audio.play().catch(reject);
+    });
+  }
+
+  // Play audio file from buffer with HTMLAudio fallback
   private async playAudioFile(url: string, volume: number): Promise<void> {
     try {
-      const audioBuffer = await this.loadAudioFile(url);
       const audioContext = this.getAudioContext();
       
+      // Check if AudioContext is suspended (autoplay blocked)
+      if (audioContext.state === 'suspended') {
+        console.warn('AudioContext suspended, trying HTMLAudio fallback');
+        return await this.playAudioWithHTMLAudio(url, volume);
+      }
+
+      const audioBuffer = await this.loadAudioFile(url);
       const source = audioContext.createBufferSource();
       const gainNode = audioContext.createGain();
       
@@ -131,23 +163,39 @@ export class AudioSystem {
         }
       });
     } catch (error) {
-      console.error('Error playing audio file:', error);
-      throw error;
+      console.error('Error playing audio file, trying HTMLAudio fallback:', error);
+      // Fallback to HTMLAudio if Web Audio fails
+      try {
+        return await this.playAudioWithHTMLAudio(url, volume);
+      } catch (fallbackError) {
+        console.error('HTMLAudio fallback also failed:', fallbackError);
+        throw fallbackError;
+      }
     }
   }
 
 
-  // Play notification sound using preset audio files
+  // Play notification sound using preset audio files with codec-aware fallback
   public async playNotificationSound(settings: AudioSettings): Promise<void> {
     try {
       if (!settings.enableSound) {
         return;
       }
 
-      const presetUrl = this.presetSounds[settings.presetKey];
+      let presetUrl = this.presetSounds[settings.presetKey];
       if (!presetUrl) {
         console.warn(`Preset sound '${settings.presetKey}' not found`);
         return;
+      }
+
+      // Check codec support and prefer MP3 on TVs with limited WAV support
+      const codecSupport = this.checkCodecSupport();
+      const isWav = presetUrl.endsWith('.wav');
+      
+      if (isWav && !codecSupport.wav && codecSupport.mp3) {
+        // Fallback to MP3 preset (notification_sound is reliable MP3)
+        console.warn(`WAV not supported, using MP3 fallback`);
+        presetUrl = this.presetSounds['notification_sound'];
       }
 
       return await this.playAudioFile(presetUrl, settings.volume);
@@ -175,17 +223,50 @@ export class AudioSystem {
     return AudioSystem.PRESET_DEFS.map(({key, name}) => ({key, name}));
   }
 
-  // Preload preset sounds for better performance
+  // Unlock audio for TV/fullscreen - must be called from user gesture
+  public async unlock(): Promise<void> {
+    try {
+      const audioContext = this.getAudioContext();
+      
+      // Resume AudioContext if suspended (autoplay policy) - SYNC ONLY
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+        console.log('✅ AudioContext resumed successfully');
+      }
+      
+      // Preload sounds in background (don't await - preserves user gesture)
+      void this.preloadPresets();
+      
+      console.log('✅ Audio system unlocked and ready for TV');
+    } catch (error) {
+      console.error('❌ Failed to unlock audio:', error);
+      throw error;
+    }
+  }
+
+  // Preload preset sounds for better performance (skip unsupported codecs)
   public async preloadPresets(): Promise<void> {
     try {
-      const preloadPromises = AudioSystem.PRESET_DEFS.map(def => 
+      const codecSupport = this.checkCodecSupport();
+      
+      // Filter presets based on codec support
+      const presetsToLoad = AudioSystem.PRESET_DEFS.filter(def => {
+        const isWav = def.src.endsWith('.wav');
+        const isMp3 = def.src.endsWith('.mp3');
+        
+        if (isWav && !codecSupport.wav) return false; // Skip WAV if unsupported
+        if (isMp3 && !codecSupport.mp3) return false; // Skip MP3 if unsupported
+        return true;
+      });
+      
+      const preloadPromises = presetsToLoad.map(def => 
         this.loadAudioFile(def.src).catch(error => {
           console.warn(`Failed to preload preset sound ${def.name}:`, error);
         })
       );
       
       await Promise.allSettled(preloadPromises);
-      console.log('Preset sounds preloading completed - 13 total sounds');
+      console.log(`Preset sounds preloading completed - ${presetsToLoad.length}/${AudioSystem.PRESET_DEFS.length} sounds loaded`);
     } catch (error) {
       console.error('Error preloading preset sounds:', error);
     }
