@@ -194,6 +194,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.username = user.username;
       req.session.role = user.role;
 
+      // Force session save to ensure cookie is set before response
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
       // SERVER-AUTHORITATIVE: Emit authorization event to QR room (desktop listens)
       if (globalIo) {
         const qrRoom = `qr:${id}`;
