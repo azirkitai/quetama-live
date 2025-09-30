@@ -654,7 +654,8 @@ export function TVDisplay({
     height: "100dvh",
     width: "100vw",
     margin: 0,
-    padding: 0,
+    padding: "2vh 2vw", // TV Safe Zone - 2% padding to prevent overscan cut-off
+    boxSizing: "border-box",
     ...getBackgroundStyle(headerBackgroundMode, headerBackgroundColor, headerBackgroundGradient, '#ffffff')
   } : {
     gridTemplateRows: 'auto 1fr',
