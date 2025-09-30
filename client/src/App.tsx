@@ -83,18 +83,36 @@ function AuthenticatedApp() {
 function AppContent() {
   const { isAuthenticated, isLoading, login } = useAuth();
   const [location] = useLocation();
+  const [qrSessionId, setQrSessionId] = useState<string | null>(null);
 
-  // Check HASH routing for QR auth (hash-based URL like /#/qr-auth/sessionId)
-  const hash = window.location.hash;
-  console.log('Current location:', location, 'Hash:', hash);
-  
-  if (hash.startsWith('#/qr-auth/')) {
-    const sessionId = hash.replace('#/qr-auth/', '').replace(/\/$/, '');
-    console.log('QR Auth detected from HASH! SessionId:', sessionId);
-    return <QrAuthPage sessionId={sessionId} />;
+  // REACTIVE hash detection - runs on mount AND when hash changes
+  useEffect(() => {
+    const checkHash = () => {
+      const hash = window.location.hash;
+      console.log('🔍 Checking hash:', hash);
+      
+      if (hash.startsWith('#/qr-auth/')) {
+        const sessionId = hash.replace('#/qr-auth/', '').replace(/\/$/, '');
+        console.log('✅ QR Auth detected from HASH! SessionId:', sessionId);
+        setQrSessionId(sessionId);
+      }
+    };
+    
+    // Check on mount
+    checkHash();
+    
+    // Listen for hash changes
+    window.addEventListener('hashchange', checkHash);
+    return () => window.removeEventListener('hashchange', checkHash);
+  }, []);
+
+  // If QR session detected, show QR auth page
+  if (qrSessionId) {
+    console.log('🎯 Rendering QR Auth Page with sessionId:', qrSessionId);
+    return <QrAuthPage sessionId={qrSessionId} />;
   }
 
-  // Check regular path routing for QR auth
+  // Check regular path routing for QR auth (fallback)
   if (location.startsWith('/qr-auth/')) {
     const sessionId = location.replace('/qr-auth/', '').replace(/\/$/, '');
     console.log('QR Auth detected from PATH! SessionId:', sessionId);
