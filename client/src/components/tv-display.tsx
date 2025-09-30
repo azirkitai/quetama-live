@@ -89,6 +89,7 @@ export function TVDisplay({
 }: TVDisplayProps) {
   
   const [currentTime, setCurrentTime] = useState(new Date());
+  const stageRef = useRef<HTMLDivElement>(null);
   
   // Fetch active theme - use token-based endpoint if tvToken provided
   const { data: theme } = useQuery({
@@ -475,6 +476,32 @@ export function TVDisplay({
     return () => clearInterval(timer);
   }, []);
 
+  // Auto-scale 1920×1080 stage to fit any screen size (FIXED CANVAS APPROACH)
+  useEffect(() => {
+    if (!isFullscreen || !stageRef.current) return;
+
+    const STAGE_WIDTH = 1920;
+    const STAGE_HEIGHT = 1080;
+    const stage = stageRef.current;
+
+    const fitStage = () => {
+      const scaleX = window.innerWidth / STAGE_WIDTH;
+      const scaleY = window.innerHeight / STAGE_HEIGHT;
+      const scale = Math.min(scaleX, scaleY);
+      
+      stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    };
+
+    fitStage();
+    window.addEventListener('resize', fitStage);
+    window.addEventListener('orientationchange', fitStage);
+
+    return () => {
+      window.removeEventListener('resize', fitStage);
+      window.removeEventListener('orientationchange', fitStage);
+    };
+  }, [isFullscreen]);
+
   // Detect new patient call and trigger animation sequence + AUDIO
   useEffect(() => {
     if (currentPatient && currentPatient.id !== prevPatientId) {
@@ -672,15 +699,23 @@ export function TVDisplay({
   // Get current media item
   const currentMedia = mediaItems.length > 0 ? mediaItems[currentMediaIndex] : null;
 
-  const containerStyle = isFullscreen ? {
-    gridTemplateRows: `36.5625vw 1fr`,
-    gridTemplateColumns: `65vw 35vw`,
+  // Fixed 1920×1080 stage styling (only for fullscreen)
+  const stageStyle = isFullscreen ? {
+    position: 'fixed' as const,
+    left: '50%',
+    top: '50%',
+    width: '1920px',
+    height: '1080px',
+    transform: 'translate(-50%, -50%) scale(1)',
+    transformOrigin: 'top left',
+    overflow: 'hidden',
+    display: 'grid',
+    gridTemplateRows: '700px 380px', // Fixed: Top 700px (16:9 for 1248px), Bottom 380px = 1080px total
+    gridTemplateColumns: '1248px 672px', // Fixed: Left 65% (1248px), Right 35% (672px) = 1920px total
     gap: 0,
-    height: "100dvh",
-    width: "100vw",
+    padding: 0, // No padding - fixed 1920×1080 canvas handles safe zones via inner content
     margin: 0,
-    padding: "2vh 2vw", // TV Safe Zone - 2% padding to prevent overscan cut-off
-    boxSizing: "border-box" as const,
+    boxSizing: 'border-box' as const,
     ...getBackgroundStyle(headerBackgroundMode, headerBackgroundColor, headerBackgroundGradient, '#ffffff')
   } : {
     gridTemplateRows: 'auto 1fr',
@@ -690,13 +725,12 @@ export function TVDisplay({
   };
 
   const wrapperClass = isFullscreen 
-    ? "fixed inset-0 w-screen h-screen overflow-hidden text-gray-900 grid m-0 p-0"
+    ? "h-screen text-gray-900 grid"
     : "h-screen text-gray-900 grid";
 
-  return (
-    <div className={wrapperClass}
-         style={containerStyle} 
-         data-testid="tv-display">
+  // Render content - same for both fullscreen and non-fullscreen
+  const renderContent = () => (
+    <>
       {/* Top Row - Advertisement Area with 16:9 ratio */}
       <div className={`${isFullscreen ? 'm-0 p-0 w-full h-full' : 'p-4 w-full'}`}>
         <div className="overflow-hidden flex items-center justify-center w-full h-full relative" style={{ aspectRatio: '16/9', backgroundColor: '#f3f4f6' }}>
@@ -1186,6 +1220,30 @@ export function TVDisplay({
           </div>
         </div>
       )}
+    </>
+  );
+
+  // Conditional wrapper: fullscreen uses fixed 1920×1080 stage with black background
+  if (isFullscreen) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: '#000', overflow: 'hidden' }}>
+        <div 
+          ref={stageRef}
+          className={wrapperClass}
+          style={stageStyle} 
+          data-testid="tv-display">
+          {renderContent()}
+        </div>
+      </div>
+    );
+  }
+
+  // Non-fullscreen: regular responsive layout
+  return (
+    <div className={wrapperClass}
+         style={stageStyle} 
+         data-testid="tv-display">
+      {renderContent()}
     </div>
   );
 }
