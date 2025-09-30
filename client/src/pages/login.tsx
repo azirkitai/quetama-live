@@ -9,10 +9,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, LogIn, Stethoscope, QrCode, Smartphone, Timer } from "lucide-react";
+import { AlertCircle, LogIn, QrCode, Smartphone, Timer } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { QRCodeSVG } from "qrcode.react";
 import { io, Socket } from "socket.io-client";
+import quetamaLogo from "@assets/QUEUE MANAGEMENT SYSTEM_1759210094923.png";
 
 // Login form schema
 const loginSchema = z.object({
@@ -262,15 +263,12 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
       <div className="w-full max-w-md">
         {/* Logo and Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full mb-4">
-            <Stethoscope className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Sistem Panggilan Klinik
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            Sistem pengurusan barisan pesakit yang komprehensif
-          </p>
+          <img 
+            src={quetamaLogo} 
+            alt="QueTAMA System" 
+            className="mx-auto mb-4 max-w-full h-auto"
+            style={{ maxHeight: '300px' }}
+          />
         </div>
 
         {/* Login Form */}
