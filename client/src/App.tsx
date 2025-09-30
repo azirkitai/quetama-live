@@ -85,13 +85,19 @@ function AppContent() {
 
   return (
     <Switch>
-      {/* QR Auth route - accessible without authentication, with wildcard to handle trailing slashes */}
-      <Route path="/qr-auth/:id*">
+      {/* QR Auth route - accessible without authentication */}
+      <Route path="/qr-auth/:id">
         {(params: any) => {
           console.log('QR Route matched! Params:', params);
-          // Extract session ID (remove any trailing slashes or segments)
-          const sessionId = (params.id || '').split('/')[0];
-          return <QrAuthPage sessionId={sessionId} />;
+          return <QrAuthPage sessionId={params.id || ''} />;
+        }}
+      </Route>
+      
+      {/* QR Auth route with trailing slash */}
+      <Route path="/qr-auth/:id/">
+        {(params: any) => {
+          console.log('QR Route with slash matched! Params:', params);
+          return <QrAuthPage sessionId={params.id || ''} />;
         }}
       </Route>
       
