@@ -244,7 +244,7 @@ export function TVDisplay({
     
     // Always include non-color properties that don't conflict with Settings
     if (group.backgroundColor) styles.backgroundColor = group.backgroundColor;
-    if (group.fontSize) styles.fontSize = group.fontSize;
+    // fontSize removed - using pure CSS responsive tokens only
     if (group.fontWeight) styles.fontWeight = group.fontWeight;
     if (group.textAlign) styles.textAlign = group.textAlign;
     
