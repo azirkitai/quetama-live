@@ -120,7 +120,7 @@ export function PatientRegistration({ onRegister, nextNumber, isRegistering = fa
                 value={patientName}
                 onChange={(e) => setPatientName(e.target.value)}
                 placeholder="Masukkan nama pesakit"
-                maxLength={30}
+                maxLength={25}
                 data-testid="input-patient-name"
               />
             </div>
