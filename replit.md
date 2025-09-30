@@ -8,20 +8,6 @@ This is a comprehensive clinic patient calling system designed for healthcare fa
 
 Preferred communication style: Simple, everyday language.
 
-## Recent Changes
-
-### September 30, 2025 - TV Display 16:9 Responsive Safe Box (Latest)
-- Implemented 16:9 aspect ratio safe box that scales to fit screen
-- Uses aspect-ratio CSS with min(100vw, 177.78vh) for responsive sizing
-- Grid layout uses percentage-based dimensions for proportional scaling:
-  - Ad area: 65% height, Queue: 35% height
-  - Left panel: 65% width, Right panel: 35% width
-- Inner grid set to height: 100% with min-height:0 for proper shrinking
-- Font sizes use clamp() with vw units for responsive scaling
-- Black letterbox borders automatically adjust to fill remaining screen space
-- Content scales proportionally with screen size while maintaining 16:9 ratio
-- Structure: .tv-frame (full screen centering) > .tv-content (16:9 box) > .tv-grid (layout grid)
-
 ## System Architecture
 
 ### Frontend Architecture
@@ -57,9 +43,6 @@ The system uses four main entities:
 - **Real-time Queue Management**: Live updates for patient status and queue position
 - **Multi-window Support**: Flexible room/station configuration with individual patient assignments
 - **TV Display Mode**: Large-format display for patient calling with Islamic prayer times integration
-  - **Responsive Text Sizing**: Pure CSS-based responsive tokens (--tv-fs-xs to --tv-fs-5xl) using clamp() with vmin units
-  - **Auto-scaling**: All text including numbers automatically resize based on screen dimensions (720p to 4K support)
-  - **Browser Compatibility**: Chrome 88+, Edge 88+, Firefox 75+ for optimal CSS clamp() and CSS variables support
 - **Audio Integration**: Configurable sound alerts and text-to-speech capabilities
 - **Theme Customization**: Medical blue color scheme with accessibility considerations
 

@@ -244,7 +244,7 @@ export function TVDisplay({
     
     // Always include non-color properties that don't conflict with Settings
     if (group.backgroundColor) styles.backgroundColor = group.backgroundColor;
-    // fontSize removed - using pure CSS responsive tokens only
+    if (group.fontSize) styles.fontSize = group.fontSize;
     if (group.fontWeight) styles.fontWeight = group.fontWeight;
     if (group.textAlign) styles.textAlign = group.textAlign;
     
@@ -436,6 +436,31 @@ export function TVDisplay({
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [isMediaVisible, setIsMediaVisible] = useState(true);
   
+  // Auto-resize text functionality
+  const [patientNameFontSize, setPatientNameFontSize] = useState('4rem');
+  const [roomNameFontSize, setRoomNameFontSize] = useState('2.5rem');
+  const [historyFontSizes, setHistoryFontSizes] = useState<Record<string, {name: string, room: string}>>({});
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Function to calculate optimal font size for text to fit container
+  const calculateFontSize = (text: string, maxWidth: number, baseSize: number, minSize: number = 16) => {
+    if (!text) return `${baseSize}px`;
+    
+    // Estimate character width (roughly 0.6 of font size for most fonts)
+    const charWidth = baseSize * 0.6;
+    const textWidth = text.length * charWidth;
+    
+    if (textWidth <= maxWidth) {
+      return `${baseSize}px`;
+    }
+    
+    // Calculate scaling factor
+    const scaleFactor = maxWidth / textWidth;
+    const newSize = Math.max(baseSize * scaleFactor, minSize);
+    
+    return `${Math.floor(newSize)}px`;
+  };
+  
   // Timer refs for cleanup
   const highlightTimerRef = useRef<NodeJS.Timeout | null>(null);
   const blinkTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -514,6 +539,55 @@ export function TVDisplay({
       setPrevPatientId(currentPatient.id);
     }
   }, [currentPatient?.id]); // Only depend on patient ID change
+
+  // Auto-resize text effect - adjust font sizes based on text length
+  useEffect(() => {
+    if (currentPatient) {
+      // Calculate container widths (approximate based on typical screen sizes)
+      const isFullSize = isFullscreen;
+      const nameContainerWidth = isFullSize ? 600 : 400; // Approximate container width
+      const roomContainerWidth = isFullSize ? 400 : 300; // Room container is smaller
+      
+      // Base font sizes 
+      const nameBaseSize = isFullSize ? 64 : 48; // 4rem equivalent
+      const roomBaseSize = isFullSize ? 40 : 32; // 2.5rem equivalent
+      
+      // Calculate optimal font sizes
+      const newNameSize = calculateFontSize(currentPatient.name, nameContainerWidth, nameBaseSize, 20);
+      const newRoomSize = calculateFontSize(currentPatient.room, roomContainerWidth, roomBaseSize, 16);
+      
+      setPatientNameFontSize(newNameSize);
+      setRoomNameFontSize(newRoomSize);
+    }
+  }, [currentPatient?.name, currentPatient?.room, isFullscreen]);
+
+  // Auto-resize text effect for history items
+  useEffect(() => {
+    if (queueHistory.length > 0) {
+      const newHistoryFontSizes: Record<string, {name: string, room: string}> = {};
+      
+      // Calculate container widths for history items (bigger containers for bigger text)
+      const isFullSize = isFullscreen;
+      const historyNameContainerWidth = isFullSize ? 450 : 350; // Bigger name column width
+      const historyRoomContainerWidth = isFullSize ? 300 : 250; // Bigger room column width
+      
+      // Base font sizes for history (bigger base sizes)
+      const historyNameBaseSize = isFullSize ? 40 : 32; // Bigger base size (~2.5rem equivalent)
+      const historyRoomBaseSize = isFullSize ? 40 : 32; // Same bigger size for room
+      
+      queueHistory.forEach((item) => {
+        const nameFontSize = calculateFontSize(item.name, historyNameContainerWidth, historyNameBaseSize, 22); // Bigger minimum size
+        const roomFontSize = calculateFontSize(item.room, historyRoomContainerWidth, historyRoomBaseSize, 22); // Bigger minimum size
+        
+        newHistoryFontSizes[item.id] = {
+          name: nameFontSize,
+          room: roomFontSize
+        };
+      });
+      
+      setHistoryFontSizes(newHistoryFontSizes);
+    }
+  }, [queueHistory, isFullscreen]);
 
   // Media slideshow management 
   useEffect(() => {
@@ -598,34 +672,31 @@ export function TVDisplay({
   // Get current media item
   const currentMedia = mediaItems.length > 0 ? mediaItems[currentMediaIndex] : null;
 
-  // Responsive grid layout dalam 16:9 safe box - TANPA fixed px heights
-  const gridStyle = isFullscreen ? {
-    display: 'grid',
-    gridTemplateRows: '60% 40%',        // Responsive % - Ad area 60%, Queue 40% (more space for bottom)
-    gridTemplateColumns: '65% 35%',     // Responsive % - Left 65%, Right 35%
+  const containerStyle = isFullscreen ? {
+    gridTemplateRows: `36.5625vw 1fr`,
+    gridTemplateColumns: `65vw 35vw`,
     gap: 0,
-    height: '100%',                      // WAJIB: guna penuh 16:9 box
-    width: '100%',
-    padding: '1.5%',                     // Reduced padding for more content space
-    boxSizing: 'border-box' as const,
-    minHeight: 0,                        // Allow shrinking
-    minWidth: 0,
+    height: "100dvh",
+    width: "100vw",
+    margin: 0,
+    padding: "2vh 2vw", // TV Safe Zone - 2% padding to prevent overscan cut-off
+    boxSizing: "border-box" as const,
     ...getBackgroundStyle(headerBackgroundMode, headerBackgroundColor, headerBackgroundGradient, '#ffffff')
   } : {
-    display: 'grid',
     gridTemplateRows: 'auto 1fr',
     gridTemplateColumns: '65% 35%',
     gap: '0',
-    height: '100vh',
     ...getBackgroundStyle(headerBackgroundMode, headerBackgroundColor, headerBackgroundGradient, '#ffffff')
   };
 
-  // Use 16:9 safe box approach in fullscreen
-  return isFullscreen ? (
-    <div className="tv-frame" data-testid="tv-frame">
-      <div className="tv-content text-gray-900"
-           data-testid="tv-display">
-        <div className="tv-grid" style={gridStyle}>
+  const wrapperClass = isFullscreen 
+    ? "fixed inset-0 w-screen h-screen overflow-hidden text-gray-900 grid m-0 p-0"
+    : "h-screen text-gray-900 grid";
+
+  return (
+    <div className={wrapperClass}
+         style={containerStyle} 
+         data-testid="tv-display">
       {/* Top Row - Advertisement Area with 16:9 ratio */}
       <div className={`${isFullscreen ? 'm-0 p-0 w-full h-full' : 'p-4 w-full'}`}>
         <div className="overflow-hidden flex items-center justify-center w-full h-full relative" style={{ aspectRatio: '16/9', backgroundColor: '#f3f4f6' }}>
@@ -667,10 +738,10 @@ export function TVDisplay({
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center text-gray-500">
-                <div className="font-bold mb-4" style={{ fontSize: 'var(--tv-fs-3xl, 64px)' }} data-testid="no-display-message">
+                <div className="text-5xl font-bold mb-4" data-testid="no-display-message">
                   NO DISPLAY
                 </div>
-                <p style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>Tiada media dimuatnaik</p>
+                <p className="text-lg">Tiada media dimuatnaik</p>
               </div>
             </div>
           )}
@@ -743,7 +814,7 @@ export function TVDisplay({
                }}>
             <div className="font-bold"
                  style={{ 
-                   fontSize: 'var(--tv-fs-4xl, 96px)', // Responsive: auto-scales from 48px to 128px based on screen
+                   fontSize: patientNameFontSize,
                    opacity: isBlinking ? (blinkVisible ? '1' : '0') : '1',
                    transition: isBlinking ? 'none' : 'opacity 300ms ease-in-out',
                    lineHeight: '1.1',
@@ -756,7 +827,7 @@ export function TVDisplay({
             </div>
             <div
                  style={{ 
-                   fontSize: 'var(--tv-fs-3xl, 64px)', // Responsive: auto-scales from 36px to 96px based on screen
+                   fontSize: roomNameFontSize,
                    opacity: isBlinking ? (blinkVisible ? '1' : '0') : '1',
                    transition: isBlinking ? 'none' : 'opacity 300ms ease-in-out',
                    lineHeight: '1.1',
@@ -806,7 +877,7 @@ export function TVDisplay({
                   <div className="text-center" 
                        style={{ 
                          ...getHistoryNameStyle(),
-                         fontSize: 'var(--tv-fs-xl, 32px)', // Responsive: auto-scales from 22px to 48px based on screen
+                         fontSize: historyFontSizes[item.id]?.name || 'var(--tv-fs-md, 20px)', // Responsive fallback
                          fontWeight: 'bold',
                          lineHeight: '1.1',
                          wordBreak: 'break-word',
@@ -817,7 +888,7 @@ export function TVDisplay({
                   <div className="text-center" 
                        style={{ 
                          ...getHistoryNameStyle(),
-                         fontSize: 'var(--tv-fs-xl, 32px)', // Responsive: auto-scales from 22px to 48px based on screen
+                         fontSize: historyFontSizes[item.id]?.room || 'var(--tv-fs-md, 20px)', // Responsive fallback
                          fontWeight: 'normal',
                          lineHeight: '1.1',
                          wordBreak: 'break-word',
@@ -844,59 +915,57 @@ export function TVDisplay({
       </div>
 
       {/* Second Row Left - Date & Prayer Times Expanded */}
-      <div className={`${isFullscreen ? 'px-2 py-1 m-0' : 'px-4 py-2'} text-white w-full h-full flex flex-col justify-center`}
+      <div className={`${isFullscreen ? 'px-4 py-2 m-0' : 'px-4 py-2'} text-white w-full h-full flex flex-col justify-center`}
            style={{
              ...getBackgroundStyle(prayerTimesBackgroundMode, prayerTimesBackgroundColor, prayerTimesBackgroundGradient, '#1e40af')
            }}>
-        {/* Date/Time Section - Ultra Compact */}
-        <div className={`bg-white text-gray-900 p-2 ${isFullscreen ? 'rounded-md mb-1' : 'rounded-lg mb-6'} flex items-center justify-center space-x-2`}>
+        {/* Date/Time Section - Larger */}
+        <div className={`bg-white text-gray-900 p-6 ${isFullscreen ? 'rounded-md mb-6' : 'rounded-lg mb-6'} flex items-center justify-center space-x-8`}>
           <div className="text-center">
-            <div className="font-bold text-black" style={{ fontSize: 'var(--tv-fs-xl, 32px)' }}>{dateInfo.day}</div>
+            <div className="text-6xl font-bold text-black">{dateInfo.day}</div>
           </div>
           <div className="text-center">
-            <div className="font-bold" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>{dateInfo.dayName}</div>
-            <div className="text-gray-600" style={{ fontSize: 'var(--tv-fs-sm, 16px)' }}>{dateInfo.month} {dateInfo.year}</div>
+            <div className="font-bold text-4xl">{dateInfo.dayName}</div>
+            <div className="text-3xl text-gray-600">{dateInfo.month} {dateInfo.year}</div>
           </div>
           <div className="text-center">
-            <div className="font-mono font-bold" style={{ fontSize: 'var(--tv-fs-xl, 32px)' }} data-testid="display-time">
+            <div className="font-mono font-bold text-6xl" data-testid="display-time">
               {formatTime(currentTime)}
             </div>
           </div>
         </div>
 
-        {/* Prayer Times Section - Ultra Compact */}
+        {/* Prayer Times Section - Conditional with Loading/Error States */}
         {showPrayerTimes && (
           <div className="text-center">
-            <div className="flex items-center justify-center space-x-1 mb-1">
-              <span className="text-yellow-400" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>🕌</span>
-              <span className="font-bold" style={{ fontSize: 'var(--tv-fs-md, 20px)', ...getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') }}>PRAYER TIME</span>
+            <div className="flex items-center justify-center space-x-3 mb-4">
+              <span className="text-yellow-400 text-3xl">🕌</span>
+              <span className="font-bold text-3xl" style={{ ...getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') }}>PRAYER TIME</span>
             </div>
             
             {prayerTimesLoading ? (
-              <div className="text-white" style={{ fontSize: 'var(--tv-fs-sm, 16px)' }}>
+              <div className="text-white text-xl">
                 Loading prayer times...
               </div>
             ) : location ? (
-              <div className="text-yellow-300 mb-1" style={{ fontSize: 'var(--tv-fs-xs, 14px)' }}>
+              <div className="text-yellow-300 text-lg mb-4">
                 📍 {locationError ? "Kuala Lumpur, Malaysia" : prayerTimesData?.location ? `${prayerTimesData.location.city}, ${prayerTimesData.location.country}` : "Kuala Lumpur, Malaysia"}
               </div>
             ) : null}
             
             {!prayerTimesLoading && displayPrayerTimes.length > 0 && (
-              <div className="grid grid-cols-5 gap-1">
+              <div className="grid grid-cols-5 gap-4">
                 {displayPrayerTimes.map((prayer, index) => {
                   const isCurrentPrayer = nextPrayer === prayer.key && shouldHighlight;
                   
                   return (
                     <div key={prayer.key || index} className="text-center">
-                      <div className={`font-bold ${isCurrentPrayer ? 'animate-pulse' : ''}`} style={{
-                        fontSize: 'var(--tv-fs-sm, 16px)',
+                      <div className={`font-bold text-2xl ${isCurrentPrayer ? 'animate-pulse' : ''}`} style={{
                         ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
                       }}>
                         {prayer.name}
                       </div>
-                      <div className={`${isCurrentPrayer ? 'font-bold' : ''}`} style={{
-                        fontSize: 'var(--tv-fs-sm, 16px)',
+                      <div className={`text-2xl ${isCurrentPrayer ? 'font-bold' : ''}`} style={{
                         ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
                       }}>
                         {prayer.time}
@@ -908,43 +977,48 @@ export function TVDisplay({
             )}
             
             {!prayerTimesLoading && displayPrayerTimes.length === 0 && (
-              <div className="text-white" style={{ fontSize: 'var(--tv-fs-sm, 16px)' }}>
+              <div className="text-white text-xl">
                 Prayer times not available
               </div>
             )}
           </div>
         )}
 
-        {/* Weather Section - Ultra Compact */}
+        {/* Weather Section - Real Location-Based Weather */}
         {showWeather && (
-          <div className="text-center mt-1">
-            <div className="flex items-center justify-center space-x-1 mb-1">
-              <span className="text-blue-400" style={{ fontSize: 'var(--tv-fs-lg, 24px)' }}>🌤️</span>
-              <span className="font-bold" style={{ fontSize: 'var(--tv-fs-lg, 24px)', ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#60a5fa') }}>WEATHER</span>
+          <div className="text-center">
+            <div className="flex items-center justify-center space-x-3 mb-4">
+              <span className="text-blue-400 text-3xl">🌤️</span>
+              <span className="font-bold text-3xl" style={{ ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#60a5fa') }}>WEATHER</span>
             </div>
             
+            {/* Fix rendering race condition - better conditional logic */}
             {!location ? (
-              <div className="text-white" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>
+              <div className="text-white text-xl">
                 Detecting location...
               </div>
             ) : weatherLoading ? (
-              <div className="text-white" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>
+              <div className="text-white text-xl">
                 Loading weather data...
               </div>
             ) : weatherData ? (
-              <div className="space-y-2">
+              <div className="space-y-4">
+                {locationError && (
+                  <div className="text-yellow-300 text-lg mb-2">
+                    Using default location
+                  </div>
+                )}
+                
                 {/* Temperature and Icon */}
-                <div className="flex items-center justify-center space-x-3">
-                  <span style={{ fontSize: 'var(--tv-fs-2xl, 48px)' }}>{weatherData.current.icon}</span>
+                <div className="flex items-center justify-center space-x-6">
+                  <span className="text-6xl">{weatherData.current.icon}</span>
                   <div className="text-center">
-                    <div className="font-bold" style={{
-                      fontSize: 'var(--tv-fs-xl, 32px)',
+                    <div className="text-5xl font-bold" style={{
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
                     }}>
                       {weatherData.current.temperature}{weatherData.units.temperature}
                     </div>
-                    <div style={{
-                      fontSize: 'var(--tv-fs-sm, 16px)',
+                    <div className="text-xl" style={{
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
                     }}>
                       {weatherData.current.description}
@@ -952,25 +1026,36 @@ export function TVDisplay({
                   </div>
                 </div>
                 
-                {/* Weather Details - Inline */}
-                <div className="flex items-center justify-center space-x-4">
+                {/* Weather Details */}
+                <div className="grid grid-cols-2 gap-6">
                   <div className="text-center">
-                    <span className="font-semibold" style={{
-                      fontSize: 'var(--tv-fs-sm, 16px)',
+                    <div className="text-lg font-semibold" style={{
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
-                    }}>💧 {weatherData.current.humidity}{weatherData.units.humidity}</span>
+                    }}>Humidity</div>
+                    <div className="text-2xl" style={{
+                      ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
+                    }}>{weatherData.current.humidity}{weatherData.units.humidity}</div>
                   </div>
                   <div className="text-center">
-                    <span className="font-semibold" style={{
-                      fontSize: 'var(--tv-fs-sm, 16px)',
+                    <div className="text-lg font-semibold" style={{
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
-                    }}>💨 {weatherData.current.windSpeed} {weatherData.units.windSpeed}</span>
+                    }}>Wind Speed</div>
+                    <div className="text-2xl" style={{
+                      ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
+                    }}>{weatherData.current.windSpeed} {weatherData.units.windSpeed}</div>
                   </div>
+                </div>
+                
+                {/* Location Info - improved labeling */}
+                <div className="text-lg" style={{
+                  ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#93c5fd')
+                }}>
+                  📍 {locationError ? "Kuala Lumpur, Malaysia" : `${weatherData.location.city}, ${weatherData.location.country}`}
                 </div>
               </div>
             ) : (
-              <div className="text-white" style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>
-                Weather data unavailable
+              <div className="text-white text-xl">
+                Weather data unavailable, retrying...
               </div>
             )}
           </div>
@@ -989,18 +1074,18 @@ export function TVDisplay({
           <div className="overflow-hidden w-full">
             <div className="inline-flex whitespace-nowrap animate-marquee" data-testid="marquee-container" aria-hidden="false">
               <span 
-                className="px-8 font-bold" 
+                className="px-8 font-bold text-2xl" 
                 style={{ 
-                  fontSize: 'var(--tv-fs-lg, 24px)',
+                  fontSize: 'clamp(1.5rem, 2vw, 2rem)',
                   color: marqueeColor
                 }}
               >
                 {marqueeText}
               </span>
               <span 
-                className="px-8 font-bold" 
+                className="px-8 font-bold text-2xl" 
                 style={{ 
-                  fontSize: 'var(--tv-fs-lg, 24px)',
+                  fontSize: 'clamp(1.5rem, 2vw, 2rem)',
                   color: marqueeColor
                 }} 
                 aria-hidden="true"
@@ -1101,61 +1186,6 @@ export function TVDisplay({
           </div>
         </div>
       )}
-      </div>
-    </div>
-  </div>
-  ) : (
-    <div className="h-screen text-gray-900" style={gridStyle} data-testid="tv-display">
-      {/* Top Row - Advertisement Area with 16:9 ratio */}
-      <div className="p-4 w-full">
-        <div className="overflow-hidden flex items-center justify-center w-full h-full relative" style={{ aspectRatio: '16/9', backgroundColor: '#f3f4f6' }}>
-          {currentMedia ? (
-            <div 
-              className="absolute inset-0 w-full h-full transition-opacity ease-in-out"
-              style={{ 
-                opacity: isMediaVisible ? 1 : 0,
-                transitionDuration: '500ms'
-              }}
-            >
-              {isYouTubeUrl(currentMedia.url) ? (
-                <iframe
-                  src={getYouTubeEmbedUrl(currentMedia.url)}
-                  className="w-full h-full"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  data-testid="youtube-content"
-                />
-              ) : currentMedia.type === "image" ? (
-                <img 
-                  src={currentMedia.url} 
-                  alt="Media Content" 
-                  className="w-full h-full object-cover"
-                  data-testid="media-content"
-                />
-              ) : (
-                <video 
-                  src={currentMedia.url} 
-                  className="w-full h-full object-cover"
-                  autoPlay
-                  muted
-                  loop
-                  data-testid="media-content"
-                />
-              )}
-            </div>
-          ) : (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center text-gray-500">
-                <div className="font-bold mb-4" style={{ fontSize: 'var(--tv-fs-3xl, 64px)' }} data-testid="no-display-message">
-                  NO DISPLAY
-                </div>
-                <p style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>Tiada media dimuatnaik</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
