@@ -39,7 +39,11 @@ function Router() {
 
 // Authenticated app content
 function AuthenticatedApp() {
+  const [location] = useLocation();
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Check for fullscreen from URL parameter or browser fullscreen API
+  const isInFullscreenMode = isFullscreen || new URLSearchParams(window.location.search).get('fullscreen') === '1';
 
   // Listen for fullscreen changes
   useEffect(() => {
@@ -61,16 +65,16 @@ function AuthenticatedApp() {
     <SidebarProvider style={style as React.CSSProperties}>
       <div className="flex h-screen w-full">
         {/* Hide sidebar when in fullscreen */}
-        {!isFullscreen && <AppSidebar />}
+        {!isInFullscreenMode && <AppSidebar />}
         <div className="flex flex-col flex-1">
           {/* Hide header when in fullscreen */}
-          {!isFullscreen && (
+          {!isInFullscreenMode && (
             <header className="flex items-center justify-between p-2 border-b bg-background">
               <SidebarTrigger data-testid="button-sidebar-toggle" />
               <ThemeToggle />
             </header>
           )}
-          <main className={`flex-1 ${isFullscreen ? 'h-screen' : 'overflow-auto'}`}>
+          <main className={`flex-1 ${isInFullscreenMode ? 'h-screen' : 'overflow-auto'}`}>
             <Router />
           </main>
         </div>
