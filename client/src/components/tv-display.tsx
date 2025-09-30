@@ -880,7 +880,7 @@ export function TVDisplay({
                   fontSize: 'clamp(2rem, 4vw, 4rem)',
                   fontWeight: 'bold'
                 }} 
-                data-testid="text-no-queue">Tiada dalam barisan</p>
+                data-testid="text-no-queue">N/A</p>
               </div>
             )}
           </div>
