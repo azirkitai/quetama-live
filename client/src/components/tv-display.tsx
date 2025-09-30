@@ -436,31 +436,6 @@ export function TVDisplay({
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [isMediaVisible, setIsMediaVisible] = useState(true);
   
-  // Auto-resize text functionality
-  const [patientNameFontSize, setPatientNameFontSize] = useState('4rem');
-  const [roomNameFontSize, setRoomNameFontSize] = useState('2.5rem');
-  const [historyFontSizes, setHistoryFontSizes] = useState<Record<string, {name: string, room: string}>>({});
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
-  // Function to calculate optimal font size for text to fit container
-  const calculateFontSize = (text: string, maxWidth: number, baseSize: number, minSize: number = 16) => {
-    if (!text) return `${baseSize}px`;
-    
-    // Estimate character width (roughly 0.6 of font size for most fonts)
-    const charWidth = baseSize * 0.6;
-    const textWidth = text.length * charWidth;
-    
-    if (textWidth <= maxWidth) {
-      return `${baseSize}px`;
-    }
-    
-    // Calculate scaling factor
-    const scaleFactor = maxWidth / textWidth;
-    const newSize = Math.max(baseSize * scaleFactor, minSize);
-    
-    return `${Math.floor(newSize)}px`;
-  };
-  
   // Timer refs for cleanup
   const highlightTimerRef = useRef<NodeJS.Timeout | null>(null);
   const blinkTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -539,55 +514,6 @@ export function TVDisplay({
       setPrevPatientId(currentPatient.id);
     }
   }, [currentPatient?.id]); // Only depend on patient ID change
-
-  // Auto-resize text effect - adjust font sizes based on text length
-  useEffect(() => {
-    if (currentPatient) {
-      // Calculate container widths (approximate based on typical screen sizes)
-      const isFullSize = isFullscreen;
-      const nameContainerWidth = isFullSize ? 600 : 400; // Approximate container width
-      const roomContainerWidth = isFullSize ? 400 : 300; // Room container is smaller
-      
-      // Base font sizes 
-      const nameBaseSize = isFullSize ? 64 : 48; // 4rem equivalent
-      const roomBaseSize = isFullSize ? 40 : 32; // 2.5rem equivalent
-      
-      // Calculate optimal font sizes
-      const newNameSize = calculateFontSize(currentPatient.name, nameContainerWidth, nameBaseSize, 20);
-      const newRoomSize = calculateFontSize(currentPatient.room, roomContainerWidth, roomBaseSize, 16);
-      
-      setPatientNameFontSize(newNameSize);
-      setRoomNameFontSize(newRoomSize);
-    }
-  }, [currentPatient?.name, currentPatient?.room, isFullscreen]);
-
-  // Auto-resize text effect for history items
-  useEffect(() => {
-    if (queueHistory.length > 0) {
-      const newHistoryFontSizes: Record<string, {name: string, room: string}> = {};
-      
-      // Calculate container widths for history items (bigger containers for bigger text)
-      const isFullSize = isFullscreen;
-      const historyNameContainerWidth = isFullSize ? 450 : 350; // Bigger name column width
-      const historyRoomContainerWidth = isFullSize ? 300 : 250; // Bigger room column width
-      
-      // Base font sizes for history (bigger base sizes)
-      const historyNameBaseSize = isFullSize ? 40 : 32; // Bigger base size (~2.5rem equivalent)
-      const historyRoomBaseSize = isFullSize ? 40 : 32; // Same bigger size for room
-      
-      queueHistory.forEach((item) => {
-        const nameFontSize = calculateFontSize(item.name, historyNameContainerWidth, historyNameBaseSize, 22); // Bigger minimum size
-        const roomFontSize = calculateFontSize(item.room, historyRoomContainerWidth, historyRoomBaseSize, 22); // Bigger minimum size
-        
-        newHistoryFontSizes[item.id] = {
-          name: nameFontSize,
-          room: roomFontSize
-        };
-      });
-      
-      setHistoryFontSizes(newHistoryFontSizes);
-    }
-  }, [queueHistory, isFullscreen]);
 
   // Media slideshow management 
   useEffect(() => {
