@@ -25,6 +25,16 @@ interface DashboardStats {
 export default function Dashboard() {
   const [fullscreen, setFullscreen] = useState(false);
 
+  // Listen for browser fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setFullscreen(document.fullscreenElement !== null);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   // Auto-trigger fullscreen from URL parameter
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -33,7 +43,6 @@ export default function Dashboard() {
       window.history.replaceState({}, '', '/');
       // Enter fullscreen mode
       document.documentElement.requestFullscreen().catch(console.error);
-      setFullscreen(true);
     }
   }, []);
 
@@ -122,7 +131,7 @@ export default function Dashboard() {
     } else {
       document.exitFullscreen().catch(console.error);
     }
-    setFullscreen(!fullscreen);
+    // State will auto-update via fullscreenchange event listener
   };
 
   if (fullscreen) {
