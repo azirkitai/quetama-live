@@ -10,13 +10,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### September 30, 2025 - TV Display Responsive Text Sizing
+### September 30, 2025 - TV Display Responsive Text Sizing (Updated)
 - Removed all JavaScript-based dynamic font sizing to eliminate browser compatibility issues
 - Implemented pure CSS responsive tokens (--tv-fs-xs through --tv-fs-5xl) for all text elements
 - Updated calling panel, history sections, date/time display, weather info, prayer times, and marquee text
 - Removed fontSize override from getTextGroupStyles to ensure CSS tokens always control sizing
 - All text now auto-resizes based on screen dimensions using CSS clamp() with vmin units
-- Supports screen resolutions from 720p to 4K with consistent scaling
+- Reduced minimum font sizes significantly (e.g., --tv-fs-5xl: 24px min instead of 48px) for better small screen support
+- Reduced spacing minimums for tighter layouts on smaller displays
+- Supports screen resolutions from 600px to 4K with consistent scaling
 
 ## System Architecture
 
