@@ -598,34 +598,31 @@ export function TVDisplay({
   // Get current media item
   const currentMedia = mediaItems.length > 0 ? mediaItems[currentMediaIndex] : null;
 
-  // Strict 16:9 letterbox container - scales content to fit while maintaining aspect ratio
-  const contentBoxStyle = isFullscreen ? {
-    aspectRatio: '16 / 9',
-    width: 'min(100vw, 177.78vh)', // Scale to fit without overflow (177.78vh = 100vh * 16/9)
-    height: 'auto',
-    overflow: 'hidden',
+  // Grid layout style for content inside 16:9 box
+  const gridStyle = isFullscreen ? {
     display: 'grid',
     gridTemplateRows: `65% 35%`, // Ad area takes 65% height, queue takes 35%
     gridTemplateColumns: `65% 35%`, // Left panel 65%, right panel 35%
     gap: 0,
-    boxSizing: 'border-box' as const,
+    width: '100%',
+    height: '100%',
     padding: '2.5%', // Safe margins inside the 16:9 box
+    boxSizing: 'border-box' as const,
     ...getBackgroundStyle(headerBackgroundMode, headerBackgroundColor, headerBackgroundGradient, '#ffffff')
   } : {
+    display: 'grid',
     gridTemplateRows: 'auto 1fr',
     gridTemplateColumns: '65% 35%',
     gap: '0',
+    height: '100vh',
     ...getBackgroundStyle(headerBackgroundMode, headerBackgroundColor, headerBackgroundGradient, '#ffffff')
   };
 
-  const wrapperClass = isFullscreen 
-    ? "fixed inset-0 w-screen h-screen overflow-hidden flex items-center justify-center bg-black"
-    : "h-screen text-gray-900 grid";
-
-  return (
-    <div className={wrapperClass} data-testid="tv-display-wrapper">
-      <div className={isFullscreen ? "text-gray-900" : "text-gray-900"}
-           style={contentBoxStyle} 
+  // Use CSS classes for 16:9 letterbox in fullscreen, regular grid otherwise
+  return isFullscreen ? (
+    <div className="tv-frame" data-testid="tv-display-wrapper">
+      <div className="tv-content text-gray-900"
+           style={gridStyle} 
            data-testid="tv-display">
       {/* Top Row - Advertisement Area with 16:9 ratio */}
       <div className={`${isFullscreen ? 'm-0 p-0 w-full h-full' : 'p-4 w-full'}`}>
@@ -1125,6 +1122,59 @@ export function TVDisplay({
           </div>
         </div>
       )}
+    </div>
+  </div>
+  ) : (
+    <div className="h-screen text-gray-900" style={gridStyle} data-testid="tv-display">
+      {/* Top Row - Advertisement Area with 16:9 ratio */}
+      <div className="p-4 w-full">
+        <div className="overflow-hidden flex items-center justify-center w-full h-full relative" style={{ aspectRatio: '16/9', backgroundColor: '#f3f4f6' }}>
+          {currentMedia ? (
+            <div 
+              className="absolute inset-0 w-full h-full transition-opacity ease-in-out"
+              style={{ 
+                opacity: isMediaVisible ? 1 : 0,
+                transitionDuration: '500ms'
+              }}
+            >
+              {isYouTubeUrl(currentMedia.url) ? (
+                <iframe
+                  src={getYouTubeEmbedUrl(currentMedia.url)}
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  data-testid="youtube-content"
+                />
+              ) : currentMedia.type === "image" ? (
+                <img 
+                  src={currentMedia.url} 
+                  alt="Media Content" 
+                  className="w-full h-full object-cover"
+                  data-testid="media-content"
+                />
+              ) : (
+                <video 
+                  src={currentMedia.url} 
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  data-testid="media-content"
+                />
+              )}
+            </div>
+          ) : (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center text-gray-500">
+                <div className="font-bold mb-4" style={{ fontSize: 'var(--tv-fs-3xl, 64px)' }} data-testid="no-display-message">
+                  NO DISPLAY
+                </div>
+                <p style={{ fontSize: 'var(--tv-fs-md, 20px)' }}>Tiada media dimuatnaik</p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

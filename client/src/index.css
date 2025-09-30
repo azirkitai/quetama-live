@@ -592,4 +592,65 @@
       --tv-fs-5xl: clamp(26px, 6vh, 160px);
     }
   }
+
+  /* ============================================ */
+  /* FINAL FIX: Strict 16:9 Letterbox - No Scroll, No Stretch */
+  /* Override all previous TV display rules */
+  /* ============================================ */
+
+  /* TV Frame wrapper - centers the 16:9 box */
+  .tv-frame {
+    height: 100vh;
+    width: 100vw;
+    display: grid;
+    place-items: center;
+    background: #000;           /* Black letterbox/pillarbox */
+    overflow: hidden;           /* No scrollbars */
+  }
+
+  /* TV Content - The ONLY element that scales, locked to 16:9 */
+  .tv-content {
+    aspect-ratio: 16 / 9;
+    width: min(100vw, 177.78vh); /* Scale to fit without overflow */
+    height: auto;
+    overflow: hidden;            /* Prevent inner elements from escaping */
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* All elements inside TV content use relative units */
+  .tv-content h1 { 
+    margin: 0 0 1%;
+    font-size: 4.2vw;           /* Scale with box, not device */
+    line-height: 1.1;
+  }
+
+  /* Media elements stay safe */
+  .tv-content img,
+  .tv-content video,
+  .tv-content iframe {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+  }
+
+  /* Prevent shadow/transform overflow */
+  .tv-content .shadow-safe { 
+    filter: none;
+    box-shadow: none; 
+  }
+
+  /* Tweak for small TVs (≤1366) */
+  @media (max-width: 1400px) {
+    .tv-content h1 { font-size: 5vw; }
+  }
+
+  /* Fallback for older browsers without aspect-ratio support */
+  @supports not (aspect-ratio: 16 / 9) {
+    .tv-content {
+      width: min(100vw, 177.78vh);
+      height: calc((min(100vw, 177.78vh)) * 9 / 16);
+    }
+  }
 }
