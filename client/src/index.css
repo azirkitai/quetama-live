@@ -502,4 +502,85 @@
     height: 60px !important;
     border-width: 4px !important;
   }
+
+  /* ============================================ */
+  /* TV Display Responsive Media Queries */
+  /* Fine-tune sizing for different TV resolutions */
+  /* ============================================ */
+
+  /* Extra Small Screens - 720p and below (1280x720) */
+  @media (max-width: 1366px) {
+    :root {
+      --tv-fs-xs: clamp(7px, 1.2vw, 16px);
+      --tv-fs-sm: clamp(9px, 1.4vw, 20px);
+      --tv-fs-md: clamp(11px, 1.8vw, 26px);
+      --tv-fs-lg: clamp(14px, 2.4vw, 36px);
+      --tv-fs-xl: clamp(16px, 3vw, 52px);
+      --tv-fs-2xl: clamp(18px, 3.6vw, 68px);
+      --tv-fs-3xl: clamp(20px, 4.8vw, 96px);
+      --tv-fs-4xl: clamp(24px, 6vw, 128px);
+      --tv-fs-5xl: clamp(28px, 7.2vw, 168px);
+    }
+  }
+
+  /* Standard HD - 1080p (1920x1080) */
+  @media (min-width: 1367px) and (max-width: 1920px) {
+    :root {
+      --tv-fs-xs: clamp(8px, 1vw, 16px);
+      --tv-fs-sm: clamp(10px, 1.2vw, 20px);
+      --tv-fs-md: clamp(12px, 1.5vw, 26px);
+      --tv-fs-lg: clamp(14px, 2vw, 36px);
+      --tv-fs-xl: clamp(16px, 2.5vw, 52px);
+      --tv-fs-2xl: clamp(18px, 3vw, 68px);
+      --tv-fs-3xl: clamp(20px, 4vw, 96px);
+      --tv-fs-4xl: clamp(24px, 5vw, 128px);
+      --tv-fs-5xl: clamp(28px, 6vw, 168px);
+    }
+  }
+
+  /* 2K/QHD - (2560x1440) */
+  @media (min-width: 1921px) and (max-width: 2560px) {
+    :root {
+      --tv-fs-xs: clamp(10px, 0.9vw, 18px);
+      --tv-fs-sm: clamp(12px, 1.1vw, 22px);
+      --tv-fs-md: clamp(14px, 1.4vw, 28px);
+      --tv-fs-lg: clamp(16px, 1.8vw, 38px);
+      --tv-fs-xl: clamp(18px, 2.2vw, 54px);
+      --tv-fs-2xl: clamp(20px, 2.8vw, 72px);
+      --tv-fs-3xl: clamp(24px, 3.6vw, 100px);
+      --tv-fs-4xl: clamp(28px, 4.5vw, 132px);
+      --tv-fs-5xl: clamp(32px, 5.4vw, 176px);
+    }
+  }
+
+  /* 4K/UHD - (3840x2160) and above */
+  @media (min-width: 2561px) {
+    :root {
+      --tv-fs-xs: clamp(12px, 0.7vw, 20px);
+      --tv-fs-sm: clamp(14px, 0.9vw, 24px);
+      --tv-fs-md: clamp(16px, 1.1vw, 30px);
+      --tv-fs-lg: clamp(18px, 1.4vw, 40px);
+      --tv-fs-xl: clamp(20px, 1.7vw, 56px);
+      --tv-fs-2xl: clamp(24px, 2.2vw, 76px);
+      --tv-fs-3xl: clamp(28px, 2.8vw, 104px);
+      --tv-fs-4xl: clamp(32px, 3.5vw, 136px);
+      --tv-fs-5xl: clamp(36px, 4.2vw, 180px);
+    }
+  }
+
+  /* Portrait/Vertical Displays - Adjust for vertical orientation */
+  @media (orientation: portrait) {
+    :root {
+      /* Use vh instead of vw for portrait mode */
+      --tv-fs-xs: clamp(6px, 1vh, 14px);
+      --tv-fs-sm: clamp(8px, 1.2vh, 18px);
+      --tv-fs-md: clamp(10px, 1.5vh, 24px);
+      --tv-fs-lg: clamp(12px, 2vh, 32px);
+      --tv-fs-xl: clamp(14px, 2.5vh, 48px);
+      --tv-fs-2xl: clamp(16px, 3vh, 64px);
+      --tv-fs-3xl: clamp(18px, 4vh, 90px);
+      --tv-fs-4xl: clamp(22px, 5vh, 120px);
+      --tv-fs-5xl: clamp(26px, 6vh, 160px);
+    }
+  }
 }
