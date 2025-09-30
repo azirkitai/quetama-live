@@ -375,17 +375,6 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
               <QrCode className="w-4 h-4 mr-2" />
               Log Masuk dengan QR Code
             </Button>
-
-            {/* Demo Users Info */}
-            <div className="mt-6 p-4 bg-muted rounded-lg">
-              <h4 className="text-sm font-medium mb-2 text-muted-foreground">
-                Akaun Demo Tersedia:
-              </h4>
-              <div className="text-xs space-y-1 text-muted-foreground">
-                <div><strong>Admin:</strong> admin / password123</div>
-                <div><strong>User:</strong> user / userpass</div>
-              </div>
-            </div>
           </CardContent>
         </Card>
 
