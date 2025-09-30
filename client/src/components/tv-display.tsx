@@ -493,7 +493,7 @@ export function TVDisplay({
       
       // AUDIO PLAYBACK: Parse audio settings and play sound
       const audioSettings: AudioSettings = {
-        enableSound: settings.find(s => s.key === 'enable_sound')?.value === 'true' ?? true,
+        enableSound: (settings.find(s => s.key === 'enable_sound')?.value ?? 'true') === 'true',
         volume: parseInt(settings.find(s => s.key === 'sound_volume')?.value || '70', 10),
         soundMode: 'preset',
         presetKey: (settings.find(s => s.key === 'preset_sound_key')?.value || 'notification_sound') as any
