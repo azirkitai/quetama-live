@@ -38,6 +38,7 @@ export class AudioSystem {
   private static instance: AudioSystem;
   private audioContext: AudioContext | null = null;
   private audioBufferCache: Map<string, AudioBuffer> = new Map();
+  private forceHTMLAudio: boolean = false; // Force HTMLAudio mode for TV displays
   
   // Centralized preset definitions
   private static readonly PRESET_DEFS: Array<{key: PresetSoundKeyType, name: string, src: string}> = [
@@ -119,21 +120,60 @@ export class AudioSystem {
     }
   }
 
-  // HTMLAudio fallback for TVs with limited Web Audio support
-  private async playAudioWithHTMLAudio(url: string, volume: number): Promise<void> {
+  // HTMLAudio fallback for TVs with limited Web Audio support (with retry logic)
+  private async playAudioWithHTMLAudio(url: string, volume: number, retries: number = 2): Promise<void> {
     return new Promise((resolve, reject) => {
-      const audio = new Audio(url);
-      audio.volume = volume / 100;
+      const audio = new Audio();
       
-      audio.onended = () => resolve();
-      audio.onerror = () => reject(new Error('HTMLAudio playback failed'));
+      // Set up audio element
+      audio.volume = Math.max(0, Math.min(1, volume / 100)); // Clamp volume 0-1
+      audio.preload = 'auto'; // Preload for faster playback
+      audio.src = url;
       
-      audio.play().catch(reject);
+      let attemptCount = 0;
+      
+      const attemptPlay = async () => {
+        try {
+          attemptCount++;
+          await audio.play();
+          console.log(`✅ HTMLAudio playback started (attempt ${attemptCount})`);
+        } catch (error) {
+          console.error(`❌ HTMLAudio playback failed (attempt ${attemptCount}):`, error);
+          
+          // Retry if attempts remaining
+          if (attemptCount < retries) {
+            console.log(`🔄 Retrying HTMLAudio playback...`);
+            setTimeout(() => attemptPlay(), 100); // Wait 100ms before retry
+          } else {
+            reject(new Error(`HTMLAudio playback failed after ${retries} attempts`));
+          }
+        }
+      };
+      
+      // Event handlers
+      audio.onended = () => {
+        console.log('✅ HTMLAudio playback completed');
+        resolve();
+      };
+      
+      audio.onerror = (event) => {
+        console.error('❌ HTMLAudio error event:', event);
+        reject(new Error('HTMLAudio playback error'));
+      };
+      
+      // Start playback
+      attemptPlay();
     });
   }
 
   // Play audio file from buffer with HTMLAudio fallback
   private async playAudioFile(url: string, volume: number): Promise<void> {
+    // FORCE HTMLAudio mode for TV displays (more stable & reliable)
+    if (this.forceHTMLAudio) {
+      console.log('🔊 Using HTMLAudio (TV mode) for stable playback');
+      return await this.playAudioWithHTMLAudio(url, volume);
+    }
+
     try {
       const audioContext = this.getAudioContext();
       
@@ -226,6 +266,10 @@ export class AudioSystem {
   // Unlock audio for TV/fullscreen - must be called from user gesture
   public async unlock(): Promise<void> {
     try {
+      // ENABLE HTMLAudio mode for TV displays (more stable than Web Audio API)
+      this.forceHTMLAudio = true;
+      console.log('🔊 TV Mode: Enabled HTMLAudio for stable playback');
+
       const audioContext = this.getAudioContext();
       
       // Resume AudioContext if suspended (autoplay policy) - SYNC ONLY
