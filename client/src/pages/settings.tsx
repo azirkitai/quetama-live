@@ -2420,13 +2420,6 @@ export default function Settings() {
           </CardContent>
         </Card>
         
-        {/* Simple test card */}
-        <Card>
-          <CardContent className="p-4">
-            <p>Test Card - Grid Structure</p>
-          </CardContent>
-        </Card>
-        
       </div>
       </div>
       
