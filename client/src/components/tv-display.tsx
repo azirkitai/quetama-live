@@ -1203,81 +1203,83 @@ export function TVDisplay({
         <div className="fixed inset-0 flex items-center justify-center z-[100]" 
              style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
              data-testid="highlight-overlay">
-          {/* Modal Container with Lines Design */}
-          <div className="relative p-12 rounded-lg shadow-2xl"
+          {/* Modal Container with Lines Design - BIGGER! */}
+          <div className="relative p-16 rounded-lg shadow-2xl"
                style={{
                  backgroundColor: modalBackgroundColor,
-                 minWidth: '700px',
-                 maxWidth: '1200px'
+                 minWidth: '900px',
+                 maxWidth: '1600px'
                }}>
             
-            {/* Corner Lines Design */}
+            {/* Corner Lines Design - THICKER & LONGER! */}
             <div className="absolute inset-0 pointer-events-none">
               {/* Top-left corner */}
-              <div className="absolute top-0 left-0 w-20 h-0.5" 
+              <div className="absolute top-0 left-0 w-32 h-1" 
                    style={{ backgroundColor: modalBorderColor }}></div>
-              <div className="absolute top-0 left-0 w-0.5 h-20" 
+              <div className="absolute top-0 left-0 w-1 h-32" 
                    style={{ backgroundColor: modalBorderColor }}></div>
               
               {/* Top-right corner */}
-              <div className="absolute top-0 right-0 w-20 h-0.5" 
+              <div className="absolute top-0 right-0 w-32 h-1" 
                    style={{ backgroundColor: modalBorderColor }}></div>
-              <div className="absolute top-0 right-0 w-0.5 h-20" 
+              <div className="absolute top-0 right-0 w-1 h-32" 
                    style={{ backgroundColor: modalBorderColor }}></div>
               
               {/* Bottom-left corner */}
-              <div className="absolute bottom-0 left-0 w-20 h-0.5" 
+              <div className="absolute bottom-0 left-0 w-32 h-1" 
                    style={{ backgroundColor: modalBorderColor }}></div>
-              <div className="absolute bottom-0 left-0 w-0.5 h-20" 
+              <div className="absolute bottom-0 left-0 w-1 h-32" 
                    style={{ backgroundColor: modalBorderColor }}></div>
               
               {/* Bottom-right corner */}
-              <div className="absolute bottom-0 right-0 w-20 h-0.5" 
+              <div className="absolute bottom-0 right-0 w-32 h-1" 
                    style={{ backgroundColor: modalBorderColor }}></div>
-              <div className="absolute bottom-0 right-0 w-0.5 h-20" 
+              <div className="absolute bottom-0 right-0 w-1 h-32" 
                    style={{ backgroundColor: modalBorderColor }}></div>
             </div>
 
             {/* Modal Content */}
-            <div className="text-center space-y-6 relative z-10">
-              {/* NAME Label */}
-              <div className="font-semibold tracking-wider mb-2" 
-                   style={{ color: modalTextColor, opacity: 0.8, fontSize: 'var(--tv-fs-xl, 32px)' }}>
+            <div className="text-center space-y-8 relative z-10">
+              {/* NAME Label - BIGGER! */}
+              <div className="font-semibold tracking-wider mb-4" 
+                   style={{ color: modalTextColor, opacity: 0.8, fontSize: 'var(--tv-fs-2xl, 48px)' }}>
                 NAME
               </div>
               
-              {/* Patient Name */}
-              <div className="px-8 py-4 rounded border-2"
+              {/* Patient Name - BIGGER! */}
+              <div className="px-12 py-8 rounded border-4"
                    style={{
                      borderColor: modalBorderColor,
                      backgroundColor: 'rgba(0, 0, 0, 0.2)'
                    }}>
                 <div className="font-bold" 
                      style={{ 
-                       fontSize: 'var(--tv-fs-4xl, 96px)', // Responsive with fallback for older TV browsers
-                       color: modalTextColor
+                       fontSize: 'clamp(80px, 10vw, 140px)', // BIGGER: Responsive 80px-140px
+                       color: modalTextColor,
+                       lineHeight: '1.1'
                      }}
                      data-testid="highlight-patient-name">
                   {currentPatient.name}
                 </div>
               </div>
 
-              {/* ROOM Label */}
-              <div className="font-semibold tracking-wider mb-2" 
-                   style={{ color: modalTextColor, opacity: 0.8, fontSize: 'var(--tv-fs-xl, 32px)' }}>
+              {/* ROOM Label - BIGGER! */}
+              <div className="font-semibold tracking-wider mb-4" 
+                   style={{ color: modalTextColor, opacity: 0.8, fontSize: 'var(--tv-fs-2xl, 48px)' }}>
                 ROOM
               </div>
 
-              {/* Room Name */}
-              <div className="px-8 py-4 rounded border-2"
+              {/* Room Name - BIGGER! */}
+              <div className="px-12 py-8 rounded border-4"
                    style={{
                      borderColor: modalBorderColor,
                      backgroundColor: 'rgba(0, 0, 0, 0.2)'
                    }}>
                 <div className="font-bold" 
                      style={{ 
-                       fontSize: 'var(--tv-fs-3xl, 64px)', // Responsive with fallback for older TV browsers
-                       color: modalTextColor
+                       fontSize: 'clamp(60px, 8vw, 100px)', // BIGGER: Responsive 60px-100px
+                       color: modalTextColor,
+                       lineHeight: '1.1'
                      }}
                      data-testid="highlight-patient-room">
                   {currentPatient.room}
