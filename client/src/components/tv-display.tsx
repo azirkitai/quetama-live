@@ -489,11 +489,20 @@ export function TVDisplay({
       if (!viewport) return;
       
       const vw = viewport.clientWidth;
+      const vh = viewport.clientHeight;
 
       // CINEMA LETTERBOX MODE: Scale by WIDTH only
       // Left/right edges ALWAYS touch the screen
       // Black bars appear ONLY on top/bottom (like movies)
       const scale = vw / STAGE_WIDTH;
+
+      console.log('🎬 LETTERBOX MODE:', {
+        viewportSize: `${vw}×${vh}`,
+        stageSize: `${STAGE_WIDTH}×${STAGE_HEIGHT}`,
+        scale: scale.toFixed(3),
+        scaledHeight: `${(STAGE_HEIGHT * scale).toFixed(0)}px`,
+        verticalSpace: `${(vh - STAGE_HEIGHT * scale).toFixed(0)}px`
+      });
 
       // Only scale - centering is handled by viewport CSS Grid
       stage.style.transformOrigin = 'center center';
