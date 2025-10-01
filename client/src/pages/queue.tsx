@@ -158,9 +158,12 @@ export default function Queue() {
       queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
       queryClient.invalidateQueries({ queryKey: ['/api/windows'] });
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/patients/next-number'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/current-call'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/history'] });
       toast({
-        title: "Queue Reset Success",
-        description: `${data.archivedCount || 0} completed patient(s) archived`,
+        title: "Queue Reset Complete",
+        description: `${data.deletedCount || 0} patient(s) deleted. Next number reset to 1.`,
       });
     },
     onError: (error) => {
@@ -330,7 +333,7 @@ export default function Queue() {
   };
 
   const handleResetQueue = () => {
-    if (confirm("Are you sure you want to reset queue? All 'Completed' patients will be archived. This action cannot be undone.")) {
+    if (confirm("Are you sure you want to RESET ENTIRE QUEUE?\n\nThis will:\n✓ Delete ALL patients today (waiting, called, completed)\n✓ Clear all rooms\n✓ Reset next number to 1\n\nThis action CANNOT be undone!")) {
       resetQueueMutation.mutate();
     }
   };

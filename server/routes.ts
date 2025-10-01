@@ -514,8 +514,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Session inactive" });
       }
       
-      // Archive completed patients by setting archivedAt (soft delete for medical records)
-      const archivedCount = await storage.archiveCompletedPatients(req.session.userId);
+      // Delete ALL today's patients (hard delete) - this will reset next number to 1
+      const deletedCount = await storage.deleteAllTodayPatients(req.session.userId);
       
       // Clear all windows
       const windows = await storage.getWindows(req.session.userId);
@@ -527,8 +527,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ 
         success: true, 
-        archivedCount,
-        message: `${archivedCount} pesakit selesai telah diarkibkan` 
+        deletedCount,
+        message: `Queue reset complete. ${deletedCount} patient(s) deleted. Next number will start from 1.` 
       });
     } catch (error) {
       console.error("Error resetting queue:", error);

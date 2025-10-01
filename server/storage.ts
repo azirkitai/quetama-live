@@ -65,6 +65,7 @@ export interface IStorage {
   updatePatientStatus(patientId: string, status: string, userId: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined>;
   deletePatient(patientId: string, userId: string): Promise<boolean>;
   archiveCompletedPatients(userId: string): Promise<number>; // Soft delete completed patients for queue reset
+  deleteAllTodayPatients(userId: string): Promise<number>; // Delete ALL today's patients for complete queue reset
   
   // Window methods
   getWindows(userId: string): Promise<Window[]>;
@@ -510,6 +511,29 @@ export class MemStorage implements IStorage {
     }
     
     return archivedCount;
+  }
+
+  async deleteAllTodayPatients(userId: string): Promise<number> {
+    const today = new Date().toISOString().split('T')[0];
+    const todayPatients = await this.getPatientsByDate(today, userId);
+    
+    let deletedCount = 0;
+    
+    for (const patient of todayPatients) {
+      const deleted = this.patients.delete(patient.id);
+      if (deleted) {
+        deletedCount++;
+        
+        // Remove patient from any windows
+        this.windows.forEach((window, windowId) => {
+          if (window.userId === userId && window.currentPatientId === patient.id) {
+            this.windows.set(windowId, { ...window, currentPatientId: undefined });
+          }
+        });
+      }
+    }
+    
+    return deletedCount;
   }
 
   async getWindows(userId: string): Promise<Window[]> {
@@ -1657,6 +1681,26 @@ export class DatabaseStorage implements IStorage {
           sql`${schema.patients.archivedAt} IS NULL`
         )
       );
+    return result.rowCount || 0;
+  }
+
+  async deleteAllTodayPatients(userId: string): Promise<number> {
+    const today = new Date().toISOString().split('T')[0];
+    const startOfDay = new Date(today);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(today);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Delete all today's patients (hard delete)
+    const result = await db.delete(schema.patients)
+      .where(
+        and(
+          eq(schema.patients.userId, userId),
+          sql`${schema.patients.registeredAt} >= ${startOfDay.toISOString()}`,
+          sql`${schema.patients.registeredAt} <= ${endOfDay.toISOString()}`
+        )
+      );
+    
     return result.rowCount || 0;
   }
 
