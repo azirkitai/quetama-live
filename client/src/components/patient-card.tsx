@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 interface Patient {
   id: string;
@@ -46,6 +47,8 @@ export function PatientCard({
 }: PatientCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showRequeueDropdown, setShowRequeueDropdown] = useState(false);
+  const [showCustomReasonInput, setShowCustomReasonInput] = useState(false);
+  const [customReason, setCustomReason] = useState("");
 
   // Check if this patient is assigned to a different room than selected
   // BUT allow all rooms to call requeued patients
@@ -88,13 +91,30 @@ export function PatientCard({
   };
 
   const handleRequeueWithReason = (reason: string) => {
+    if (reason === "LAIN-LAIN") {
+      setShowCustomReasonInput(true);
+      return;
+    }
     console.log(`Requeueing patient ${patient.id} with reason: ${reason}`);
     onRequeue(patient.id, reason);
     setShowRequeueDropdown(false);
+    setShowCustomReasonInput(false);
+    setCustomReason("");
+  };
+
+  const handleSubmitCustomReason = () => {
+    if (!customReason.trim()) return;
+    console.log(`Requeueing patient ${patient.id} with custom reason: ${customReason}`);
+    onRequeue(patient.id, customReason.trim());
+    setShowRequeueDropdown(false);
+    setShowCustomReasonInput(false);
+    setCustomReason("");
   };
 
   const handleCancelRequeue = () => {
     setShowRequeueDropdown(false);
+    setShowCustomReasonInput(false);
+    setCustomReason("");
   };
 
   const getStatusColor = (status: string) => {
@@ -341,7 +361,9 @@ export function PatientCard({
               ) : (
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Pilih sebab reque:</span>
+                    <span className="text-sm font-medium">
+                      {showCustomReasonInput ? "Masukkan sebab:" : "Pilih sebab reque:"}
+                    </span>
                     <Button
                       onClick={handleCancelRequeue}
                       size="sm"
@@ -352,17 +374,48 @@ export function PatientCard({
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
-                  <Select onValueChange={handleRequeueWithReason}>
-                    <SelectTrigger className="w-full" data-testid={`select-requeue-reason-${patient.id}`}>
-                      <SelectValue placeholder="Pilih sebab..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="NEBULISER">NEBULISER</SelectItem>
-                      <SelectItem value="AMBIL UBATAN">AMBIL UBATAN</SelectItem>
-                      <SelectItem value="MENUNGGU KEPUTUSAN UJIAN">MENUNGGU KEPUTUSAN UJIAN</SelectItem>
-                      <SelectItem value="MGTT">MGTT</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  
+                  {!showCustomReasonInput ? (
+                    <Select onValueChange={handleRequeueWithReason}>
+                      <SelectTrigger className="w-full" data-testid={`select-requeue-reason-${patient.id}`}>
+                        <SelectValue placeholder="Pilih sebab..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NEBULISER">NEBULISER</SelectItem>
+                        <SelectItem value="AMBIL UBATAN">AMBIL UBATAN</SelectItem>
+                        <SelectItem value="MENUNGGU KEPUTUSAN UJIAN">MENUNGGU KEPUTUSAN UJIAN</SelectItem>
+                        <SelectItem value="MGTT">MGTT</SelectItem>
+                        <SelectItem value="LAIN-LAIN">LAIN-LAIN</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="space-y-2">
+                      <Input
+                        type="text"
+                        placeholder="Masukkan sebab reque..."
+                        value={customReason}
+                        onChange={(e) => setCustomReason(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && customReason.trim()) {
+                            handleSubmitCustomReason();
+                          }
+                        }}
+                        className="w-full"
+                        data-testid={`input-custom-reason-${patient.id}`}
+                        autoFocus
+                      />
+                      <Button
+                        onClick={handleSubmitCustomReason}
+                        disabled={!customReason.trim()}
+                        size="sm"
+                        className="w-full"
+                        data-testid={`button-submit-custom-reason-${patient.id}`}
+                      >
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Reque
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </>
