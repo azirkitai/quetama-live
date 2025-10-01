@@ -1242,7 +1242,7 @@ export function TVDisplay({
   // Conditional wrapper: fullscreen uses viewport-centered 1920×1080 stage with black background
   if (isFullscreen) {
     return (
-      <div className="fixed inset-0 flex flex-col justify-center bg-black overflow-hidden">
+      <div className="fixed inset-0 flex flex-col justify-center items-start bg-black overflow-hidden">
         <div 
           ref={stageRef}
           id="stage"
