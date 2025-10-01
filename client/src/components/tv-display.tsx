@@ -1072,7 +1072,7 @@ export function TVDisplay({
           </div>
           
           {/* History Items */}
-          <div className="space-y-1 overflow-y-auto flex-1" data-testid="queue-list">
+          <div className="space-y-4 overflow-y-auto flex-1" data-testid="queue-list">
             {queueHistory.length > 0 ? (
               queueHistory.slice(0, 4).map((item) => (
                 <div key={item.id} className="grid grid-cols-2 gap-1 p-2 rounded-lg"
