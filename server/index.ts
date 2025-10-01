@@ -6,10 +6,49 @@ import { Server } from "socket.io";
 import { registerRoutes, setGlobalIo } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupWebSocket } from "./websocket";
+import path from "path";
+import fs from "fs";
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+
+// Setup object storage static file serving - CRITICAL for media persistence
+const PUBLIC_OBJECT_SEARCH_PATHS = process.env.PUBLIC_OBJECT_SEARCH_PATHS;
+if (PUBLIC_OBJECT_SEARCH_PATHS) {
+  try {
+    const paths = JSON.parse(PUBLIC_OBJECT_SEARCH_PATHS);
+    if (Array.isArray(paths) && paths.length > 0) {
+      const objectStoragePath = paths[0];
+      const absolutePath = path.isAbsolute(objectStoragePath) 
+        ? objectStoragePath 
+        : path.resolve(process.cwd(), objectStoragePath);
+      
+      // Extract the URL path for mounting
+      const urlPath = objectStoragePath.startsWith('/') ? objectStoragePath : `/${objectStoragePath}`;
+      
+      if (fs.existsSync(absolutePath)) {
+        app.use(urlPath, express.static(absolutePath));
+        log(`📦 Object storage mounted: ${urlPath} -> ${absolutePath}`, 'system');
+      } else {
+        log(`⚠️  Object storage directory not found: ${absolutePath}`, 'system');
+      }
+    }
+  } catch (e) {
+    // If not JSON, treat as direct path string
+    const objectStoragePath = PUBLIC_OBJECT_SEARCH_PATHS;
+    const absolutePath = path.isAbsolute(objectStoragePath) 
+      ? objectStoragePath 
+      : path.resolve(process.cwd(), objectStoragePath);
+    
+    const urlPath = objectStoragePath.startsWith('/') ? objectStoragePath : `/${objectStoragePath}`;
+    
+    if (fs.existsSync(absolutePath)) {
+      app.use(urlPath, express.static(absolutePath));
+      log(`📦 Object storage mounted: ${urlPath}`, 'system');
+    }
+  }
+}
 
 // Session configuration
 const PgSession = connectPgSimple(session);
