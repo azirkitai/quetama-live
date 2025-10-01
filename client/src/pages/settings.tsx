@@ -68,6 +68,7 @@ interface SettingsState {
   prayerTimesBackgroundColor: string;
   prayerTimesBackgroundMode: 'solid' | 'gradient';
   prayerTimesBackgroundGradient: string;
+  prayerTimesHighlightColor: string;
   weatherTextColor: string;
   weatherTextMode: 'solid' | 'gradient';
   weatherTextGradient: string;
@@ -199,6 +200,7 @@ export default function Settings() {
     prayerTimesBackgroundColor: '#7c3aed',
     prayerTimesBackgroundMode: 'solid' as 'solid' | 'gradient',
     prayerTimesBackgroundGradient: 'linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%)',
+    prayerTimesHighlightColor: '#facc15',
     weatherTextColor: '#ffffff',
     weatherTextMode: 'solid' as 'solid' | 'gradient',
     weatherTextGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
@@ -277,6 +279,7 @@ export default function Settings() {
         prayerTimesBackgroundColor: settingsObj.prayerTimesBackgroundColor || '#7c3aed',
         prayerTimesBackgroundMode: (settingsObj.prayerTimesBackgroundMode as 'solid' | 'gradient') || 'solid',
         prayerTimesBackgroundGradient: settingsObj.prayerTimesBackgroundGradient || 'linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%)',
+        prayerTimesHighlightColor: settingsObj.prayerTimesHighlightColor || '#facc15',
         weatherTextColor: settingsObj.weatherTextColor || '#ffffff',
         weatherTextMode: (settingsObj.weatherTextMode as 'solid' | 'gradient') || 'solid',
         weatherTextGradient: settingsObj.weatherTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
@@ -1137,57 +1140,6 @@ export default function Settings() {
               <p className="text-xs text-muted-foreground">Colors for TV screen header section</p>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <Label className="text-xs">Header Text</Label>
-                
-                  <div className="flex space-x-1 mb-1">
-                    <Button
-                      variant={currentSettings.headerTextMode === 'solid' ? 'default' : 'outline'}
-                      size="sm"
-                      className="text-xs px-2"
-                      onClick={() => updateDisplaySetting('headerTextMode', 'solid')}
-                      data-testid="button-header-text-solid"
-                    >
-                      Solid
-                    </Button>
-                    <Button
-                      variant={currentSettings.headerTextMode === 'gradient' ? 'default' : 'outline'}
-                      size="sm"
-                      className="text-xs px-2"
-                      onClick={() => updateDisplaySetting('headerTextMode', 'gradient')}
-                      data-testid="button-header-text-gradient"
-                    >
-                      <Brush className="h-2 w-2" />
-                    </Button>
-                  </div>
-
-                {currentSettings.headerTextMode === 'solid' ? (
-                  <Input
-                    type="color"
-                    value={currentSettings.headerTextColor || '#ffffff'}
-                    onChange={(e) => updateDisplaySetting('headerTextColor', e.target.value)}
-                    data-testid="input-header-text-color"
-                  />
-                ) : (
-                  <div className="space-y-2">
-                    <Button
-                      variant="outline"
-                      className="w-full text-xs"
-                      onClick={() => setGradientPickers(prev => ({ ...prev, headerText: true }))}
-                      data-testid="button-header-text-gradient-picker"
-                      style={{
-                        background: currentSettings.headerTextGradient,
-                        color: 'white',
-                        border: '2px solid #e5e7eb'
-                      }}
-                    >
-                      <Brush className="h-3 w-3 mr-1" />
-                      Select Gradient Text
-                    </Button>
-                  </div>
-                )}
-              </div>
               <div className="space-y-2">
                 <Label>Background Header</Label>
                 
@@ -1241,7 +1193,6 @@ export default function Settings() {
                   </div>
                 )}
               </div>
-            </div>
             <Button 
               onClick={handleSaveDisplay} 
               className="w-full" 
