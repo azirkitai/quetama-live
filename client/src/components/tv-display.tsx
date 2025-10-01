@@ -286,6 +286,10 @@ export function TVDisplay({
   const previousPatientIdRef = useRef<string | undefined>(undefined);
   const audioUnlockedRef = useRef(false);
 
+  // Marquee dynamic speed - consistent pixels/second regardless of text length
+  const marqueeRef = useRef<HTMLDivElement>(null);
+  const [marqueeDuration, setMarqueeDuration] = useState<number>(25); // Default 25s
+
   // Get user location on component mount
   useEffect(() => {
     if (!showPrayerTimes && !showWeather) return;
@@ -524,6 +528,47 @@ export function TVDisplay({
       window.removeEventListener('orientationchange', fitStage);
     };
   }, [isFullscreen]);
+
+  // Calculate dynamic marquee duration for consistent speed
+  useEffect(() => {
+    if (!marqueeRef.current || !enableMarquee) return;
+
+    const calculateDuration = () => {
+      const marqueeElement = marqueeRef.current;
+      if (!marqueeElement) return;
+
+      const textElement = marqueeElement.querySelector('span');
+      if (!textElement) return;
+
+      const textWidth = textElement.offsetWidth;
+      const viewportWidth = window.innerWidth;
+      
+      // Consistent speed: 100 pixels per second (adjust this value for speed)
+      const pixelsPerSecond = 100;
+      
+      // Total distance = text width + viewport width (full scroll from right to left)
+      const totalDistance = textWidth + viewportWidth;
+      const duration = totalDistance / pixelsPerSecond;
+
+      setMarqueeDuration(duration);
+
+      console.log('🏃 MARQUEE SPEED:', {
+        textWidth: `${textWidth}px`,
+        viewportWidth: `${viewportWidth}px`,
+        totalDistance: `${totalDistance}px`,
+        speed: `${pixelsPerSecond}px/s`,
+        duration: `${duration.toFixed(1)}s`
+      });
+    };
+
+    // Calculate on mount and when text changes
+    calculateDuration();
+    
+    // Recalculate on window resize
+    window.addEventListener('resize', calculateDuration);
+    
+    return () => window.removeEventListener('resize', calculateDuration);
+  }, [marqueeText, enableMarquee]);
 
   // Detect new patient call and trigger animation sequence + AUDIO
   useEffect(() => {
@@ -1119,7 +1164,15 @@ export function TVDisplay({
           }}
         >
           <div className="overflow-hidden w-full">
-            <div className="inline-flex whitespace-nowrap animate-marquee" data-testid="marquee-container" aria-hidden="false">
+            <div 
+              ref={marqueeRef}
+              className="inline-flex whitespace-nowrap animate-marquee" 
+              data-testid="marquee-container" 
+              aria-hidden="false"
+              style={{
+                animationDuration: `${marqueeDuration}s`
+              }}
+            >
               <span 
                 className="px-8 font-bold text-2xl" 
                 style={{ 
