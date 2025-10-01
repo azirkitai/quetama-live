@@ -488,11 +488,28 @@ export function TVDisplay({
     const fitStage = () => {
       if (!viewport) return;
       
-      const scaleX = viewport.clientWidth / STAGE_WIDTH;
-      const scaleY = viewport.clientHeight / STAGE_HEIGHT;
-      const scale = Math.min(scaleX, scaleY);
-      
+      const vw = viewport.clientWidth;
+      const vh = viewport.clientHeight;
+
+      // PREFER LETTERBOX (top/bottom bars only, like cinema)
+      // Calculate scale based on width (horizontal fill)
+      const scaleWidthFit = vw / STAGE_WIDTH;
+      const scaledHeight = STAGE_HEIGHT * scaleWidthFit;
+
+      let scale: number;
+
+      if (scaledHeight <= vh) {
+        // ✅ Height fits → black bars will appear ONLY on TOP/BOTTOM
+        scale = scaleWidthFit;
+      } else {
+        // ❗ Screen too narrow for letterbox top/bottom without crop
+        //    → fallback to contain mode (pillarbox left/right to prevent cropping)
+        const scaleContain = Math.min(vw / STAGE_WIDTH, vh / STAGE_HEIGHT);
+        scale = scaleContain;
+      }
+
       // Only scale - centering is handled by viewport CSS Grid
+      stage.style.transformOrigin = 'center center';
       stage.style.transform = `scale(${scale})`;
     };
 

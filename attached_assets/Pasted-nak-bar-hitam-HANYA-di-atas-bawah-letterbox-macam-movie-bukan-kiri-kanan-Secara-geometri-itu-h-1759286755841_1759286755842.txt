@@ -1,0 +1,84 @@
+nak bar hitam HANYA di atas & bawah (letterbox macam movie)—bukan kiri/kanan.
+Secara geometri, itu hanya boleh bila skrin sekurang-kurangnya 16:9 atau lebih lebar. Dalam screenshot DevTools kau (contoh 1129×947 ≈ 1.19:1), skrin lebih sempit dari 16:9 (1.78) — jadi mesti muncul bar kiri/kanan jika tak nak crop.
+
+Kalau tetap nak “atas & bawah sahaja” tanpa potong, guna logik “prefer width-fit, fallback contain” di bawah.
+
+👉 Patch untuk agent (copy–paste)
+
+Matlamat: Utamakan bar hitam atas/bawah. Jika skrin terlalu sempit (lebih sempit dari 16:9), automatik fallback ke mode biasa (pillarbox kiri/kanan) supaya tak terpotong.
+
+1) Pastikan wrapper center penuh skrin
+// bila isFullscreen === true
+return (
+  <div className="tv-viewport fixed inset-0 grid place-items-center bg-black overflow-hidden">
+    <div ref={stageRef} id="stage" className="grid" style={stageStyle}>
+      {renderContent()}
+    </div>
+  </div>
+);
+
+2) Ganti fungsi autoscale (fitStage)
+useEffect(() => {
+  if (!isFullscreen || !stageRef.current) return;
+
+  const W = 1920, H = 1080;
+  const stage = stageRef.current;
+  const viewport = stage.parentElement!; // .tv-viewport
+
+  function fitStage() {
+    const vw = viewport.clientWidth;
+    const vh = viewport.clientHeight;
+
+    // CALC: skala ikut LEBAR (untuk letterbox atas/bawah)
+    const scaleWidthFit = vw / W;
+    const scaledHeight  = H * scaleWidthFit;
+
+    let scale: number;
+
+    if (scaledHeight <= vh) {
+      // ✅ Muat tinggi → bar hitam akan muncul ATAS/BAWAH sahaja
+      scale = scaleWidthFit;
+    } else {
+      // ❗ Skrin terlalu sempit untuk letterbox atas/bawah tanpa crop
+      //    → fallback supaya tak terpotong (pillarbox kiri/kanan)
+      const scaleContain = Math.min(vw / W, vh / H);
+      scale = scaleContain;
+    }
+
+    stage.style.transformOrigin = 'center center';
+    stage.style.transform = `scale(${scale})`;
+  }
+
+  fitStage();
+  window.addEventListener('resize', fitStage);
+  window.addEventListener('orientationchange', fitStage);
+  return () => {
+    window.removeEventListener('resize', fitStage);
+    window.removeEventListener('orientationchange', fitStage);
+  };
+}, [isFullscreen]);
+
+
+Kalau kau memang nak paksa atas/bawah sahaja walaupun skrin sempit (akan crop), tukar bahagian else kepada scale = scaleWidthFit; dan pastikan #stage parent overflow:hidden.
+
+3) Poster/iklan tak terpotong
+
+Untuk media poster, kalau kau tak mahu crop:
+
+<img  className="w-full h-full object-contain bg-black" ... />
+<video className="w-full h-full object-contain bg-black" autoPlay muted loop ... />
+
+
+Kalau nak penuh tanpa ruang, guna object-cover (akan crop sikit).
+
+Ringkasan cepat untuk kau cakap ke agent
+
+“Prefer letterbox atas/bawah: scale ikut lebar; kalau tinggi tak cukup, fallback ke contain supaya tak terpotong (akan jadi bar kiri/kanan). Guna fungsi fitStage() di atas, transform-origin: center, wrapper .tv-viewport center penuh skrin. Poster guna object-contain kalau tak nak crop.”
+
+Uji pada:
+
+1920×1080 (TV 16:9) → tiada bar / atau sedikit atas-bawah (ikut design).
+
+2560×1080 (ultrawide) → atas & bawah sahaja.
+
+1129×947 (seperti screenshot) → akan fallback ke kiri/kanan (logik matematik), tak terpotong.
