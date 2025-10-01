@@ -13,6 +13,7 @@ interface QueueItem {
   room: string;
   status: "waiting" | "calling" | "completed";
   timestamp: Date;
+  calledAt?: Date | null;
 }
 
 interface DashboardStats {
@@ -158,7 +159,8 @@ export default function Dashboard() {
       number: patient.number.toString(),
       room: roomName,
       status: patient.status === "called" ? "calling" : patient.status === "completed" ? "completed" : "waiting",
-      timestamp: new Date()
+      timestamp: new Date(),
+      calledAt: patient.calledAt ? new Date(patient.calledAt) : null
     };
   };
 
