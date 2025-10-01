@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Trash2, RotateCcw, CheckCircle, X, Volume2, PhoneCall } from "lucide-react";
+import { Bell, Trash2, RotateCcw, CheckCircle, X, Volume2, PhoneCall, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,10 @@ interface Patient {
   lastWindowId?: string;
   lastWindowName?: string;
   trackingHistory?: string[];
+  registeredAt: Date | string;
+  calledAt?: Date | string | null;
+  completedAt?: Date | string | null;
+  requeueReason?: string | null;
 }
 
 interface PatientCardProps {
@@ -45,7 +49,7 @@ export function PatientCard({
 
   // Check if this patient is assigned to a different room than selected
   // BUT allow all rooms to call requeued patients
-  const isAssignedToOtherRoom = patient.windowId && selectedWindow && patient.windowId !== selectedWindow && patient.status !== "requeue";
+  const isAssignedToOtherRoom = Boolean(patient.windowId && selectedWindow && patient.windowId !== selectedWindow && patient.status !== "requeue");
   const shouldDisableButtons = disabled || isAssignedToOtherRoom;
 
   const handleCall = () => {
@@ -159,23 +163,100 @@ export function PatientCard({
       </CardHeader>
       
       <CardContent>
-        {/* Tracking History */}
-        {patient.trackingHistory && patient.trackingHistory.length > 0 && (
-          <div className="mb-4">
-            <div className="text-sm font-medium text-gray-600 mb-2">Tracking:</div>
-            <div className="space-y-1">
-              {patient.trackingHistory.slice(-3).map((track, index) => (
-                <div 
-                  key={index} 
-                  className="text-xs text-gray-500 bg-gray-50 rounded px-2 py-1"
-                  data-testid={`text-tracking-${patient.id}-${index}`}
-                >
-                  {track}
-                </div>
-              ))}
+        {/* Enhanced Journey History */}
+        <div className="mb-4 space-y-2">
+          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            Perjalanan Pesakit
+          </div>
+          
+          {/* Registration Time */}
+          <div className="flex items-start gap-2 text-xs">
+            <div className="w-2 h-2 rounded-full bg-blue-500 mt-1 flex-shrink-0" />
+            <div className="flex-1">
+              <div className="font-medium text-gray-700 dark:text-gray-300">Pendaftaran</div>
+              <div className="text-gray-500 dark:text-gray-400">
+                {new Date(patient.registeredAt).toLocaleString('ms-MY', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                })}
+              </div>
             </div>
           </div>
-        )}
+
+          {/* Called Time */}
+          {patient.calledAt && (
+            <div className="flex items-start gap-2 text-xs">
+              <div className="w-2 h-2 rounded-full bg-green-500 mt-1 flex-shrink-0" />
+              <div className="flex-1">
+                <div className="font-medium text-gray-700 dark:text-gray-300">
+                  Dipanggil ke {patient.windowName || patient.lastWindowName || 'Bilik'}
+                </div>
+                <div className="text-gray-500 dark:text-gray-400">
+                  {new Date(patient.calledAt).toLocaleString('ms-MY', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Requeue Info */}
+          {patient.status === 'requeue' && patient.requeueReason && (
+            <div className="flex items-start gap-2 text-xs">
+              <div className="w-2 h-2 rounded-full bg-yellow-500 mt-1 flex-shrink-0" />
+              <div className="flex-1">
+                <div className="font-medium text-gray-700 dark:text-gray-300">
+                  Direqueue
+                </div>
+                <div className="text-yellow-700 dark:text-yellow-500 font-medium">
+                  Sebab: {patient.requeueReason}
+                </div>
+                {patient.trackingHistory && patient.trackingHistory.length > 0 && (
+                  <div className="text-gray-500 dark:text-gray-400 mt-0.5">
+                    {(() => {
+                      const requeueEntry = patient.trackingHistory.find(h => h.includes('Requeued'));
+                      if (requeueEntry) {
+                        const match = requeueEntry.match(/at (\d{2}:\d{2} [AP]M)/);
+                        return match ? match[1] : '';
+                      }
+                      return '';
+                    })()}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Completed Time */}
+          {patient.completedAt && (
+            <div className="flex items-start gap-2 text-xs">
+              <div className="w-2 h-2 rounded-full bg-gray-500 mt-1 flex-shrink-0" />
+              <div className="flex-1">
+                <div className="font-medium text-gray-700 dark:text-gray-300">Selesai</div>
+                <div className="text-gray-500 dark:text-gray-400">
+                  {new Date(patient.completedAt).toLocaleString('ms-MY', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-2">
