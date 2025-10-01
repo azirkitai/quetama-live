@@ -584,6 +584,15 @@ export function TVDisplay({
       (currentCalledAt && currentCalledAt !== prevCalledAt)
     );
     
+    console.log('🔔 TV TRIGGER CHECK:', {
+      hasNewCall,
+      currentPatientId: currentPatient?.id,
+      prevPatientId,
+      currentCalledAt,
+      prevCalledAt,
+      calledAtChanged: currentCalledAt !== prevCalledAt
+    });
+    
     if (hasNewCall) {
       // Clean up any existing timers
       if (highlightTimerRef.current) {

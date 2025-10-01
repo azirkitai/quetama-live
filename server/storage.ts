@@ -1515,14 +1515,26 @@ export class DatabaseStorage implements IStorage {
       requeueReason: requeueReason || null
     };
 
+    // CRITICAL: ALWAYS update calledAt when status is "called" (including recalls)
+    // This ensures TV display detects the change and triggers highlight overlay
     if (status === "called") {
-      updateData.calledAt = new Date();
+      const newCalledAt = new Date();
+      updateData.calledAt = newCalledAt;
+      console.log(`📞 CALLING PATIENT: ${id} - New calledAt: ${newCalledAt.toISOString()}`);
     }
 
     const [updatedPatient] = await db.update(schema.patients)
       .set(updateData)
       .where(and(eq(schema.patients.id, id), eq(schema.patients.userId, userId)))
       .returning();
+
+    console.log(`✅ Patient status updated:`, {
+      id: updatedPatient?.id,
+      name: updatedPatient?.name,
+      status: updatedPatient?.status,
+      calledAt: updatedPatient?.calledAt?.toISOString(),
+      windowId: updatedPatient?.windowId
+    });
 
     return updatedPatient;
   }
