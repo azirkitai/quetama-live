@@ -1211,31 +1211,31 @@ export function TVDisplay({
                 )}
                 
                 {/* All Weather Info in One Row */}
-                <div className="flex items-center justify-start gap-6">
-                  <span className="text-5xl">{weatherData.current.icon}</span>
-                  <span className="text-4xl font-bold" style={{
+                <div className="flex items-center justify-start gap-8">
+                  <span className="text-7xl">{weatherData.current.icon}</span>
+                  <span className="text-6xl font-bold" style={{
                     ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
                   }}>
                     {weatherData.current.temperature}{weatherData.units.temperature}
                   </span>
-                  <span className="text-xl" style={{
+                  <span className="text-3xl" style={{
                     ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
                   }}>
                     {weatherData.current.description}
                   </span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-semibold" style={{
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-semibold" style={{
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
                     }}>Humidity:</span>
-                    <span className="text-xl" style={{
+                    <span className="text-3xl" style={{
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
                     }}>{weatherData.current.humidity}{weatherData.units.humidity}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-semibold" style={{
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-semibold" style={{
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
                     }}>Wind:</span>
-                    <span className="text-xl" style={{
+                    <span className="text-3xl" style={{
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
                     }}>{weatherData.current.windSpeed} {weatherData.units.windSpeed}</span>
                   </div>
