@@ -14,6 +14,7 @@ interface QueueItem {
   room: string;
   status: "waiting" | "calling" | "completed";
   timestamp: Date;
+  calledAt?: Date | null;
 }
 
 interface PrayerTime {
@@ -437,6 +438,7 @@ export function TVDisplay({
   const [isBlinking, setIsBlinking] = useState(false);
   const [blinkVisible, setBlinkVisible] = useState(true);
   const [prevPatientId, setPrevPatientId] = useState<string | undefined>(undefined);
+  const [prevCalledAt, setPrevCalledAt] = useState<string | undefined>(undefined);
   
   // Media slideshow states
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
@@ -572,8 +574,15 @@ export function TVDisplay({
   }, [marqueeText, enableMarquee]);
 
   // Detect new patient call and trigger animation sequence + AUDIO
+  // Trigger on EITHER: new patient ID OR same patient called again (calledAt changes)
   useEffect(() => {
-    if (currentPatient && currentPatient.id !== prevPatientId) {
+    const currentCalledAt = currentPatient?.calledAt?.toString();
+    const hasNewCall = currentPatient && (
+      currentPatient.id !== prevPatientId || 
+      (currentCalledAt && currentCalledAt !== prevCalledAt)
+    );
+    
+    if (hasNewCall) {
       // Clean up any existing timers
       if (highlightTimerRef.current) {
         clearTimeout(highlightTimerRef.current);
@@ -595,7 +604,7 @@ export function TVDisplay({
         presetKey: (settingsObj.presetKey || 'notification_sound') as any
       };
 
-      // Play notification sound for new patient
+      // Play notification sound for new/recalled patient
       if (audioSettings.enableSound) {
         audioSystem.playCallingSequence({
           patientName: currentPatient.name,
@@ -631,10 +640,11 @@ export function TVDisplay({
         
       }, 5000); // 5 seconds for highlight
 
-      // Update previous patient ID
+      // Update previous patient ID and calledAt
       setPrevPatientId(currentPatient.id);
+      setPrevCalledAt(currentCalledAt);
     }
-  }, [currentPatient?.id]); // Only depend on patient ID change
+  }, [currentPatient?.id, currentPatient?.calledAt]); // Depend on BOTH patient ID AND calledAt changes
 
   // Auto-resize text effect - adjust font sizes based on text length
   useEffect(() => {
