@@ -3,9 +3,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Volume2, Calendar } from "lucide-react";
 import { createGradientStyle, createTextGradientStyle } from "@/hooks/useActiveTheme";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { audioSystem } from "@/lib/audio-system";
 import type { AudioSettings } from "@/lib/audio-system";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 interface QueueItem {
   id: string;
@@ -94,6 +95,55 @@ export function TVDisplay({
   
   const [currentTime, setCurrentTime] = useState(new Date());
   const stageRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
+  
+  // WebSocket connection for real-time updates
+  const { socket } = useWebSocket();
+  
+  // Listen for settings/theme/text-groups updates via WebSocket for instant TV updates
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleSettingsUpdate = () => {
+      console.log('🔔 Settings updated via WebSocket - invalidating cache');
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = String(query.queryKey[0]);
+          return key.includes('/api/settings') || key.includes('/api/tv/') && key.includes('/settings');
+        }
+      });
+    };
+
+    const handleThemesUpdate = () => {
+      console.log('🎨 Themes updated via WebSocket - invalidating cache');
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = String(query.queryKey[0]);
+          return key.includes('/api/themes/active') || key.includes('/api/tv/') && key.includes('/themes/active');
+        }
+      });
+    };
+
+    const handleTextGroupsUpdate = () => {
+      console.log('📝 Text groups updated via WebSocket - invalidating cache');
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = String(query.queryKey[0]);
+          return key.includes('/api/text-groups/active') || key.includes('/api/tv/') && key.includes('/text-groups/active');
+        }
+      });
+    };
+
+    socket.on('settings:updated', handleSettingsUpdate);
+    socket.on('themes:updated', handleThemesUpdate);
+    socket.on('text-groups:updated', handleTextGroupsUpdate);
+
+    return () => {
+      socket.off('settings:updated', handleSettingsUpdate);
+      socket.off('themes:updated', handleThemesUpdate);
+      socket.off('text-groups:updated', handleTextGroupsUpdate);
+    };
+  }, [socket, queryClient, tvToken]);
   
   // Fetch active theme - use token-based endpoint if tvToken provided
   const { data: theme } = useQuery({
@@ -104,7 +154,9 @@ export function TVDisplay({
       if (!response.ok) throw new Error('Failed to fetch theme');
       return response.json();
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    staleTime: 0, // No cache - always refetch for instant updates
+    refetchInterval: 3000, // Poll every 3 seconds as fallback
+    refetchOnMount: 'always',
     retry: 1,
   });
 
@@ -117,7 +169,9 @@ export function TVDisplay({
       if (!response.ok) throw new Error('Failed to fetch text groups');
       return response.json();
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // No cache - always refetch for instant updates
+    refetchInterval: 3000, // Poll every 3 seconds as fallback
+    refetchOnMount: 'always',
   });
 
   // Fetch settings - use token-based endpoint if tvToken provided
@@ -129,8 +183,9 @@ export function TVDisplay({
       if (!response.ok) throw new Error('Failed to fetch settings');
       return response.json();
     },
-    staleTime: 30 * 1000, // 30 seconds - shorter for real-time marquee updates
-    refetchInterval: 30 * 1000, // Refetch every 30 seconds for live updates
+    staleTime: 0, // No cache - always refetch for instant updates
+    refetchInterval: 3000, // Poll every 3 seconds for real-time updates
+    refetchOnMount: 'always',
   });
 
   // Convert settings array to object for easier access

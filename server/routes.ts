@@ -1011,6 +1011,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         setting = await storage.setSetting(key, value, category, req.session.userId);
       }
 
+      // Notify all connected clients about settings update
+      if (globalIo) {
+        globalIo.emit('settings:updated', { key, timestamp: Date.now() });
+      }
+
       res.json(setting);
     } catch (error) {
       console.error("Error updating setting:", error);
@@ -1048,6 +1053,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         updatedSettings.push(setting);
+      }
+
+      // Notify all connected clients about settings update
+      if (globalIo) {
+        globalIo.emit('settings:updated', { 
+          keys: updatedSettings.map(s => s.key),
+          timestamp: Date.now() 
+        });
       }
 
       res.json(updatedSettings);
@@ -1538,6 +1551,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Text group not found" });
       }
       
+      // Notify all connected clients about text group update
+      if (globalIo) {
+        globalIo.emit('text-groups:updated', { id, timestamp: Date.now() });
+      }
+      
       res.json(textGroup);
     } catch (error) {
       console.error("Error updating text group:", error);
@@ -1558,6 +1576,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const textGroup = await storage.toggleTextGroupStatus(id, req.session.userId);
       if (!textGroup) {
         return res.status(404).json({ error: "Text group not found" });
+      }
+      
+      // Notify all connected clients about text group status change
+      if (globalIo) {
+        globalIo.emit('text-groups:updated', { id, timestamp: Date.now() });
       }
       
       res.json(textGroup);
@@ -1687,6 +1710,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Theme not found" });
       }
       
+      // Notify all connected clients about theme update
+      if (globalIo) {
+        globalIo.emit('themes:updated', { id, timestamp: Date.now() });
+      }
+      
       res.json(theme);
     } catch (error) {
       console.error("Error updating theme:", error);
@@ -1707,6 +1735,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!theme) {
         return res.status(404).json({ error: "Theme not found" });
+      }
+      
+      // Notify all connected clients about active theme change
+      if (globalIo) {
+        globalIo.emit('themes:updated', { id, activated: true, timestamp: Date.now() });
       }
       
       res.json(theme);
