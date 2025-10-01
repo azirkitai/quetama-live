@@ -440,7 +440,7 @@ export function TVDisplay({
   const [isBlinking, setIsBlinking] = useState(false);
   const [blinkVisible, setBlinkVisible] = useState(true);
   const [prevPatientId, setPrevPatientId] = useState<string | undefined>(undefined);
-  const [prevCalledAt, setPrevCalledAt] = useState<string | undefined>(undefined);
+  const [prevCalledAt, setPrevCalledAt] = useState<number | null>(null);
   
   // Media slideshow states
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
@@ -578,19 +578,20 @@ export function TVDisplay({
   // Detect new patient call and trigger animation sequence + AUDIO
   // Trigger on EITHER: new patient ID OR same patient called again (calledAt changes)
   useEffect(() => {
-    const currentCalledAt = currentPatient?.calledAt?.toString();
+    // Convert Date to timestamp number for reliable comparison
+    const currentCalledAtTimestamp = currentPatient?.calledAt ? new Date(currentPatient.calledAt).getTime() : null;
     const hasNewCall = currentPatient && (
       currentPatient.id !== prevPatientId || 
-      (currentCalledAt && currentCalledAt !== prevCalledAt)
+      (currentCalledAtTimestamp && currentCalledAtTimestamp !== prevCalledAt)
     );
     
     console.log('🔔 TV TRIGGER CHECK:', {
       hasNewCall,
       currentPatientId: currentPatient?.id,
       prevPatientId,
-      currentCalledAt,
+      currentCalledAtTimestamp,
       prevCalledAt,
-      calledAtChanged: currentCalledAt !== prevCalledAt
+      calledAtChanged: currentCalledAtTimestamp !== prevCalledAt
     });
     
     if (hasNewCall) {
@@ -651,9 +652,9 @@ export function TVDisplay({
         
       }, 5000); // 5 seconds for highlight
 
-      // Update previous patient ID and calledAt
+      // Update previous patient ID and calledAt timestamp
       setPrevPatientId(currentPatient.id);
-      setPrevCalledAt(currentCalledAt);
+      setPrevCalledAt(currentCalledAtTimestamp);
     }
   }, [currentPatient?.id, currentPatient?.calledAt]); // Depend on BOTH patient ID AND calledAt changes
 
