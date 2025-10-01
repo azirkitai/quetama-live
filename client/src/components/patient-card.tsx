@@ -91,7 +91,7 @@ export function PatientCard({
   };
 
   const handleRequeueWithReason = (reason: string) => {
-    if (reason === "LAIN-LAIN") {
+    if (reason === "OTHER") {
       setShowCustomReasonInput(true);
       return;
     }
@@ -137,15 +137,15 @@ export function PatientCard({
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "waiting":
-        return "Menunggu";
+        return "Waiting";
       case "called":
-        return "Dipanggil";
+        return "Called";
       case "in-progress":
-        return "Sedang Diperiksa";
+        return "In Progress";
       case "completed":
-        return "Selesai";
+        return "Completed";
       case "requeue":
-        return "Baris Semula";
+        return "Requeued";
       default:
         return status;
     }
@@ -176,7 +176,7 @@ export function PatientCard({
           <div className="text-sm text-muted-foreground" data-testid={`text-window-${patient.id}`}>
             {patient.windowName || patient.lastWindowName}
             {patient.lastWindowName && !patient.windowName && (
-              <span className="text-xs text-gray-400 ml-1">(Bilik Terakhir)</span>
+              <span className="text-xs text-gray-400 ml-1">(Last Room)</span>
             )}
           </div>
         )}
@@ -187,16 +187,16 @@ export function PatientCard({
         <div className="mb-4 space-y-2">
           <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            Perjalanan Pesakit
+            Patient Journey
           </div>
           
           {/* Registration Time */}
           <div className="flex items-start gap-2 text-xs">
             <div className="w-2 h-2 rounded-full bg-blue-500 mt-1 flex-shrink-0" />
             <div className="flex-1">
-              <div className="font-medium text-gray-700 dark:text-gray-300">Pendaftaran</div>
+              <div className="font-medium text-gray-700 dark:text-gray-300">Registration</div>
               <div className="text-gray-500 dark:text-gray-400">
-                {new Date(patient.registeredAt).toLocaleString('ms-MY', {
+                {new Date(patient.registeredAt).toLocaleString('en-GB', {
                   day: '2-digit',
                   month: 'short',
                   year: 'numeric',
@@ -214,10 +214,10 @@ export function PatientCard({
               <div className="w-2 h-2 rounded-full bg-green-500 mt-1 flex-shrink-0" />
               <div className="flex-1">
                 <div className="font-medium text-gray-700 dark:text-gray-300">
-                  Dipanggil ke {patient.windowName || patient.lastWindowName || 'Bilik'}
+                  Called to {patient.windowName || patient.lastWindowName || 'Room'}
                 </div>
                 <div className="text-gray-500 dark:text-gray-400">
-                  {new Date(patient.calledAt).toLocaleString('ms-MY', {
+                  {new Date(patient.calledAt).toLocaleString('en-GB', {
                     day: '2-digit',
                     month: 'short',
                     year: 'numeric',
@@ -236,10 +236,10 @@ export function PatientCard({
               <div className="w-2 h-2 rounded-full bg-yellow-500 mt-1 flex-shrink-0" />
               <div className="flex-1">
                 <div className="font-medium text-gray-700 dark:text-gray-300">
-                  Direqueue
+                  Requeued
                 </div>
                 <div className="text-yellow-700 dark:text-yellow-500 font-medium">
-                  Sebab: {patient.requeueReason}
+                  Reason: {patient.requeueReason}
                 </div>
                 {patient.trackingHistory && patient.trackingHistory.length > 0 && (
                   <div className="text-gray-500 dark:text-gray-400 mt-0.5">
@@ -262,9 +262,9 @@ export function PatientCard({
             <div className="flex items-start gap-2 text-xs">
               <div className="w-2 h-2 rounded-full bg-gray-500 mt-1 flex-shrink-0" />
               <div className="flex-1">
-                <div className="font-medium text-gray-700 dark:text-gray-300">Selesai</div>
+                <div className="font-medium text-gray-700 dark:text-gray-300">Completed</div>
                 <div className="text-gray-500 dark:text-gray-400">
-                  {new Date(patient.completedAt).toLocaleString('ms-MY', {
+                  {new Date(patient.completedAt).toLocaleString('en-GB', {
                     day: '2-digit',
                     month: 'short',
                     year: 'numeric',
@@ -289,7 +289,7 @@ export function PatientCard({
               data-testid={`button-call-${patient.id}`}
             >
               <Bell className="h-4 w-4 mr-1" />
-              Panggil
+              Call
             </Button>
           )}
 
@@ -304,7 +304,7 @@ export function PatientCard({
                 data-testid={`button-call-${patient.id}`}
               >
                 <Bell className="h-4 w-4 mr-1" />
-                Panggil
+                Call
               </Button>
               <Button
                 onClick={handleRecall}
@@ -331,7 +331,7 @@ export function PatientCard({
                 data-testid={`button-call-again-${patient.id}`}
               >
                 <Volume2 className="h-4 w-4 mr-1" />
-                Panggil Lagi
+                Call Again
               </Button>
               
               <Button
@@ -343,7 +343,7 @@ export function PatientCard({
                 data-testid={`button-complete-${patient.id}`}
               >
                 <CheckCircle className="h-4 w-4 mr-1" />
-                Selesai
+                Complete
               </Button>
               
               {!showRequeueDropdown ? (
@@ -356,13 +356,13 @@ export function PatientCard({
                   data-testid={`button-requeue-${patient.id}`}
                 >
                   <RotateCcw className="h-4 w-4 mr-1" />
-                  Reque
+                  Requeue
                 </Button>
               ) : (
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">
-                      {showCustomReasonInput ? "Masukkan sebab:" : "Pilih sebab reque:"}
+                      {showCustomReasonInput ? "Enter reason:" : "Select requeue reason:"}
                     </span>
                     <Button
                       onClick={handleCancelRequeue}
@@ -378,21 +378,21 @@ export function PatientCard({
                   {!showCustomReasonInput ? (
                     <Select onValueChange={handleRequeueWithReason}>
                       <SelectTrigger className="w-full" data-testid={`select-requeue-reason-${patient.id}`}>
-                        <SelectValue placeholder="Pilih sebab..." />
+                        <SelectValue placeholder="Select reason..." />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="NEBULISER">NEBULISER</SelectItem>
-                        <SelectItem value="AMBIL UBATAN">AMBIL UBATAN</SelectItem>
-                        <SelectItem value="MENUNGGU KEPUTUSAN UJIAN">MENUNGGU KEPUTUSAN UJIAN</SelectItem>
+                        <SelectItem value="GET MEDICATION">GET MEDICATION</SelectItem>
+                        <SelectItem value="WAITING FOR TEST RESULTS">WAITING FOR TEST RESULTS</SelectItem>
                         <SelectItem value="MGTT">MGTT</SelectItem>
-                        <SelectItem value="LAIN-LAIN">LAIN-LAIN</SelectItem>
+                        <SelectItem value="OTHER">OTHER</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
                     <div className="space-y-2">
                       <Input
                         type="text"
-                        placeholder="Masukkan sebab reque..."
+                        placeholder="Enter requeue reason..."
                         value={customReason}
                         onChange={(e) => setCustomReason(e.target.value)}
                         onKeyDown={(e) => {
@@ -412,7 +412,7 @@ export function PatientCard({
                         data-testid={`button-submit-custom-reason-${patient.id}`}
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
-                        Reque
+                        Requeue
                       </Button>
                     </div>
                   )}

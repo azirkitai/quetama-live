@@ -121,7 +121,7 @@ export function WindowCard({
               variant={window.isActive ? "default" : "secondary"}
               data-testid={`badge-status-${window.id}`}
             >
-              {window.isActive ? "Aktif" : "Tidak Aktif"}
+              {window.isActive ? "Active" : "Inactive"}
             </Badge>
           </div>
         </div>
@@ -133,7 +133,7 @@ export function WindowCard({
           <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
             <div className="flex items-center text-green-700 dark:text-green-300">
               <UserCheck className="h-4 w-4 mr-2" />
-              <span className="text-sm font-medium">Sedang Melayani:</span>
+              <span className="text-sm font-medium">Currently Serving:</span>
             </div>
             <div 
               className="mt-1 font-semibold text-green-800 dark:text-green-200"
@@ -146,7 +146,7 @@ export function WindowCard({
           <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="flex items-center text-gray-500">
               <User className="h-4 w-4 mr-2" />
-              <span className="text-sm">Tiada pesakit</span>
+              <span className="text-sm">No patient</span>
             </div>
           </div>
         )}
@@ -161,7 +161,7 @@ export function WindowCard({
             data-testid={`button-edit-${window.id}`}
           >
             <Edit className="h-4 w-4 mr-1" />
-            {isEditing ? "Simpan" : "Edit"}
+            {isEditing ? "Save" : "Edit"}
           </Button>
 
           <Button
@@ -171,7 +171,7 @@ export function WindowCard({
             className="flex-1"
             data-testid={`button-toggle-${window.id}`}
           >
-            {window.isActive ? "Nyahaktif" : "Aktifkan"}
+            {window.isActive ? "Deactivate" : "Activate"}
           </Button>
 
           <Button
@@ -188,7 +188,7 @@ export function WindowCard({
 
         {window.currentPatientId && (
           <div className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-            Tidak boleh padam semasa melayani pesakit
+            Cannot delete while serving a patient
           </div>
         )}
       </CardContent>

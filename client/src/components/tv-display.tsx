@@ -83,7 +83,7 @@ interface TVDisplayProps {
 export function TVDisplay({ 
   currentPatient,
   queueHistory = [],
-  clinicName = "KLINIK UTAMA 24 JAM",
+  clinicName = "MAIN CLINIC 24 HOURS",
   mediaItems = [],
   prayerTimes = [],
   isFullscreen = false,
@@ -196,7 +196,7 @@ export function TVDisplay({
 
   // Extract marquee settings with fallbacks
   const enableMarquee = settingsObj.enableMarquee === 'true';
-  const marqueeText = settingsObj.marqueeText || "Selamat datang ke Klinik Kesihatan";
+  const marqueeText = settingsObj.marqueeText || "Welcome to the Health Clinic";
   const marqueeColor = settingsObj.marqueeColor || "#ffffff";
   const marqueeBackgroundColor = settingsObj.marqueeBackgroundColor || "#1e40af";
 
@@ -946,7 +946,7 @@ export function TVDisplay({
                 <div className="text-5xl font-bold mb-4" data-testid="no-display-message">
                   NO DISPLAY
                 </div>
-                <p className="text-lg">Tiada media dimuatnaik</p>
+                <p className="text-lg">No media uploaded</p>
               </div>
             </div>
           )}
@@ -981,7 +981,7 @@ export function TVDisplay({
               <div className="bg-white rounded-lg p-4 shadow-lg w-full flex items-center justify-center">
                 <img 
                   src={settingsClinicLogo} 
-                  alt="Logo Klinik" 
+                  alt="Clinic Logo" 
                   className="h-32 w-auto object-contain"
                   style={{ maxWidth: '350px' }}
                   data-testid="clinic-logo"

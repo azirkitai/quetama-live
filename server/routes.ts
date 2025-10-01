@@ -51,19 +51,19 @@ function sanitizeUser(user: any) {
 // Auth middleware to check session before any processing
 function requireAuth(req: any, res: any, next: any) {
   if (!req.session.userId) {
-    return res.status(401).json({ error: "Sesi tidak aktif" });
+    return res.status(401).json({ error: "Session inactive" });
   }
   next();
 }
 
 // QR endpoint validation schemas
 const qrAuthorizeSchema = z.object({
-  username: z.string().min(1, "Username diperlukan"),
-  password: z.string().min(1, "Password diperlukan")
+  username: z.string().min(1, "Username required"),
+  password: z.string().min(1, "Password required")
 });
 
 const qrFinalizeSchema = z.object({
-  tvVerifier: z.string().min(1, "TV verifier diperlukan")
+  tvVerifier: z.string().min(1, "TV verifier required")
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -74,20 +74,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { username, password } = req.body;
       
       if (!username || !password) {
-        return res.status(400).json({ error: "Username dan password diperlukan" });
+        return res.status(400).json({ error: "Username and password required" });
       }
       
       const user = await storage.authenticateUser(username, password);
       
       if (!user) {
-        return res.status(401).json({ error: "Username atau password salah" });
+        return res.status(401).json({ error: "Invalid username or password" });
       }
       
       // Regenerate session ID to prevent session fixation attacks
       req.session.regenerate((err) => {
         if (err) {
           console.error("Session regeneration error:", err);
-          return res.status(500).json({ error: "Ralat internal server" });
+          return res.status(500).json({ error: "Internal server error" });
         }
         
         // Store user info in session
@@ -109,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
     } catch (error) {
       console.error("Login error:", error);
-      res.status(500).json({ error: "Ralat internal server" });
+      res.status(500).json({ error: "Internal server error" });
     }
   });
   
@@ -117,9 +117,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     req.session.destroy((err) => {
       if (err) {
         console.error("Logout error:", err);
-        return res.status(500).json({ error: "Gagal logout" });
+        return res.status(500).json({ error: "Logout failed" });
       }
-      res.json({ success: true, message: "Logout berjaya" });
+      res.json({ success: true, message: "Logout successful" });
     });
   });
 
@@ -128,36 +128,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { currentPassword, newPassword } = req.body;
 
       if (!currentPassword || !newPassword) {
-        return res.status(400).json({ error: "Kata laluan semasa dan baru diperlukan" });
+        return res.status(400).json({ error: "Current and new password required" });
       }
 
       if (newPassword.length < 6) {
-        return res.status(400).json({ error: "Kata laluan baru mestilah sekurang-kurangnya 6 aksara" });
+        return res.status(400).json({ error: "New password must be at least 6 characters" });
       }
 
       const username = req.session.username!;
 
       const user = await storage.getUserByUsername(username);
       if (!user) {
-        return res.status(404).json({ error: "Pengguna tidak dijumpai" });
+        return res.status(404).json({ error: "User not found" });
       }
 
       const bcrypt = await import("bcryptjs");
       const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
       
       if (!isCurrentPasswordValid) {
-        return res.status(401).json({ error: "Kata laluan semasa tidak sah" });
+        return res.status(401).json({ error: "Current password invalid" });
       }
 
       await storage.updateUser(user.id, { password: newPassword });
 
       res.json({ 
         success: true, 
-        message: "Kata laluan berjaya dikemaskini" 
+        message: "Password successfully updated" 
       });
     } catch (error) {
       console.error("Password change error:", error);
-      res.status(500).json({ error: "Gagal menukar kata laluan" });
+      res.status(500).json({ error: "Failed to change password" });
     }
   });
 
@@ -192,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error creating QR session:", error);
-      res.status(500).json({ error: "Gagal membuat sesi QR" });
+      res.status(500).json({ error: "Failed to create QR session" });
     }
   });
 
@@ -204,7 +204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validationResult = qrAuthorizeSchema.safeParse(req.body);
       if (!validationResult.success) {
         return res.status(400).json({ 
-          error: "Data tidak sah", 
+          error: "Invalid data", 
           details: validationResult.error.issues.map(issue => issue.message)
         });
       }
@@ -214,7 +214,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Authenticate user
       const user = await storage.authenticateUser(username, password);
       if (!user) {
-        return res.status(401).json({ error: "Username atau password salah" });
+        return res.status(401).json({ error: "Invalid username or password" });
       }
 
       // Generate 6-digit TV verifier code (shown on phone, entered on desktop)
@@ -224,7 +224,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Authorize QR session and store the verifier hash
       const authorizedSession = await storage.authorizeQrSession(id, user.id, tvVerifierHash);
       if (!authorizedSession) {
-        return res.status(404).json({ error: "Sesi QR tidak dijumpai atau sudah tamat tempoh" });
+        return res.status(404).json({ error: "QR session not found or expired" });
       }
 
       // Set session for PHONE (will redirect to TV display)
@@ -246,7 +246,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         globalIo.to(qrRoom).emit("qr:authorization_complete", {
           qrId: id,
           user: { username: user.username, id: user.id },
-          message: "QR berjaya disahkan - sila masukkan kod dari telefon",
+          message: "QR successfully authenticated - please enter code from phone",
           timestamp: new Date()
         });
         console.log(`✅ Server emitted QR authorization to room: ${qrRoom}`);
@@ -255,13 +255,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Return 6-digit code to PHONE to display
       res.json({ 
         success: true, 
-        message: "QR berjaya disahkan",
+        message: "QR successfully authenticated",
         tvVerifier, // Phone displays this code
         user: sanitizeUser(user)
       });
     } catch (error) {
       console.error("Error authorizing QR session:", error);
-      res.status(500).json({ error: "Gagal mengesahkan sesi QR" });
+      res.status(500).json({ error: "Failed to authenticate QR session" });
     }
   });
 
@@ -273,7 +273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validationResult = qrFinalizeSchema.safeParse(req.body);
       if (!validationResult.success) {
         return res.status(400).json({ 
-          error: "Data tidak sah", 
+          error: "Invalid data", 
           details: validationResult.error.issues.map(issue => issue.message)
         });
       }
@@ -282,7 +282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const result = await storage.finalizeQrSession(id, tvVerifier);
       if (!result.success) {
-        return res.status(400).json({ error: "Gagal mengesahkan QR - sesi tidak sah atau sudah tamat tempoh" });
+        return res.status(400).json({ error: "Failed to authenticate QR - session invalid or expired" });
       }
 
       if (result.userId) {
@@ -315,24 +315,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ 
         success: true, 
-        message: "Login QR berjaya",
+        message: "QR login successful",
         userId: result.userId
       });
     } catch (error) {
       console.error("Error finalizing QR session:", error);
-      res.status(500).json({ error: "Gagal menyelesaikan sesi QR" });
+      res.status(500).json({ error: "Failed to complete QR session" });
     }
   });
   
   app.get("/api/auth/me", async (req, res) => {
     if (!req.session.userId) {
-      return res.status(401).json({ error: "Tidak ada sesi aktif" });
+      return res.status(401).json({ error: "No active session" });
     }
     
     try {
       const user = await storage.getUser(req.session.userId);
       if (!user) {
-        return res.status(401).json({ error: "Pengguna tidak dijumpai" });
+        return res.status(401).json({ error: "User not found" });
       }
       
       res.json({
@@ -346,7 +346,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Auth check error:", error);
-      res.status(500).json({ error: "Ralat internal server" });
+      res.status(500).json({ error: "Internal server error" });
     }
   });
 
@@ -379,7 +379,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check if user is authenticated
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       // Add userId from session to patient data
@@ -402,7 +402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const patients = await storage.getPatients(req.session.userId);
@@ -418,7 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const today = new Date().toISOString().split('T')[0];
@@ -435,7 +435,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const nextNumber = await storage.getNextPatientNumber(req.session.userId);
@@ -451,7 +451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
@@ -489,7 +489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
@@ -511,7 +511,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       // Archive completed patients by setting archivedAt (soft delete for medical records)
@@ -543,7 +543,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       // Check if user is admin
@@ -567,24 +567,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       // Check if user is admin
       if (req.session.role !== 'admin') {
-        return res.status(403).json({ error: "Akses ditolak - hanya admin boleh tambah pengguna" });
+        return res.status(403).json({ error: "Access denied - only admin can add users" });
       }
       
       const { username, password, role } = req.body;
       
       if (!username || !password) {
-        return res.status(400).json({ error: "Username dan password diperlukan" });
+        return res.status(400).json({ error: "Username and password required" });
       }
       
       // Check if username already exists
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
-        return res.status(400).json({ error: "Username sudah wujud" });
+        return res.status(400).json({ error: "Username already exists" });
       }
       
       const user = await storage.createUser({
@@ -607,14 +607,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
       
       // TENANT SECURITY: Users can only view their own account
       if (req.session.userId !== id) {
-        return res.status(403).json({ error: "Akses ditolak - hanya boleh lihat profil sendiri" });
+        return res.status(403).json({ error: "Access denied - can only view own profile" });
       }
       
       const user = await storage.getUser(id);
@@ -637,7 +637,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
@@ -645,7 +645,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // TENANT SECURITY: Users can only update their own account
       if (req.session.userId !== id) {
-        return res.status(403).json({ error: "Akses ditolak - hanya boleh update profil sendiri" });
+        return res.status(403).json({ error: "Access denied - can only update own profile" });
       }
       
       // SECURITY: Validate and whitelist allowed update fields
@@ -655,7 +655,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       
       if (Object.keys(validatedUpdates).length === 0) {
-        return res.status(400).json({ error: "Tiada medan yang sah untuk dikemaskini" });
+        return res.status(400).json({ error: "No valid fields to update" });
       }
       
       const user = await storage.updateUser(id, validatedUpdates);
@@ -674,7 +674,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // In multi-tenant system, users cannot disable their own clinic accounts
   app.patch("/api/users/:id/status", async (req, res) => {
     res.status(403).json({ 
-      error: "Operasi tidak dibenarkan - akaun klinik tidak boleh dinyahaktifkan sendiri"
+      error: "Operation not allowed - clinic account cannot deactivate itself"
     });
   });
 
@@ -682,7 +682,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // In multi-tenant system, clinic accounts cannot be self-deleted
   app.delete("/api/users/:id", async (req, res) => {
     res.status(403).json({ 
-      error: "Operasi tidak dibenarkan - akaun klinik tidak boleh dihapuskan sendiri"
+      error: "Operation not allowed - clinic account cannot delete itself"
     });
   });
 
@@ -691,14 +691,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
       
       // SECURITY: Only allow users to view their own config
       if (req.session.userId !== id) {
-        return res.status(403).json({ error: "Tidak dibenarkan mengakses data pengguna lain" });
+        return res.status(403).json({ error: "Not allowed to access other user data" });
       }
       
       const user = await storage.getUser(id);
@@ -746,7 +746,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const windows = await storage.getWindows(req.session.userId);
@@ -785,7 +785,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
@@ -812,7 +812,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
@@ -834,7 +834,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
@@ -856,7 +856,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
@@ -881,7 +881,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const stats = await storage.getDashboardStats(req.session.userId);
@@ -897,7 +897,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       // Force no cache for current call API to ensure real-time updates
@@ -921,7 +921,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const limit = parseInt(req.query.limit as string) || 10;
@@ -940,7 +940,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const settings = await storage.getSettings(req.session.userId);
@@ -956,7 +956,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { category } = req.params;
@@ -973,7 +973,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { key } = req.params;
@@ -1000,7 +1000,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       // Try to update existing setting first
@@ -1028,7 +1028,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { settings } = req.body;
@@ -1075,7 +1075,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { key } = req.params;
@@ -1099,7 +1099,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const media = await storage.getActiveMedia(req.session.userId);
@@ -1115,7 +1115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
@@ -1210,7 +1210,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication FIRST, before any processing
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { name, type } = req.body;
@@ -1247,7 +1247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
@@ -1275,7 +1275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
@@ -1359,7 +1359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       // Get current settings to determine media type
@@ -1402,7 +1402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { mediaIds } = req.body;
@@ -1448,7 +1448,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const textGroups = await storage.getTextGroups(req.session.userId);
@@ -1464,7 +1464,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const activeTextGroups = await storage.getActiveTextGroups(req.session.userId);
@@ -1480,7 +1480,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { groupName } = req.params;
@@ -1502,7 +1502,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
@@ -1524,7 +1524,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const textGroupData = insertTextGroupSchema.parse({ ...req.body, userId: req.session.userId });
@@ -1541,7 +1541,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
@@ -1569,7 +1569,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
@@ -1596,7 +1596,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
@@ -1620,7 +1620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const themes = await storage.getThemes(req.session.userId);
@@ -1636,7 +1636,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const activeTheme = await storage.getActiveTheme(req.session.userId);
@@ -1657,7 +1657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const { id } = req.params;
@@ -1679,7 +1679,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const themeData = insertThemeSchema.parse({ ...req.body, userId: req.session.userId });
@@ -1702,7 +1702,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const theme = await storage.updateTheme(id, updates, req.session.userId);
@@ -1729,7 +1729,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const theme = await storage.setActiveTheme(id, req.session.userId);
@@ -1756,7 +1756,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const deleted = await storage.deleteTheme(id, req.session.userId);
@@ -1983,7 +1983,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Check authentication
       if (!req.session.userId) {
-        return res.status(401).json({ error: "Sesi tidak aktif" });
+        return res.status(401).json({ error: "Session inactive" });
       }
       
       const tvToken = storage.generateTvToken(req.session.userId);
@@ -1991,11 +1991,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         tvToken: tvToken,
         tvUrl: `/tv?token=${tvToken}`,
-        message: "Token TV untuk paparan klinik anda"
+        message: "TV Token for your clinic display"
       });
     } catch (error) {
       console.error("Error generating TV token:", error);
-      res.status(500).json({ error: "Gagal menjana token TV" });
+      res.status(500).json({ error: "Failed to generate TV token" });
     }
   });
 
@@ -2009,11 +2009,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const user = await storage.getUserByTvToken(token);
       if (!user) {
-        return res.status(404).json({ error: "Token TV tidak sah atau klinik tidak dijumpai" });
+        return res.status(404).json({ error: "Invalid TV token or clinic not found" });
       }
       
       if (!user.isActive) {
-        return res.status(403).json({ error: "Akaun klinik tidak aktif" });
+        return res.status(403).json({ error: "Clinic account not active" });
       }
       
       // Return basic clinic info for TV display
@@ -2025,7 +2025,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error resolving TV token:", error);
-      res.status(500).json({ error: "Gagal menyelesaikan token TV" });
+      res.status(500).json({ error: "Failed to resolve TV token" });
     }
   });
   
@@ -2036,14 +2036,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const user = await storage.getUserByTvToken(token);
       if (!user || !user.isActive) {
-        return res.status(404).json({ error: "Token TV tidak sah" });
+        return res.status(404).json({ error: "Invalid TV token" });
       }
       
       const settings = await storage.getSettings(user.id);
       res.json(settings);
     } catch (error) {
       console.error("Error fetching TV settings:", error);
-      res.status(500).json({ error: "Gagal mendapatkan tetapan TV" });
+      res.status(500).json({ error: "Failed to get TV settings" });
     }
   });
   
@@ -2054,14 +2054,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const user = await storage.getUserByTvToken(token);
       if (!user || !user.isActive) {
-        return res.status(404).json({ error: "Token TV tidak sah" });
+        return res.status(404).json({ error: "Invalid TV token" });
       }
       
       const activeTheme = await storage.getActiveTheme(user.id);
       res.json(activeTheme);
     } catch (error) {
       console.error("Error fetching TV active theme:", error);
-      res.status(500).json({ error: "Gagal mendapatkan tema aktif TV" });
+      res.status(500).json({ error: "Failed to get active TV theme" });
     }
   });
   
@@ -2072,14 +2072,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const user = await storage.getUserByTvToken(token);
       if (!user || !user.isActive) {
-        return res.status(404).json({ error: "Token TV tidak sah" });
+        return res.status(404).json({ error: "Invalid TV token" });
       }
       
       const activeTextGroups = await storage.getActiveTextGroups(user.id);
       res.json(activeTextGroups);
     } catch (error) {
       console.error("Error fetching TV active text groups:", error);
-      res.status(500).json({ error: "Gagal mendapatkan kumpulan teks aktif TV" });
+      res.status(500).json({ error: "Failed to get active TV text groups" });
     }
   });
   
@@ -2090,14 +2090,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const user = await storage.getUserByTvToken(token);
       if (!user || !user.isActive) {
-        return res.status(404).json({ error: "Token TV tidak sah" });
+        return res.status(404).json({ error: "Invalid TV token" });
       }
       
       const activeMedia = await storage.getActiveMedia(user.id);
       res.json(activeMedia);
     } catch (error) {
       console.error("Error fetching TV active media:", error);
-      res.status(500).json({ error: "Gagal mendapatkan media aktif TV" });
+      res.status(500).json({ error: "Failed to get active TV media" });
     }
   });
 
