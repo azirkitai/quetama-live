@@ -1492,6 +1492,12 @@ export class DatabaseStorage implements IStorage {
         return undefined;
       }
       
+      console.log(`🔄 ${status.toUpperCase()}: Preserving windowId`, {
+        patientId: id,
+        currentWindowId: currentPatient.windowId,
+        willSetLastWindowId: currentPatient.windowId
+      });
+      
       const updateData: any = { 
         status,
         windowId: null, // Clear current room
@@ -1508,6 +1514,15 @@ export class DatabaseStorage implements IStorage {
         .set(updateData)
         .where(and(eq(schema.patients.id, id), eq(schema.patients.userId, userId)))
         .returning();
+
+      console.log(`✅ ${status.toUpperCase()} updated:`, {
+        id: updatedPatient?.id,
+        name: updatedPatient?.name,
+        status: updatedPatient?.status,
+        windowId: updatedPatient?.windowId,
+        lastWindowId: updatedPatient?.lastWindowId,
+        requeueReason: updatedPatient?.requeueReason
+      });
 
       return updatedPatient;
     }
