@@ -1061,12 +1061,12 @@ export function TVDisplay({
                   return (
                     <div key={prayer.key || index} className="text-center">
                       <div className={`font-bold text-2xl ${isCurrentPrayer ? 'animate-pulse' : ''}`} style={{
-                        ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, prayerTimesHighlightColor) : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
+                        ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesHighlightColor, prayerTimesTextGradient, prayerTimesHighlightColor) : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
                       }}>
                         {prayer.name}
                       </div>
                       <div className={`text-2xl ${isCurrentPrayer ? 'font-bold' : ''}`} style={{
-                        ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, prayerTimesHighlightColor) : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
+                        ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesHighlightColor, prayerTimesTextGradient, prayerTimesHighlightColor) : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
                       }}>
                         {prayer.time}
                       </div>
