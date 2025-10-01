@@ -1691,6 +1691,19 @@ export default function Settings() {
                 )}
               </div>
             </div>
+            
+            {/* Prayer Times Highlight Color */}
+            <div className="border-t pt-4 mt-4">
+              <Label className="text-sm font-semibold mb-2 block">Warna Highlight Waktu Solat</Label>
+              <p className="text-xs text-muted-foreground mb-3">Warna untuk waktu solat yang akan datang (slow pulse effect)</p>
+              <Input
+                type="color"
+                value={currentSettings.prayerTimesHighlightColor || '#facc15'}
+                onChange={(e) => updateDisplaySetting('prayerTimesHighlightColor', e.target.value)}
+                data-testid="input-prayer-highlight-color"
+              />
+            </div>
+            
             <Button 
               onClick={handleSaveDisplay} 
               className="w-full" 

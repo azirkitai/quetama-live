@@ -224,6 +224,7 @@ export function TVDisplay({
   const prayerTimesTextMode = settingsObj.prayerTimesTextMode || 'solid';
   const prayerTimesTextColor = settingsObj.prayerTimesTextColor || '#ffffff';
   const prayerTimesTextGradient = settingsObj.prayerTimesTextGradient || 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)';
+  const prayerTimesHighlightColor = settingsObj.prayerTimesHighlightColor || '#facc15';
   
   const weatherTextMode = settingsObj.weatherTextMode || 'solid';
   const weatherTextColor = settingsObj.weatherTextColor || '#ffffff';
@@ -1060,12 +1061,12 @@ export function TVDisplay({
                   return (
                     <div key={prayer.key || index} className="text-center">
                       <div className={`font-bold text-2xl ${isCurrentPrayer ? 'animate-pulse' : ''}`} style={{
-                        ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
+                        ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, prayerTimesHighlightColor) : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
                       }}>
                         {prayer.name}
                       </div>
                       <div className={`text-2xl ${isCurrentPrayer ? 'font-bold' : ''}`} style={{
-                        ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#facc15') : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
+                        ...(isCurrentPrayer ? getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, prayerTimesHighlightColor) : getTextStyle(prayerTimesTextMode, prayerTimesTextColor, prayerTimesTextGradient, '#ffffff'))
                       }}>
                         {prayer.time}
                       </div>
