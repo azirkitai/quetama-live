@@ -2016,27 +2016,6 @@ export default function Settings() {
                 </div>
               </div>
             </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Highlight Color</Label>
-                <Input
-                  type="color"
-                  value={currentSettings.queueHighlightColor || '#ef4444'}
-                  onChange={(e) => updateDisplaySetting('queueHighlightColor', e.target.value)}
-                  data-testid="input-queue-highlight-color"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Border Color</Label>
-                <Input
-                  type="color"
-                  value={currentSettings.queueBorderColor || '#d1d5db'}
-                  onChange={(e) => updateDisplaySetting('queueBorderColor', e.target.value)}
-                  data-testid="input-queue-border-color"
-                />
-              </div>
-            </div>
             <Button 
               onClick={handleSaveDisplay} 
               className="w-full" 
