@@ -1497,15 +1497,6 @@ export default function Settings() {
                   </div>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label>Border Color</Label>
-                <Input
-                  type="color"
-                  value={currentSettings.callBorderColor || '#22c55e'}
-                  onChange={(e) => updateDisplaySetting('callBorderColor', e.target.value)}
-                  data-testid="input-call-border-color"
-                />
-              </div>
             </div>
             <Button 
               onClick={handleSaveDisplay} 
