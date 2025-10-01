@@ -253,11 +253,6 @@ export default function Administration() {
                       data-testid={`user-card-${user.id}`}
                     >
                       <div className="flex items-center space-x-3">
-                        <Avatar>
-                          <AvatarFallback>
-                            {user.username.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
                         <div>
                           <div className="font-medium" data-testid={`text-username-${user.id}`}>
                             {user.username}
