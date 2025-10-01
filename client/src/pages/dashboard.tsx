@@ -27,6 +27,7 @@ interface DashboardStats {
 export default function Dashboard() {
   const [fullscreen, setFullscreen] = useState(false);
   const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(false);
+  const [showExitButton, setShowExitButton] = useState(false);
 
   // Listen for browser fullscreen changes
   useEffect(() => {
@@ -56,6 +57,32 @@ export default function Dashboard() {
     setTVHeight();
     window.addEventListener('resize', setTVHeight);
     return () => window.removeEventListener('resize', setTVHeight);
+  }, [fullscreen]);
+
+  // Handle cursor hover for exit button in fullscreen
+  useEffect(() => {
+    if (!fullscreen) return;
+
+    let hideTimeout: NodeJS.Timeout;
+
+    const handleMouseMove = () => {
+      setShowExitButton(true);
+      
+      // Clear existing timeout
+      clearTimeout(hideTimeout);
+      
+      // Hide button after 3 seconds of inactivity
+      hideTimeout = setTimeout(() => {
+        setShowExitButton(false);
+      }, 3000);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      clearTimeout(hideTimeout);
+    };
   }, [fullscreen]);
 
   // Show fullscreen prompt from URL parameter
@@ -209,8 +236,11 @@ export default function Dashboard() {
           showPrayerTimes={showPrayerTimes}
           showWeather={showWeather}
         />
-        {/* Floating Exit Button - Always visible with high z-index */}
-        <div className="fixed top-4 right-4 z-[9999]">
+        {/* Floating Exit Button - Appears on cursor hover */}
+        <div 
+          className="fixed top-4 right-4 z-[9999] transition-opacity duration-300"
+          style={{ opacity: showExitButton ? 1 : 0, pointerEvents: showExitButton ? 'auto' : 'none' }}
+        >
           <Button
             onClick={toggleFullscreen}
             className="bg-black/70 text-white border-white/20 hover:bg-black/90"
