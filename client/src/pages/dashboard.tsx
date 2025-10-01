@@ -14,6 +14,7 @@ interface QueueItem {
   status: "waiting" | "calling" | "completed";
   timestamp: Date;
   calledAt?: Date | null;
+  requeueReason?: string | null;
 }
 
 interface DashboardStats {
@@ -160,7 +161,8 @@ export default function Dashboard() {
       room: roomName,
       status: patient.status === "called" ? "calling" : patient.status === "completed" ? "completed" : "waiting",
       timestamp: new Date(),
-      calledAt: patient.calledAt ? new Date(patient.calledAt) : null
+      calledAt: patient.calledAt ? new Date(patient.calledAt) : null,
+      requeueReason: patient.requeueReason
     };
   };
 

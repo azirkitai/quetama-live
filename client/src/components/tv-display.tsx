@@ -15,6 +15,7 @@ interface QueueItem {
   status: "waiting" | "calling" | "completed";
   timestamp: Date;
   calledAt?: Date | null;
+  requeueReason?: string | null;
 }
 
 interface PrayerTime {
@@ -441,6 +442,7 @@ export function TVDisplay({
   const [blinkVisible, setBlinkVisible] = useState(true);
   const [prevPatientId, setPrevPatientId] = useState<string | undefined>(undefined);
   const [prevCalledAt, setPrevCalledAt] = useState<number | null>(null);
+  const [prevRequeueReason, setPrevRequeueReason] = useState<string | null | undefined>(undefined);
   
   // Media slideshow states
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
@@ -577,9 +579,28 @@ export function TVDisplay({
 
   // Detect new patient call and trigger animation sequence + AUDIO
   // Trigger on EITHER: new patient ID OR same patient called again (calledAt changes)
+  // SKIP TRIGGER if patient was requeued but calledAt hasn't changed (old call before requeue)
   useEffect(() => {
     // Convert Date to timestamp number for reliable comparison
     const currentCalledAtTimestamp = currentPatient?.calledAt ? new Date(currentPatient.calledAt).getTime() : null;
+    
+    // Detect if patient was requeued (requeueReason changed from undefined/null to a value)
+    const wasRequeued = currentPatient?.requeueReason && 
+                        currentPatient.requeueReason !== prevRequeueReason;
+    
+    // If patient was requeued, reset tracking so only NEW calls after requeue will trigger
+    if (wasRequeued && currentPatient?.id === prevPatientId) {
+      console.log('🔄 PATIENT REQUEUED - Resetting tracking:', {
+        patientId: currentPatient.id,
+        requeueReason: currentPatient.requeueReason,
+        prevRequeueReason
+      });
+      // Reset calledAt tracking so next call will be treated as new
+      setPrevCalledAt(null);
+      setPrevRequeueReason(currentPatient.requeueReason);
+      return; // Don't trigger highlight for requeue action itself
+    }
+    
     const hasNewCall = currentPatient && (
       currentPatient.id !== prevPatientId || 
       (currentCalledAtTimestamp && currentCalledAtTimestamp !== prevCalledAt)
@@ -591,7 +612,9 @@ export function TVDisplay({
       prevPatientId,
       currentCalledAtTimestamp,
       prevCalledAt,
-      calledAtChanged: currentCalledAtTimestamp !== prevCalledAt
+      calledAtChanged: currentCalledAtTimestamp !== prevCalledAt,
+      requeueReason: currentPatient?.requeueReason,
+      wasRequeued
     });
     
     if (hasNewCall) {
@@ -652,11 +675,12 @@ export function TVDisplay({
         
       }, 5000); // 5 seconds for highlight
 
-      // Update previous patient ID and calledAt timestamp
+      // Update previous patient ID, calledAt timestamp, and requeueReason
       setPrevPatientId(currentPatient.id);
       setPrevCalledAt(currentCalledAtTimestamp);
+      setPrevRequeueReason(currentPatient.requeueReason);
     }
-  }, [currentPatient?.id, currentPatient?.calledAt]); // Depend on BOTH patient ID AND calledAt changes
+  }, [currentPatient?.id, currentPatient?.calledAt, currentPatient?.requeueReason]); // Depend on patient ID, calledAt, AND requeueReason changes
 
   // Auto-resize text effect - adjust font sizes based on text length
   useEffect(() => {
