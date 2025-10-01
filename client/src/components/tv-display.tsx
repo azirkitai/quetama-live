@@ -496,17 +496,23 @@ export function TVDisplay({
       // Black bars appear ONLY on top/bottom (like movies)
       const scale = vw / STAGE_WIDTH;
 
+      const scaledHeight = STAGE_HEIGHT * scale;
+      const marginTop = -(scaledHeight / 2); // Center: offset by half of scaled height
+
       console.log('🎬 LETTERBOX MODE:', {
         viewportSize: `${vw}×${vh}`,
         stageSize: `${STAGE_WIDTH}×${STAGE_HEIGHT}`,
         scale: scale.toFixed(3),
-        scaledHeight: `${(STAGE_HEIGHT * scale).toFixed(0)}px`,
-        verticalSpace: `${(vh - STAGE_HEIGHT * scale).toFixed(0)}px`
+        scaledHeight: `${scaledHeight.toFixed(0)}px`,
+        marginTop: `${marginTop.toFixed(0)}px`,
+        topBar: `${((vh - scaledHeight) / 2).toFixed(0)}px`,
+        bottomBar: `${((vh - scaledHeight) / 2).toFixed(0)}px`
       });
 
-      // Scale from top-left (centering via top:50% + marginTop already set in stageStyle)
+      // Apply scale and vertical centering
       stage.style.transformOrigin = 'top left';
       stage.style.transform = `scale(${scale})`;
+      stage.style.marginTop = `${marginTop}px`;
     };
 
     fitStage();
@@ -721,7 +727,6 @@ export function TVDisplay({
     position: 'absolute' as const,
     top: '50%',
     left: 0,
-    marginTop: '-540px', // -1080px / 2 = vertical center
     width: '1920px',
     height: '1080px',
     transform: 'scale(1)',
