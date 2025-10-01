@@ -504,9 +504,9 @@ export function TVDisplay({
         verticalSpace: `${(vh - STAGE_HEIGHT * scale).toFixed(0)}px`
       });
 
-      // Scale from top-left + center vertically with translateY
+      // Scale from top-left (centering via top:50% + marginTop already set in stageStyle)
       stage.style.transformOrigin = 'top left';
-      stage.style.transform = `scale(${scale}) translateY(-50%)`;
+      stage.style.transform = `scale(${scale})`;
     };
 
     fitStage();
@@ -721,9 +721,10 @@ export function TVDisplay({
     position: 'absolute' as const,
     top: '50%',
     left: 0,
+    marginTop: '-540px', // -1080px / 2 = vertical center
     width: '1920px',
     height: '1080px',
-    transform: 'scale(1) translateY(-50%)',
+    transform: 'scale(1)',
     transformOrigin: 'top left', // Scale from top-left corner
     overflow: 'hidden',
     display: 'grid',
@@ -731,7 +732,6 @@ export function TVDisplay({
     gridTemplateColumns: '1248px 672px', // Fixed: Left 65% (1248px), Right 35% (672px) = 1920px total
     gap: 0,
     padding: 0,
-    margin: 0,
     boxSizing: 'border-box' as const,
     minWidth: 0,
     minHeight: 0,
