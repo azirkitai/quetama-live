@@ -958,12 +958,12 @@ export function TVDisplay({
           <div className="mb-4">
             <div className="grid grid-cols-2 gap-1">
               <div className="font-bold text-center" style={{ 
-                fontSize: 'var(--tv-fs-lg, 24px)', // Responsive: auto-scales from 18px to 32px
+                fontSize: 'var(--tv-fs-2xl, 48px)', // Bigger: auto-scales from 28px to 64px
                 ...getHistoryNameStyle(),
                 ...getTextGroupStyles('Token Label', true)
               }}>NAME</div>
               <div className="font-bold text-center" style={{ 
-                fontSize: 'var(--tv-fs-lg, 24px)', // Responsive: auto-scales from 18px to 32px
+                fontSize: 'var(--tv-fs-2xl, 48px)', // Bigger: auto-scales from 28px to 64px
                 ...getHistoryNameStyle(),
                 ...getTextGroupStyles('Token Label', true)
               }}>ROOM</div>
