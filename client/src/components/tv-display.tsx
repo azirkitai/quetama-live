@@ -728,7 +728,7 @@ export function TVDisplay({
   };
 
   const wrapperClass = isFullscreen 
-    ? "h-screen text-gray-900 grid"
+    ? "text-gray-900 grid"  // No h-screen - inline 1080px is enough
     : "h-screen text-gray-900 grid";
 
   // Render content - same for both fullscreen and non-fullscreen
@@ -1229,9 +1229,10 @@ export function TVDisplay({
   // Conditional wrapper: fullscreen uses viewport-centered 1920×1080 stage with black background
   if (isFullscreen) {
     return (
-      <div className="tv-viewport">
+      <div className="fixed inset-0 grid place-items-center bg-black overflow-hidden">
         <div 
           ref={stageRef}
+          id="stage"
           className={wrapperClass}
           style={stageStyle} 
           data-testid="tv-display">

@@ -1,0 +1,91 @@
+stage kau dah 1920×1080 & auto-scale, tapi tak center sebab tv-viewport tak ada CSS untuk penuh skrin + center. Buat patch pendek ni; confirm terus center (atas/bawah & kiri/kanan) dengan border hitam seimbang.
+
+🔧 Patch ringkas (copy–paste)
+1) Tukar render bila isFullscreen
+if (isFullscreen) {
+  return (
+    <div
+      className="tv-viewport fixed inset-0 grid place-items-center bg-black overflow-hidden"
+      /* ^^^ penuh skrin + center */
+    >
+      <div
+        ref={stageRef}
+        id="stage"
+        className="text-gray-900 grid"   // buang "h-screen" di sini
+        style={stageStyle}
+        data-testid="tv-display"
+      >
+        {renderContent()}
+      </div>
+    </div>
+  );
+}
+
+2) Tambah CSS global (atau Tailwind utilities setara)
+
+Jika pakai CSS:
+
+html, body { margin:0; height:100%; background:#000; overflow:hidden; }
+
+/* optional: fix 100vh pada sesetengah TV/Android */
+:root { --vh: 1vh; }
+@media (any-pointer: coarse) {
+  .tv-viewport { height: calc(var(--vh, 1vh) * 100); }
+}
+
+/* (Jika tak guna Tailwind di wrapper) */
+.tv-viewport {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;    /* kunci tengah H & V */
+  background: #000;       /* border hitam */
+  overflow: hidden;
+}
+
+
+Atau pakai Tailwind saja (seperti di langkah #1) — itu dah cukup.
+
+3) Kekalkan JS auto-scale (yang kau dah ada)
+
+Kod kau ni dah betul—gunakan parent (tv-viewport) sebagai viewport:
+
+useEffect(() => {
+  if (!isFullscreen || !stageRef.current) return;
+  const STAGE_WIDTH = 1920, STAGE_HEIGHT = 1080;
+  const stage = stageRef.current;
+  const viewport = stage.parentElement!;
+  const fitStage = () => {
+    const s = Math.min(viewport.clientWidth / STAGE_WIDTH, viewport.clientHeight / STAGE_HEIGHT);
+    stage.style.transform = `scale(${s})`;        // center dijaga oleh grid
+    stage.style.transformOrigin = 'center center';
+  };
+  fitStage();
+  addEventListener('resize', fitStage);
+  addEventListener('orientationchange', fitStage);
+  return () => {
+    removeEventListener('resize', fitStage);
+    removeEventListener('orientationchange', fitStage);
+  };
+}, [isFullscreen]);
+
+
+Penting: jangan letak position:fixed / translate(-50%,-50%) pada #stage. Pusatkan melalui parent .tv-viewport (grid) sahaja.
+
+✅ Checklist “siap”
+
+tv-viewport = fixed inset-0 + grid place-items-center + bg-black + overflow-hidden ✔️
+
+#stage = 1920×1080, hanya transform: scale(s), transform-origin: center ✔️
+
+Tiada h-screen pada #stage (inline 1080px dah cukup) ✔️
+
+Uji 1366×768 / 1920×1080 / 4K → sentiasa center, border hitam seimbang, tiada scrollbar ✔️
+
+Kalau lepas patch masih nampak “melekat”, check cepat di DevTools:
+
+tv-viewport betul-betul grid dan full screen (Computed width/height ≈ viewport).
+
+Tiada parent lain ada padding/margin.
+
+#stage hanya ada transform: scale(...) (tiada translate/top/left).
