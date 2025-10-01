@@ -118,7 +118,7 @@ export function PatientRegistration({ onRegister, nextNumber, isRegistering = fa
                 id="patientName"
                 type="text"
                 value={patientName}
-                onChange={(e) => setPatientName(e.target.value)}
+                onChange={(e) => setPatientName(e.target.value.toUpperCase())}
                 placeholder="Enter patient name"
                 maxLength={25}
                 data-testid="input-patient-name"
