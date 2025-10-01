@@ -310,7 +310,7 @@ export function PatientCard({
                 data-testid={`button-recall-${patient.id}`}
               >
                 <PhoneCall className="h-4 w-4 mr-1" />
-                Recall
+                Recall to Last Room
               </Button>
             </>
           )}
