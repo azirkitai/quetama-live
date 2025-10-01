@@ -1103,13 +1103,6 @@ export function TVDisplay({
                     }}>{weatherData.current.windSpeed} {weatherData.units.windSpeed}</div>
                   </div>
                 </div>
-                
-                {/* Location Info - improved labeling */}
-                <div className="text-lg" style={{
-                  ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#93c5fd')
-                }}>
-                  📍 {locationError ? "Kuala Lumpur, Malaysia" : `${weatherData.location.city}, ${weatherData.location.country}`}
-                </div>
               </div>
             ) : (
               <div className="text-white text-xl">
