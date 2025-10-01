@@ -175,9 +175,16 @@ export default function Dashboard() {
 
   // Convert Patient to QueueItem for TV display
   const convertToQueueItem = (patient: Patient): QueueItem => {
-    // Use room name directly from API response, fallback to mapping windowId
+    // Use room name directly from API response, fallback to mapping windowId OR lastWindowId
     const roomName = (patient as any).room || (() => {
-      const window = windows.find(w => w.id === patient.windowId);
+      // Try current windowId first
+      let window = windows.find(w => w.id === patient.windowId);
+      
+      // If no current window (requeued patient), use lastWindowId to show last room
+      if (!window && (patient as any).lastWindowId) {
+        window = windows.find(w => w.id === (patient as any).lastWindowId);
+      }
+      
       return window?.name || "Tidak tersedia";
     })();
     

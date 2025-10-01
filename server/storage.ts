@@ -1481,8 +1481,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePatientStatus(id: string, status: string, userId: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined> {
-    // Special handling for "completed" status - preserve current room to lastWindowId
-    if (status === "completed") {
+    // Special handling for "completed" and "requeue" status - preserve current room to lastWindowId
+    if (status === "completed" || status === "requeue") {
       // First get the current patient to preserve their windowId to lastWindowId
       const [currentPatient] = await db.select()
         .from(schema.patients)
@@ -1496,9 +1496,13 @@ export class DatabaseStorage implements IStorage {
         status,
         windowId: null, // Clear current room
         lastWindowId: currentPatient.windowId, // Preserve current room as last room
-        requeueReason: requeueReason || null,
-        completedAt: new Date()
+        requeueReason: requeueReason || null
       };
+
+      // Only set completedAt for "completed" status
+      if (status === "completed") {
+        updateData.completedAt = new Date();
+      }
 
       const [updatedPatient] = await db.update(schema.patients)
         .set(updateData)
