@@ -6,6 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 
+interface JourneyEvent {
+  timestamp: string;
+  action: 'registered' | 'called' | 'in-progress' | 'completed' | 'requeued';
+  roomName?: string;
+  requeueReason?: string;
+  fromRoom?: string;
+}
+
 interface Patient {
   id: string;
   name: string | null;
@@ -15,7 +23,7 @@ interface Patient {
   windowName?: string;
   lastWindowId?: string;
   lastWindowName?: string;
-  trackingHistory?: string[];
+  trackingHistory?: JourneyEvent[];
   registeredAt: Date | string;
   calledAt?: Date | string | null;
   completedAt?: Date | string | null;
@@ -183,97 +191,84 @@ export function PatientCard({
       </CardHeader>
       
       <CardContent>
-        {/* Enhanced Journey History */}
+        {/* Enhanced Journey History - Timeline View */}
         <div className="mb-4 space-y-2">
           <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Patient Journey
           </div>
           
-          {/* Registration Time */}
-          <div className="flex items-start gap-2 text-xs">
-            <div className="w-2 h-2 rounded-full bg-blue-500 mt-1 flex-shrink-0" />
-            <div className="flex-1">
-              <div className="font-medium text-gray-700 dark:text-gray-300">Registration</div>
-              <div className="text-gray-500 dark:text-gray-400">
-                {new Date(patient.registeredAt).toLocaleString('en-GB', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: true
-                })}
-              </div>
-            </div>
-          </div>
+          {/* Display all journey events from trackingHistory */}
+          {patient.trackingHistory && patient.trackingHistory.length > 0 ? (
+            patient.trackingHistory.map((event, index) => {
+              const getEventIcon = (action: string) => {
+                switch (action) {
+                  case 'registered':
+                    return 'bg-blue-500';
+                  case 'called':
+                    return 'bg-green-500';
+                  case 'in-progress':
+                    return 'bg-purple-500';
+                  case 'requeued':
+                    return 'bg-yellow-500';
+                  case 'completed':
+                    return 'bg-gray-500';
+                  default:
+                    return 'bg-gray-400';
+                }
+              };
 
-          {/* Called Time */}
-          {patient.calledAt && (
-            <div className="flex items-start gap-2 text-xs">
-              <div className="w-2 h-2 rounded-full bg-green-500 mt-1 flex-shrink-0" />
-              <div className="flex-1">
-                <div className="font-medium text-gray-700 dark:text-gray-300">
-                  Called to {patient.windowName || patient.lastWindowName || 'Room'}
-                </div>
-                <div className="text-gray-500 dark:text-gray-400">
-                  {new Date(patient.calledAt).toLocaleString('en-GB', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
+              const getEventLabel = (event: JourneyEvent) => {
+                switch (event.action) {
+                  case 'registered':
+                    return 'Registration';
+                  case 'called':
+                    return `Called to ${event.roomName || 'Room'}`;
+                  case 'in-progress':
+                    return 'Consultation Started';
+                  case 'requeued':
+                    return 'Requeued';
+                  case 'completed':
+                    return 'Completed';
+                  default:
+                    return event.action;
+                }
+              };
 
-          {/* Requeue Info */}
-          {patient.status === 'requeue' && patient.requeueReason && (
-            <div className="flex items-start gap-2 text-xs">
-              <div className="w-2 h-2 rounded-full bg-yellow-500 mt-1 flex-shrink-0" />
-              <div className="flex-1">
-                <div className="font-medium text-gray-700 dark:text-gray-300">
-                  Requeued
-                </div>
-                <div className="text-yellow-700 dark:text-yellow-500 font-medium">
-                  Reason: {patient.requeueReason}
-                </div>
-                {patient.trackingHistory && patient.trackingHistory.length > 0 && (
-                  <div className="text-gray-500 dark:text-gray-400 mt-0.5">
-                    {(() => {
-                      const requeueEntry = patient.trackingHistory.find(h => h.includes('Requeued'));
-                      if (requeueEntry) {
-                        const match = requeueEntry.match(/at (\d{2}:\d{2} [AP]M)/);
-                        return match ? match[1] : '';
-                      }
-                      return '';
-                    })()}
+              return (
+                <div key={index} className="flex items-start gap-2 text-xs">
+                  <div className={`w-2 h-2 rounded-full ${getEventIcon(event.action)} mt-1 flex-shrink-0`} />
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-700 dark:text-gray-300">
+                      {getEventLabel(event)}
+                    </div>
+                    {event.action === 'requeued' && event.requeueReason && (
+                      <div className="text-yellow-700 dark:text-yellow-500 font-medium text-xs">
+                        Reason: {event.requeueReason}
+                      </div>
+                    )}
+                    {event.action === 'requeued' && event.fromRoom && (
+                      <div className="text-gray-500 dark:text-gray-400 text-xs">
+                        From: {event.fromRoom}
+                      </div>
+                    )}
+                    <div className="text-gray-500 dark:text-gray-400">
+                      {new Date(event.timestamp).toLocaleString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                      })}
+                    </div>
                   </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Completed Time */}
-          {patient.completedAt && (
-            <div className="flex items-start gap-2 text-xs">
-              <div className="w-2 h-2 rounded-full bg-gray-500 mt-1 flex-shrink-0" />
-              <div className="flex-1">
-                <div className="font-medium text-gray-700 dark:text-gray-300">Completed</div>
-                <div className="text-gray-500 dark:text-gray-400">
-                  {new Date(patient.completedAt).toLocaleString('en-GB', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
-                  })}
                 </div>
-              </div>
+              );
+            })
+          ) : (
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              No journey history available
             </div>
           )}
         </div>

@@ -53,7 +53,7 @@ export const patients = pgTable("patients", {
   calledAt: timestamp("called_at"),
   completedAt: timestamp("completed_at"),
   requeueReason: text("requeue_reason"), // Reason for requeue: NEBULISER, AMBIL UBATAN, MENUNGGU KEPUTUSAN UJIAN, MGTT
-  trackingHistory: text("tracking_history").array().default(sql`'{}'::text[]`), // Array of status changes
+  trackingHistory: json("tracking_history").default(sql`'[]'::json`), // JSON array of journey events: {timestamp, action, roomName?, requeueReason?}
   archivedAt: timestamp("archived_at"), // Soft delete timestamp for queue reset (24-hour clinics)
   // Account isolation
   userId: varchar("user_id").notNull(),

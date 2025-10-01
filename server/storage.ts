@@ -349,6 +349,7 @@ export class MemStorage implements IStorage {
 
   async createPatient(insertPatient: InsertPatient): Promise<Patient> {
     const id = randomUUID();
+    const now = new Date();
     const patient: Patient = {
       id,
       name: insertPatient.name || null,
@@ -356,11 +357,14 @@ export class MemStorage implements IStorage {
       status: "waiting",
       windowId: null,
       lastWindowId: null,
-      registeredAt: new Date(),
+      registeredAt: now,
       calledAt: null,
       completedAt: null,
       requeueReason: null,
-      trackingHistory: [],
+      trackingHistory: [{
+        timestamp: now.toISOString(),
+        action: 'registered'
+      }],
       archivedAt: null,
       userId: insertPatient.userId
     };
@@ -398,33 +402,50 @@ export class MemStorage implements IStorage {
     if (!patient || patient.userId !== userId) return undefined;
 
     const now = new Date();
-    const timeString = now.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: true 
-    });
 
-    // Update tracking history based on status change
-    let newTrackingHistory = [...(patient.trackingHistory || [])];
+    // Get existing tracking history as JSON array
+    let trackingHistory: any[] = [];
+    try {
+      trackingHistory = Array.isArray(patient.trackingHistory) ? patient.trackingHistory : [];
+    } catch (e) {
+      trackingHistory = [];
+    }
     
+    // Add new journey event based on status change
     if (status === "called" && windowId) {
       const window = this.windows.get(windowId);
       // SECURITY: Ensure window belongs to same user to prevent cross-tenant access
       if (window && window.userId === userId) {
-        newTrackingHistory.push(`Called to ${window.name} at ${timeString}`);
+        trackingHistory.push({
+          timestamp: now.toISOString(),
+          action: 'called',
+          roomName: window.name
+        });
         patient.calledAt = now;
       } else if (windowId) {
         // Invalid window assignment - reject the operation
         return undefined;
       }
     } else if (status === "in-progress") {
-      newTrackingHistory.push(`Consultation started at ${timeString}`);
+      trackingHistory.push({
+        timestamp: now.toISOString(),
+        action: 'in-progress'
+      });
     } else if (status === "completed") {
-      newTrackingHistory.push(`Consultation completed at ${timeString}`);
+      trackingHistory.push({
+        timestamp: now.toISOString(),
+        action: 'completed'
+      });
       patient.completedAt = now;
     } else if (status === "requeue") {
-      const reasonText = requeueReason ? ` - ${requeueReason}` : '';
-      newTrackingHistory.push(`Requeued at ${timeString}${reasonText}`);
+      // Get current room name before clearing
+      const currentWindow = patient.windowId ? this.windows.get(patient.windowId) : null;
+      trackingHistory.push({
+        timestamp: now.toISOString(),
+        action: 'requeued',
+        requeueReason: requeueReason || 'No reason specified',
+        fromRoom: currentWindow?.name || 'Unknown'
+      });
     }
 
     // Preserve last window before clearing for completed/requeue status
@@ -447,7 +468,7 @@ export class MemStorage implements IStorage {
       windowId: windowId === null ? null : (windowId || patient.windowId),
       lastWindowId: lastWindowId,
       requeueReason: status === "requeue" ? requeueReason || null : patient.requeueReason,
-      trackingHistory: newTrackingHistory
+      trackingHistory: trackingHistory
     };
 
     this.patients.set(patientId, updatedPatient);
@@ -1471,7 +1492,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPatient(insertPatient: InsertPatient): Promise<Patient> {
-    const [patient] = await db.insert(schema.patients).values(insertPatient).returning();
+    const now = new Date();
+    const trackingHistory = [{
+      timestamp: now.toISOString(),
+      action: 'registered'
+    }];
+    const patientData = {
+      ...insertPatient,
+      trackingHistory: sql`${JSON.stringify(trackingHistory)}::json`
+    };
+    const [patient] = await db.insert(schema.patients).values(patientData).returning();
     return patient;
   }
 
@@ -1481,17 +1511,68 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePatientStatus(id: string, status: string, userId: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined> {
-    // Special handling for "completed" and "requeue" status - preserve current room to lastWindowId
-    if (status === "completed" || status === "requeue") {
-      // First get the current patient to preserve their windowId to lastWindowId
-      const [currentPatient] = await db.select()
-        .from(schema.patients)
-        .where(and(eq(schema.patients.id, id), eq(schema.patients.userId, userId)));
+    // Get current patient data first
+    const [currentPatient] = await db.select()
+      .from(schema.patients)
+      .where(and(eq(schema.patients.id, id), eq(schema.patients.userId, userId)));
+    
+    if (!currentPatient) {
+      return undefined;
+    }
+
+    const now = new Date();
+    
+    // Get existing tracking history as JSON array
+    let trackingHistory: any[] = [];
+    try {
+      trackingHistory = Array.isArray(currentPatient.trackingHistory) ? currentPatient.trackingHistory : [];
+    } catch (e) {
+      trackingHistory = [];
+    }
+
+    // Add new journey event based on status change
+    if (status === "called" && windowId) {
+      const [window] = await db.select()
+        .from(schema.windows)
+        .where(and(eq(schema.windows.id, windowId), eq(schema.windows.userId, userId)));
       
-      if (!currentPatient) {
-        return undefined;
+      if (window) {
+        trackingHistory.push({
+          timestamp: now.toISOString(),
+          action: 'called',
+          roomName: window.name
+        });
+      }
+    } else if (status === "in-progress") {
+      trackingHistory.push({
+        timestamp: now.toISOString(),
+        action: 'in-progress'
+      });
+    } else if (status === "completed") {
+      trackingHistory.push({
+        timestamp: now.toISOString(),
+        action: 'completed'
+      });
+    } else if (status === "requeue") {
+      // Get current room name before clearing
+      let fromRoom = 'Unknown';
+      if (currentPatient.windowId) {
+        const [currentWindow] = await db.select()
+          .from(schema.windows)
+          .where(and(eq(schema.windows.id, currentPatient.windowId), eq(schema.windows.userId, userId)));
+        fromRoom = currentWindow?.name || 'Unknown';
       }
       
+      trackingHistory.push({
+        timestamp: now.toISOString(),
+        action: 'requeued',
+        requeueReason: requeueReason || 'No reason specified',
+        fromRoom: fromRoom
+      });
+    }
+    
+    // Special handling for "completed" and "requeue" status - preserve current room to lastWindowId
+    if (status === "completed" || status === "requeue") {
       console.log(`🔄 ${status.toUpperCase()}: Preserving windowId`, {
         patientId: id,
         currentWindowId: currentPatient.windowId,
@@ -1502,12 +1583,13 @@ export class DatabaseStorage implements IStorage {
         status,
         windowId: null, // Clear current room
         lastWindowId: currentPatient.windowId, // Preserve current room as last room
-        requeueReason: requeueReason || null
+        requeueReason: requeueReason || null,
+        trackingHistory: sql`${JSON.stringify(trackingHistory)}::json`
       };
 
       // Only set completedAt for "completed" status
       if (status === "completed") {
-        updateData.completedAt = new Date();
+        updateData.completedAt = now;
       }
 
       const [updatedPatient] = await db.update(schema.patients)
@@ -1531,15 +1613,15 @@ export class DatabaseStorage implements IStorage {
     const updateData: any = { 
       status,
       windowId: windowId || null,
-      requeueReason: requeueReason || null
+      requeueReason: requeueReason || null,
+      trackingHistory: sql`${JSON.stringify(trackingHistory)}::json`
     };
 
     // CRITICAL: ALWAYS update calledAt when status is "called" (including recalls)
     // This ensures TV display detects the change and triggers highlight overlay
     if (status === "called") {
-      const newCalledAt = new Date();
-      updateData.calledAt = newCalledAt;
-      console.log(`📞 CALLING PATIENT: ${id} - New calledAt: ${newCalledAt.toISOString()}`);
+      updateData.calledAt = now;
+      console.log(`📞 CALLING PATIENT: ${id} - New calledAt: ${now.toISOString()}`);
     }
 
     const [updatedPatient] = await db.update(schema.patients)
