@@ -586,12 +586,12 @@ export function TVDisplay({
       setIsBlinking(false);
       setBlinkVisible(true);
       
-      // AUDIO PLAYBACK: Parse audio settings and play sound
+      // AUDIO PLAYBACK: Parse audio settings and play sound (use correct setting keys)
       const audioSettings: AudioSettings = {
-        enableSound: (settings.find(s => s.key === 'enable_sound')?.value ?? 'true') === 'true',
-        volume: parseInt(settings.find(s => s.key === 'sound_volume')?.value || '70', 10),
+        enableSound: (settingsObj.enableSound ?? 'true') === 'true',
+        volume: parseInt(settingsObj.volume || '70', 10),
         soundMode: 'preset',
-        presetKey: (settings.find(s => s.key === 'preset_sound_key')?.value || 'notification_sound') as any
+        presetKey: (settingsObj.presetKey || 'notification_sound') as any
       };
 
       // Play notification sound for new patient
