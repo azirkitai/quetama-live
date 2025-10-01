@@ -380,6 +380,7 @@ export function PatientCard({
                         <SelectItem value="GET MEDICATION">GET MEDICATION</SelectItem>
                         <SelectItem value="WAITING FOR TEST RESULTS">WAITING FOR TEST RESULTS</SelectItem>
                         <SelectItem value="MGTT">MGTT</SelectItem>
+                        <SelectItem value="BILL & DISCHARGE">BILL & DISCHARGE</SelectItem>
                         <SelectItem value="OTHER">OTHER</SelectItem>
                       </SelectContent>
                     </Select>
