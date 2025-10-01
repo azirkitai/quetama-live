@@ -1210,25 +1210,19 @@ export function TVDisplay({
                   </div>
                 )}
                 
-                {/* Temperature and Icon */}
-                <div className="flex items-center justify-center space-x-6">
-                  <span className="text-6xl">{weatherData.current.icon}</span>
-                  <div className="text-center">
-                    <div className="text-5xl font-bold" style={{
-                      ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
-                    }}>
-                      {weatherData.current.temperature}{weatherData.units.temperature}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Weather Details - Single Row */}
-                <div className="flex items-center justify-center gap-8">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl" style={{
-                      ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
-                    }}>{weatherData.current.description}</span>
-                  </div>
+                {/* All Weather Info in One Row */}
+                <div className="flex items-center justify-start gap-6">
+                  <span className="text-5xl">{weatherData.current.icon}</span>
+                  <span className="text-4xl font-bold" style={{
+                    ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
+                  }}>
+                    {weatherData.current.temperature}{weatherData.units.temperature}
+                  </span>
+                  <span className="text-xl" style={{
+                    ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
+                  }}>
+                    {weatherData.current.description}
+                  </span>
                   <div className="flex items-center gap-2">
                     <span className="text-lg font-semibold" style={{
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
