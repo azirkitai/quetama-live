@@ -356,6 +356,7 @@ export default function Dashboard() {
                 }))}
                 showPrayerTimes={showPrayerTimes}
                 showWeather={showWeather}
+                disableAudio={true}
               />
             </div>
           </div>

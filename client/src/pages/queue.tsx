@@ -240,25 +240,7 @@ export default function Queue() {
       windowId: selectedWindow
     });
 
-    // Play audio concurrently (non-blocking)
-    if (audioSettings.enableSound || audioSettings.enableTTS) {
-      const callInfo = {
-        patientName: patient.name || undefined,
-        patientNumber: patient.number,
-        windowName: window.name
-      };
-
-      // Fire audio without blocking the UI/TV updates
-      audioSystem.playCallingSequence(callInfo, audioSettings)
-        .catch(error => {
-          console.error('Error playing calling sequence:', error);
-          toast({
-            title: "Audio Warning",
-            description: "Failed to play calling sound",
-            variant: "default"
-          });
-        });
-    }
+    // Audio will be played by TV Display only (not from Queue page)
   };
 
   const handleCallAgain = (patientId: string) => {
@@ -281,25 +263,7 @@ export default function Queue() {
       description: "Pesakit telah dipanggil semula",
     });
 
-    // Play audio concurrently (non-blocking)
-    if (audioSettings.enableSound || audioSettings.enableTTS) {
-      const callInfo = {
-        patientName: patient.name || undefined,
-        patientNumber: patient.number,
-        windowName: window.name
-      };
-
-      // Fire audio without blocking the UI
-      audioSystem.playCallingSequence(callInfo, audioSettings)
-        .catch(error => {
-          console.error('Error playing call again sequence:', error);
-          toast({
-            title: "Audio Warning",
-            description: "Failed to play call again sound",
-            variant: "default"
-          });
-        });
-    }
+    // Audio will be played by TV Display only (not from Queue page)
   };
 
   const handleRecall = async (patientId: string) => {
@@ -338,25 +302,7 @@ export default function Queue() {
       windowId: selectedWindow
     });
 
-    // Play audio concurrently (non-blocking)
-    if (audioSettings.enableSound || audioSettings.enableTTS) {
-      const callInfo = {
-        patientName: patient.name || undefined,
-        patientNumber: patient.number,
-        windowName: window.name
-      };
-
-      // Fire audio without blocking the UI/TV updates
-      audioSystem.playCallingSequence(callInfo, audioSettings)
-        .catch(error => {
-          console.error('Error playing recall sequence:', error);
-          toast({
-            title: "Audio Warning",
-            description: "Failed to play recall sound",
-            variant: "default"
-          });
-        });
-    }
+    // Audio will be played by TV Display only (not from Queue page)
   };
 
   const handleDeletePatient = (patientId: string) => {

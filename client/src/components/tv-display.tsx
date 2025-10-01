@@ -73,6 +73,7 @@ interface TVDisplayProps {
   isFullscreen?: boolean;
   showPrayerTimes?: boolean;
   showWeather?: boolean;
+  disableAudio?: boolean; // Mute audio for preview mode
   // Token for unauthenticated TV display access
   tvToken?: string;
 }
@@ -86,6 +87,7 @@ export function TVDisplay({
   isFullscreen = false,
   showPrayerTimes = false,
   showWeather = false,
+  disableAudio = false,
   tvToken
 }: TVDisplayProps) {
   
@@ -604,8 +606,8 @@ export function TVDisplay({
         presetKey: (settingsObj.presetKey || 'notification_sound') as any
       };
 
-      // Play notification sound for new/recalled patient
-      if (audioSettings.enableSound) {
+      // Play notification sound for new/recalled patient (only if audio not disabled)
+      if (!disableAudio && audioSettings.enableSound) {
         audioSystem.playCallingSequence({
           patientName: currentPatient.name,
           patientNumber: parseInt(currentPatient.number, 10),
