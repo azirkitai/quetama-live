@@ -1154,22 +1154,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const extension = file.mimetype === 'image/png' ? 'png' : 'jpg';
       const filename = `${timestamp}_${(name || file.originalname).toLowerCase().replace(/\s+/g, '_').replace(/\.[^/.]+$/, "")}.${extension}`;
       
-      // Use object storage path - create relative to workspace
+      // Use object storage path - ALWAYS use relative to workspace
       const PUBLIC_OBJECT_SEARCH_PATHS = process.env.PUBLIC_OBJECT_SEARCH_PATHS;
-      let publicPath = 'uploads/public'; // default fallback to local directory
+      let publicPath = 'replit-objstore-85caca72-fd47-41c6-a360-3c3d4b8873eb/public'; // default object storage path
       
       if (PUBLIC_OBJECT_SEARCH_PATHS) {
         try {
           // Try parsing as JSON first
           const paths = JSON.parse(PUBLIC_OBJECT_SEARCH_PATHS);
           if (Array.isArray(paths) && paths.length > 0) {
-            // Make relative to current working directory
-            publicPath = paths[0].startsWith('/') ? paths[0].substring(1) : paths[0];
+            // Convert absolute path to relative (remove leading /)
+            const absPath = paths[0];
+            publicPath = absPath.startsWith('/') ? absPath.substring(1) : absPath;
           }
         } catch (e) {
           // If not JSON, treat as direct path string
           console.log('Using PUBLIC_OBJECT_SEARCH_PATHS as direct path:', PUBLIC_OBJECT_SEARCH_PATHS);
-          // Make relative to current working directory
+          // Convert absolute path to relative (remove leading /)
           publicPath = PUBLIC_OBJECT_SEARCH_PATHS.startsWith('/') ? PUBLIC_OBJECT_SEARCH_PATHS.substring(1) : PUBLIC_OBJECT_SEARCH_PATHS;
         }
       }
