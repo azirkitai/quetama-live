@@ -267,7 +267,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
             src={quetamaLogo} 
             alt="QueTAMA System" 
             className="mx-auto mb-4 max-w-full h-auto"
-            style={{ maxHeight: '300px' }}
+            style={{ maxHeight: '180px' }}
           />
         </div>
 
