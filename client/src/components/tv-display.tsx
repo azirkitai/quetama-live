@@ -1005,10 +1005,6 @@ export function TVDisplay({
               <div className="text-white text-xl">
                 Loading prayer times...
               </div>
-            ) : location ? (
-              <div className="text-yellow-300 text-lg mb-4">
-                📍 {locationError ? "Kuala Lumpur, Malaysia" : prayerTimesData?.location ? `${prayerTimesData.location.city}, ${prayerTimesData.location.country}` : "Kuala Lumpur, Malaysia"}
-              </div>
             ) : null}
             
             {!prayerTimesLoading && displayPrayerTimes.length > 0 && (
