@@ -746,8 +746,8 @@ export function TVDisplay({
       const roomContainerWidth = isFullSize ? 400 : 300; // Room container is smaller
       
       // Base font sizes 
-      const nameBaseSize = isFullSize ? 64 : 48; // 4rem equivalent
-      const roomBaseSize = isFullSize ? 40 : 32; // 2.5rem equivalent
+      const nameBaseSize = isFullSize ? 80 : 60; // Bigger calling name
+      const roomBaseSize = isFullSize ? 50 : 40; // Bigger calling room
       
       // Calculate optimal font sizes
       const newNameSize = calculateFontSize(currentPatient.name, nameContainerWidth, nameBaseSize, 20);
@@ -769,8 +769,8 @@ export function TVDisplay({
       const historyRoomContainerWidth = isFullSize ? 300 : 250; // Bigger room column width
       
       // Base font sizes for history (bigger base sizes)
-      const historyNameBaseSize = isFullSize ? 40 : 32; // Bigger base size (~2.5rem equivalent)
-      const historyRoomBaseSize = isFullSize ? 40 : 32; // Same bigger size for room
+      const historyNameBaseSize = isFullSize ? 56 : 42; // Bigger history name size
+      const historyRoomBaseSize = isFullSize ? 56 : 42; // Bigger history room size
       
       queueHistory.forEach((item) => {
         const nameFontSize = calculateFontSize(item.name, historyNameContainerWidth, historyNameBaseSize, 22); // Bigger minimum size
