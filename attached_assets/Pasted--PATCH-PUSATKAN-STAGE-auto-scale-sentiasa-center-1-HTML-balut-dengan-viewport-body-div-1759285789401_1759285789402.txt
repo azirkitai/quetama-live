@@ -1,0 +1,94 @@
+🔧 PATCH PUSATKAN STAGE (auto-scale + sentiasa center)
+1) HTML (balut dengan viewport)
+<body>
+  <div id="viewport" class="viewport">
+    <div id="stage">
+      <!-- SEMUA UI KAU DI SINI -->
+    </div>
+  </div>
+</body>
+
+2) CSS (center dengan CSS Grid, tiada translate)
+html, body {
+  margin: 0; height: 100%;
+  background: #000;           /* border hitam */
+  overflow: hidden;
+}
+
+/* Viewport penuh skrin & CENTER anak */
+.viewport {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-items: center;        /* <— kunci: center H & V */
+}
+
+/* Kanvas tetap 1920x1080, hanya skala berubah */
+#stage {
+  width: 1920px;
+  height: 1080px;
+  background: #0f1d3a;        /* warna paparan */
+  color: #fff;
+  overflow: hidden;
+  transform: scale(1);
+  transform-origin: center center;   /* <— scale dari tengah */
+}
+
+/* Jangan biar anak paksa overflow */
+#stage, #stage * {
+  min-width: 0; min-height: 0;
+}
+
+3) JS (kira skala, kekal center)
+<script>
+  (function () {
+    const W = 1920, H = 1080;
+    const stage = document.getElementById('stage');
+    const viewport = document.getElementById('viewport');
+
+    function fit() {
+      const s = Math.min(viewport.clientWidth / W, viewport.clientHeight / H);
+      stage.style.transform = `scale(${s})`; // center dijaga oleh .viewport
+    }
+
+    addEventListener('resize', fit);
+    addEventListener('orientationchange', fit);
+    fit();
+  })();
+</script>
+
+
+Nota penting: Kaedah ni tak guna position: fixed atau translate(-50%,-50%) lagi. Kita serahkan kerja center kepada .viewport { place-items:center }, jadi takkan “melekat atas” lagi.
+
+✅ Checklist “agent WAJIB buat”
+
+Guna struktur .viewport > #stage seperti di atas (bukan style lama).
+
+Pastikan tiada transform / filter pada <html>, <body>, atau parent .viewport selain yang diberi — transform pada parent boleh ganggu kedudukan.
+
+Buang mana-mana CSS lama yang set:
+
+#stage { position: fixed/absolute; top:0; left:0; }
+
+transform: translate(...) pada #stage
+
+Uji di 1366×768, 1920×1080, 4K: stage kekal center, border hitam simetri atas/bawah atau kiri/kanan, tiada scroll.
+
+🔍 Kalau masih tak center
+
+Cek di DevTools → Computed styles untuk #stage:
+
+transform hanya scale(...)
+
+Parent .viewport memang place-items:center & height:100vh
+
+Pastikan tiada bar elemen tetap (header/tools) yang mengurangkan 100vh. Kalau ada, gunakan JS gantian:
+
+.viewport { height: calc(var(--vh, 1vh) * 100); }
+
+function setVH(){ document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px'); }
+setVH(); addEventListener('resize', setVH);
+
+“Ayat terus terang untuk agent”
+
+“Balut paparan dengan .viewport (grid) dan letak kanvas #stage 1920×1080 di dalamnya. #stage hanya di-scale (transform: scale(s)) dengan transform-origin:center center. Jangan guna position:fixed atau translate(-50%,-50%). Hasil akhir: sentiasa center, lebihan jadi border hitam, tiada scrollbar.”

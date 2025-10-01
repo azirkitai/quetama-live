@@ -476,20 +476,24 @@ export function TVDisplay({
     return () => clearInterval(timer);
   }, []);
 
-  // Auto-scale 1920×1080 stage to fit any screen size (FIXED CANVAS APPROACH)
+  // Auto-scale 1920×1080 stage to fit any screen size (VIEWPORT-CENTERED APPROACH)
   useEffect(() => {
     if (!isFullscreen || !stageRef.current) return;
 
     const STAGE_WIDTH = 1920;
     const STAGE_HEIGHT = 1080;
     const stage = stageRef.current;
+    const viewport = stage.parentElement;
 
     const fitStage = () => {
-      const scaleX = window.innerWidth / STAGE_WIDTH;
-      const scaleY = window.innerHeight / STAGE_HEIGHT;
+      if (!viewport) return;
+      
+      const scaleX = viewport.clientWidth / STAGE_WIDTH;
+      const scaleY = viewport.clientHeight / STAGE_HEIGHT;
       const scale = Math.min(scaleX, scaleY);
       
-      stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+      // Only scale - centering is handled by viewport CSS Grid
+      stage.style.transform = `scale(${scale})`;
     };
 
     fitStage();
@@ -701,21 +705,20 @@ export function TVDisplay({
 
   // Fixed 1920×1080 stage styling (only for fullscreen)
   const stageStyle = isFullscreen ? {
-    position: 'fixed' as const,
-    left: '50%',
-    top: '50%',
     width: '1920px',
     height: '1080px',
-    transform: 'translate(-50%, -50%) scale(1)',
-    transformOrigin: 'top left',
+    transform: 'scale(1)',
+    transformOrigin: 'center center', // Scale from center
     overflow: 'hidden',
     display: 'grid',
     gridTemplateRows: '700px 380px', // Fixed: Top 700px (16:9 for 1248px), Bottom 380px = 1080px total
     gridTemplateColumns: '1248px 672px', // Fixed: Left 65% (1248px), Right 35% (672px) = 1920px total
     gap: 0,
-    padding: 0, // No padding - fixed 1920×1080 canvas handles safe zones via inner content
+    padding: 0,
     margin: 0,
     boxSizing: 'border-box' as const,
+    minWidth: 0,
+    minHeight: 0,
     ...getBackgroundStyle(headerBackgroundMode, headerBackgroundColor, headerBackgroundGradient, '#ffffff')
   } : {
     gridTemplateRows: 'auto 1fr',
@@ -1223,10 +1226,10 @@ export function TVDisplay({
     </>
   );
 
-  // Conditional wrapper: fullscreen uses fixed 1920×1080 stage with black background
+  // Conditional wrapper: fullscreen uses viewport-centered 1920×1080 stage with black background
   if (isFullscreen) {
     return (
-      <div style={{ position: 'fixed', inset: 0, background: '#000', overflow: 'hidden' }}>
+      <div className="tv-viewport">
         <div 
           ref={stageRef}
           className={wrapperClass}
