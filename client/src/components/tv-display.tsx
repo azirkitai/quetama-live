@@ -1219,31 +1219,31 @@ export function TVDisplay({
                     }}>
                       {weatherData.current.temperature}{weatherData.units.temperature}
                     </div>
-                    <div className="text-xl" style={{
-                      ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
-                    }}>
-                      {weatherData.current.description}
-                    </div>
                   </div>
                 </div>
                 
-                {/* Weather Details */}
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="text-center">
-                    <div className="text-lg font-semibold" style={{
-                      ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
-                    }}>Humidity</div>
-                    <div className="text-2xl" style={{
+                {/* Weather Details - Single Row */}
+                <div className="flex items-center justify-center gap-8">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl" style={{
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
-                    }}>{weatherData.current.humidity}{weatherData.units.humidity}</div>
+                    }}>{weatherData.current.description}</span>
                   </div>
-                  <div className="text-center">
-                    <div className="text-lg font-semibold" style={{
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-semibold" style={{
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
-                    }}>Wind Speed</div>
-                    <div className="text-2xl" style={{
+                    }}>Humidity:</span>
+                    <span className="text-xl" style={{
                       ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
-                    }}>{weatherData.current.windSpeed} {weatherData.units.windSpeed}</div>
+                    }}>{weatherData.current.humidity}{weatherData.units.humidity}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-semibold" style={{
+                      ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#bfdbfe')
+                    }}>Wind:</span>
+                    <span className="text-xl" style={{
+                      ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
+                    }}>{weatherData.current.windSpeed} {weatherData.units.windSpeed}</span>
                   </div>
                 </div>
               </div>
