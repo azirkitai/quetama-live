@@ -9,14 +9,14 @@ export default function NotFound() {
       <Card className="w-full max-w-md">
         <CardContent className="p-8 text-center">
           <AlertCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">404 - Halaman Tidak Dijumpai</h1>
+          <h1 className="text-2xl font-bold mb-2">404 - Page Not Found</h1>
           <p className="text-muted-foreground mb-6">
-            Halaman yang anda cari tidak wujud atau telah dipindahkan.
+            The page you are looking for does not exist or has been moved.
           </p>
           <Button asChild data-testid="button-back-home">
             <Link href="/">
               <Home className="h-4 w-4 mr-2" />
-              Kembali ke Dashboard
+              Back to Dashboard
             </Link>
           </Button>
         </CardContent>

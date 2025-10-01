@@ -39,15 +39,15 @@ export default function Administration() {
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       setNewUser({ username: "", password: "", role: "user" });
       toast({
-        title: "Pengguna Berjaya Ditambah",
-        description: "Pengguna baru telah didaftarkan ke dalam sistem",
+        title: "User Successfully Added",
+        description: "New user has been registered to the system",
       });
     },
     onError: (error) => {
       console.error("Error creating user:", error);
       toast({
-        title: "Ralat Pendaftaran",
-        description: "Gagal menambah pengguna. Sila cuba semula.",
+        title: "Registration Error",
+        description: "Failed to add user. Please try again.",
         variant: "destructive",
       });
     },
@@ -58,8 +58,8 @@ export default function Administration() {
     
     if (!newUser.username.trim() || !newUser.password.trim()) {
       toast({
-        title: "Ralat Validasi",
-        description: "Sila lengkapkan semua maklumat",
+        title: "Validation Error",
+        description: "Please complete all information",
         variant: "destructive",
       });
       return;
@@ -67,8 +67,8 @@ export default function Administration() {
 
     if (users.some(u => u.username.toLowerCase() === newUser.username.toLowerCase())) {
       toast({
-        title: "Ralat Validasi",
-        description: "Username sudah wujud",
+        title: "Validation Error",
+        description: "Username already exists",
         variant: "destructive",
       });
       return;
@@ -90,15 +90,15 @@ export default function Administration() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       toast({
-        title: "Status Dikemaskini",
-        description: "Status pengguna telah berjaya dikemaskini",
+        title: "Status Updated",
+        description: "User status successfully updated",
       });
     },
     onError: (error) => {
       console.error("Error toggling user status:", error);
       toast({
-        title: "Ralat",
-        description: "Gagal mengemaskini status pengguna",
+        title: "Error",
+        description: "Failed to update user status",
         variant: "destructive",
       });
     },
@@ -117,22 +117,22 @@ export default function Administration() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       toast({
-        title: "Pengguna Dipadam",
-        description: "Pengguna telah berjaya dipadam dari sistem",
+        title: "User Deleted",
+        description: "User has been successfully deleted from system",
       });
     },
     onError: (error) => {
       console.error("Error deleting user:", error);
       toast({
-        title: "Ralat",
-        description: "Gagal memadam pengguna",
+        title: "Error",
+        description: "Failed to delete user",
         variant: "destructive",
       });
     },
   });
 
   const handleDeleteUser = (userId: string) => {
-    if (!confirm("Adakah anda pasti ingin memadam pengguna ini?")) {
+    if (!confirm("Are you sure you want to delete this user?")) {
       return;
     }
     deleteUserMutation.mutate(userId);
@@ -146,7 +146,7 @@ export default function Administration() {
             <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
             <p className="text-muted-foreground">
-              Anda tidak mempunyai kebenaran untuk mengakses halaman ini.
+              You do not have permission to access this page.
             </p>
           </CardContent>
         </Card>
@@ -159,7 +159,7 @@ export default function Administration() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Administration</h1>
-        <p className="text-muted-foreground">Urus pengguna dan kebenaran sistem</p>
+        <p className="text-muted-foreground">Manage users and system permissions</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -168,7 +168,7 @@ export default function Administration() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <UserPlus className="h-5 w-5 mr-2" />
-              Tambah Pengguna
+              Add User
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -180,7 +180,7 @@ export default function Administration() {
                   type="text"
                   value={newUser.username}
                   onChange={(e) => setNewUser(prev => ({ ...prev, username: e.target.value }))}
-                  placeholder="Masukkan username"
+                  placeholder="Enter username"
                   required
                   data-testid="input-new-username"
                 />
@@ -193,7 +193,7 @@ export default function Administration() {
                   type="password"
                   value={newUser.password}
                   onChange={(e) => setNewUser(prev => ({ ...prev, password: e.target.value }))}
-                  placeholder="Masukkan password"
+                  placeholder="Enter password"
                   required
                   minLength={6}
                   data-testid="input-new-password"
@@ -224,7 +224,7 @@ export default function Administration() {
                 data-testid="button-add-user"
               >
                 <UserPlus className="h-4 w-4 mr-2" />
-                {createUserMutation.isPending ? "Menambah..." : "Tambah Pengguna"}
+                {createUserMutation.isPending ? "Adding..." : "Add User"}
               </Button>
             </form>
           </CardContent>
@@ -236,13 +236,13 @@ export default function Administration() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Users className="h-5 w-5 mr-2" />
-                Senarai Pengguna ({users.length})
+                User List ({users.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
               {users.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">
-                  Tiada pengguna didaftarkan
+                  No users registered
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -315,7 +315,7 @@ export default function Administration() {
                           <Button
                             size="sm"
                             variant="outline"
-                            title="Urus Paparan"
+                            title="Manage Display"
                             data-testid={`button-manage-display-${user.id}`}
                           >
                             <Monitor className="h-4 w-4" />

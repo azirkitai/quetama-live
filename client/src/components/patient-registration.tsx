@@ -57,14 +57,14 @@ export function PatientRegistration({ onRegister, nextNumber, isRegistering = fa
       <CardHeader>
         <CardTitle className="flex items-center">
           <UserPlus className="h-5 w-5 mr-2" />
-          Daftar Pesakit
+          Register Patient
         </CardTitle>
       </CardHeader>
       
       <CardContent className="space-y-6">
         {/* Registration Type Selection */}
         <div className="space-y-3">
-          <Label className="text-sm font-medium">Jenis Pendaftaran</Label>
+          <Label className="text-sm font-medium">Registration Type</Label>
           <RadioGroup
             value={registrationType}
             onValueChange={(value: "name" | "number") => setRegistrationType(value)}
@@ -78,7 +78,7 @@ export function PatientRegistration({ onRegister, nextNumber, isRegistering = fa
               />
               <Label htmlFor="name" className="flex items-center cursor-pointer">
                 <UserPlus className="h-4 w-4 mr-2" />
-                Daftar dengan Nama
+                Register with Name
               </Label>
             </div>
             <div className="flex items-center space-x-2">
@@ -89,7 +89,7 @@ export function PatientRegistration({ onRegister, nextNumber, isRegistering = fa
               />
               <Label htmlFor="number" className="flex items-center cursor-pointer">
                 <Hash className="h-4 w-4 mr-2" />
-                Daftar dengan Nombor Sahaja
+                Register with Number Only
               </Label>
             </div>
           </RadioGroup>
@@ -98,7 +98,7 @@ export function PatientRegistration({ onRegister, nextNumber, isRegistering = fa
         {/* Next Number Display */}
         <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-            Nombor Seterusnya:
+            Next Number:
           </span>
           <Badge 
             variant="outline" 
@@ -113,13 +113,13 @@ export function PatientRegistration({ onRegister, nextNumber, isRegistering = fa
           {/* Patient Name Input (only for name registration) */}
           {registrationType === "name" && (
             <div className="space-y-2">
-              <Label htmlFor="patientName">Nama Pesakit</Label>
+              <Label htmlFor="patientName">Patient Name</Label>
               <Input
                 id="patientName"
                 type="text"
                 value={patientName}
                 onChange={(e) => setPatientName(e.target.value)}
-                placeholder="Masukkan nama pesakit"
+                placeholder="Enter patient name"
                 maxLength={25}
                 data-testid="input-patient-name"
               />
@@ -136,7 +136,7 @@ export function PatientRegistration({ onRegister, nextNumber, isRegistering = fa
                 data-testid="button-register-patient"
               >
                 <UserPlus className="h-4 w-4 mr-2" />
-                {isRegistering ? "Mendaftar..." : "Daftar Pesakit"}
+                {isRegistering ? "Registering..." : "Register Patient"}
               </Button>
             ) : (
               <Button
@@ -147,7 +147,7 @@ export function PatientRegistration({ onRegister, nextNumber, isRegistering = fa
                 data-testid="button-generate-number"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                {isRegistering ? "Menjana..." : "Jana Nombor & Cetak"}
+                {isRegistering ? "Generating..." : "Generate Number & Print"}
               </Button>
             )}
           </div>
@@ -156,12 +156,12 @@ export function PatientRegistration({ onRegister, nextNumber, isRegistering = fa
         {/* Information Box */}
         <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
           <p>
-            <strong>Panduan:</strong>
+            <strong>Guide:</strong>
           </p>
           <ul className="mt-1 space-y-1 list-disc list-inside">
-            <li>Pilih "Nama" untuk pesakit yang ingin memberikan nama lengkap</li>
-            <li>Pilih "Nombor" untuk sistem nombor berjujukan sahaja</li>
-            <li>Nombor akan dicetak secara automatik untuk pendaftaran nombor</li>
+            <li>Choose "Name" for patients who want to provide their full name</li>
+            <li>Choose "Number" for sequential number system only</li>
+            <li>Number will be printed automatically for number registration</li>
           </ul>
         </div>
       </CardContent>

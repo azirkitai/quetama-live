@@ -169,7 +169,7 @@ export default function Dashboard() {
 
   const showPrayerTimes = settings.showPrayerTimes === true;
   const showWeather = settings.showWeather === true;
-  const clinicName = settings.clinicName || "KLINIK UTAMA 24 JAM";
+  const clinicName = settings.clinicName || "MAIN CLINIC 24 HOURS";
   const clinicLogo = settings.clinicLogo || "";
   const showClinicLogo = settings.showClinicLogo === "true";
 
@@ -185,7 +185,7 @@ export default function Dashboard() {
         window = windows.find(w => w.id === (patient as any).lastWindowId);
       }
       
-      return window?.name || "Tidak tersedia";
+      return window?.name || "Not available";
     })();
     
     return {
@@ -269,11 +269,11 @@ export default function Dashboard() {
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center">
           <Card className="max-w-md mx-4 text-center">
             <CardHeader>
-              <CardTitle className="text-2xl">Paparan TV Sedia</CardTitle>
+              <CardTitle className="text-2xl">TV Display Ready</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                QR login berjaya! Klik butang di bawah untuk mula paparan TV skrin penuh.
+                QR login successful! Click the button below to start fullscreen TV display.
               </p>
               <div className="space-y-2">
                 <Button
@@ -283,7 +283,7 @@ export default function Dashboard() {
                   data-testid="button-start-tv-display"
                 >
                   <Monitor className="h-5 w-5 mr-2" />
-                  Mula Paparan TV
+                  Start TV Display
                 </Button>
                 <Button
                   onClick={() => setShowFullscreenPrompt(false)}
@@ -291,7 +291,7 @@ export default function Dashboard() {
                   className="w-full"
                   data-testid="button-cancel-tv-display"
                 >
-                  Batal
+                  Cancel
                 </Button>
               </div>
             </CardContent>
@@ -303,7 +303,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Paparan utama sistem panggilan klinik</p>
+          <p className="text-muted-foreground">Main dashboard for clinic calling system</p>
         </div>
         <Button
           onClick={toggleFullscreen}
@@ -311,7 +311,7 @@ export default function Dashboard() {
           className="btn-gradient"
         >
           <Monitor className="h-4 w-4 mr-2" />
-          Paparan TV Penuh
+          Fullscreen TV Display
         </Button>
       </div>
 
@@ -319,7 +319,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Menunggu</CardTitle>
+            <CardTitle className="text-sm font-medium">Waiting</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -327,14 +327,14 @@ export default function Dashboard() {
               {statsLoading ? "..." : (stats?.totalWaiting || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              pesakit dalam barisan
+              patients in queue
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Dipanggil</CardTitle>
+            <CardTitle className="text-sm font-medium">Called</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -342,14 +342,14 @@ export default function Dashboard() {
               {statsLoading ? "..." : (stats?.totalCalled || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              pesakit sedang dipanggil
+              patients being called
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Selesai</CardTitle>
+            <CardTitle className="text-sm font-medium">Completed</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -357,14 +357,14 @@ export default function Dashboard() {
               {statsLoading ? "..." : (stats?.totalCompleted || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              pesakit hari ini
+              patients today
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bilik Aktif</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Rooms</CardTitle>
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -372,7 +372,7 @@ export default function Dashboard() {
               {statsLoading ? "..." : (stats?.activeWindows || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              daripada {stats?.totalWindows || 0} bilik
+              out of {stats?.totalWindows || 0} rooms
             </p>
           </CardContent>
         </Card>
@@ -381,7 +381,7 @@ export default function Dashboard() {
       {/* TV Preview */}
       <Card>
         <CardHeader>
-          <CardTitle>Pratonton Paparan TV</CardTitle>
+          <CardTitle>TV Display Preview</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden max-w-2xl mx-auto" style={{ aspectRatio: '16/9' }}>
@@ -408,7 +408,7 @@ export default function Dashboard() {
               data-testid="button-preview-fullscreen"
             >
               <Monitor className="h-4 w-4 mr-2" />
-              Lihat Paparan Penuh
+              View Full Display
             </Button>
           </div>
         </CardContent>

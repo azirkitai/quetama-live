@@ -113,8 +113,8 @@ export default function Queue() {
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/history'] });
       
       toast({
-        title: "Berjaya",
-        description: "Pesakit berjaya dipanggil",
+        title: "Success",
+        description: "Patient successfully called",
       });
     },
     onSettled: () => {
@@ -134,15 +134,15 @@ export default function Queue() {
       queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
       queryClient.invalidateQueries({ queryKey: ['/api/windows'] });
       toast({
-        title: "Berjaya",
-        description: "Pesakit telah dipadam",
+        title: "Success",
+        description: "Patient has been deleted",
       });
     },
     onError: (error) => {
       console.error("Error deleting patient:", error);
       toast({
-        title: "Ralat",
-        description: "Gagal memadam pesakit",
+        title: "Error",
+        description: "Failed to delete patient",
         variant: "destructive",
       });
     },
@@ -159,15 +159,15 @@ export default function Queue() {
       queryClient.invalidateQueries({ queryKey: ['/api/windows'] });
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
       toast({
-        title: "Queue Reset Berjaya",
-        description: `${data.archivedCount || 0} pesakit selesai telah diarkibkan`,
+        title: "Queue Reset Success",
+        description: `${data.archivedCount || 0} completed patient(s) archived`,
       });
     },
     onError: (error) => {
       console.error("Error resetting queue:", error);
       toast({
-        title: "Ralat Reset Queue",
-        description: "Gagal reset queue. Sila cuba semula.",
+        title: "Queue Reset Error",
+        description: "Failed to reset queue. Please try again.",
         variant: "destructive",
       });
     },
@@ -207,8 +207,8 @@ export default function Queue() {
   const handleCallPatient = async (patientId: string) => {
     if (!selectedWindow) {
       toast({
-        title: "Ralat",
-        description: "Sila pilih bilik terlebih dahulu",
+        title: "Error",
+        description: "Please select room first",
         variant: "destructive",
       });
       return;
@@ -222,8 +222,8 @@ export default function Queue() {
     // 2. Same patient is being called again (recall scenario)
     if (window.currentPatientId && window.currentPatientId !== patientId) {
       toast({
-        title: "Ralat",
-        description: "Bilik ini sedang melayani pesakit lain",
+        title: "Error",
+        description: "This room is serving another patient",
         variant: "destructive",
       });
       return;
@@ -259,8 +259,8 @@ export default function Queue() {
 
     // Show toast immediately for responsive UI feedback
     toast({
-      title: "Panggil Lagi",
-      description: "Pesakit telah dipanggil semula",
+      title: "Call Again",
+      description: "Patient has been recalled",
     });
 
     // Audio will be played by TV Display only (not from Queue page)
@@ -269,8 +269,8 @@ export default function Queue() {
   const handleRecall = async (patientId: string) => {
     if (!selectedWindow) {
       toast({
-        title: "Ralat",
-        description: "Sila pilih bilik terlebih dahulu",
+        title: "Error",
+        description: "Please select room first",
         variant: "destructive",
       });
       return;
@@ -284,8 +284,8 @@ export default function Queue() {
     // 2. Same patient is being recalled
     if (window.currentPatientId && window.currentPatientId !== patientId) {
       toast({
-        title: "Ralat",
-        description: "Bilik ini sedang melayani pesakit lain",
+        title: "Error",
+        description: "This room is serving another patient",
         variant: "destructive",
       });
       return;
@@ -330,7 +330,7 @@ export default function Queue() {
   };
 
   const handleResetQueue = () => {
-    if (confirm("Adakah anda pasti ingin reset queue? Semua pesakit 'Selesai' akan diarkibkan. Tindakan ini tidak boleh dibatalkan.")) {
+    if (confirm("Are you sure you want to reset queue? All 'Completed' patients will be archived. This action cannot be undone.")) {
       resetQueueMutation.mutate();
     }
   };
@@ -345,7 +345,7 @@ export default function Queue() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Queue Management</h1>
-          <p className="text-muted-foreground">Urus panggilan pesakit dan bilik rawatan</p>
+          <p className="text-muted-foreground">Manage patient calls and treatment rooms</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -374,14 +374,14 @@ export default function Queue() {
         <CardHeader>
           <CardTitle className="flex items-center">
             <ClipboardList className="h-5 w-5 mr-2" />
-            Pilih Bilik untuk Panggilan
+            Select Room for Call
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center space-x-4">
             <Select value={selectedWindow} onValueChange={setSelectedWindow}>
               <SelectTrigger className="w-64" data-testid="select-window">
-                <SelectValue placeholder="Pilih bilik..." />
+                <SelectValue placeholder="Select room..." />
               </SelectTrigger>
               <SelectContent>
                 {activeWindows.map((window) => (
@@ -408,7 +408,7 @@ export default function Queue() {
         <div>
           <h2 className="text-lg font-semibold mb-4 flex items-center">
             <Users className="h-5 w-5 mr-2" />
-            Pesakit Aktif ({activePatients.length})
+            Active Patients ({activePatients.length})
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {activePatients.map((patient) => (
@@ -433,13 +433,13 @@ export default function Queue() {
       <div>
         <h2 className="text-lg font-semibold mb-4 flex items-center">
           <Users className="h-5 w-5 mr-2" />
-          Pesakit Menunggu ({waitingPatients.length})
+          Waiting Patients ({waitingPatients.length})
         </h2>
         {waitingPatients.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
               <div className="text-muted-foreground">
-                Tiada pesakit dalam barisan menunggu
+                No patients in waiting queue
               </div>
             </CardContent>
           </Card>

@@ -17,8 +17,8 @@ import quetamaLogo from "@assets/QUEUE MANAGEMENT SYSTEM_1759210094923.png";
 
 // Login form schema
 const loginSchema = z.object({
-  username: z.string().min(1, "Username diperlukan"),
-  password: z.string().min(1, "Password diperlukan"),
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -60,21 +60,21 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
       if (result.success) {
         toast({
-          title: "Login Berjaya",
-          description: `Selamat datang, ${result.user.username}!`,
+          title: "Login Success",
+          description: `Welcome, ${result.user.username}!`,
         });
         
         // Call the callback to update app state
         onLoginSuccess(result.user);
       } else {
-        setError("Login gagal. Sila cuba lagi.");
+        setError("Login failed. Please try again.");
       }
     } catch (err: any) {
-      const errorMsg = err.message || "Ralat tidak dijangka berlaku";
+      const errorMsg = err.message || "Unexpected error occurred";
       setError(errorMsg);
       
       toast({
-        title: "Login Gagal",
+        title: "Login Failed",
         description: errorMsg,
         variant: "destructive",
       });
@@ -111,19 +111,19 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         initializeQrWebSocket(sessionId);
         
         toast({
-          title: "QR Code Dijana",
-          description: "Imbas kod QR dengan telefon bimbit anda",
+          title: "QR Code Generated",
+          description: "Scan QR code with your mobile phone",
         });
       } else {
-        throw new Error(result.error || "Gagal menjana QR code");
+        throw new Error(result.error || "Failed to generate QR code");
       }
     } catch (err: any) {
-      const errorMsg = err.message || "Ralat tidak dijangka berlaku";
+      const errorMsg = err.message || "Unexpected error occurred";
       setError(errorMsg);
       setIsQrModalOpen(false);
       
       toast({
-        title: "QR Code Gagal",
+        title: "QR Code Failed",
         description: errorMsg,
         variant: "destructive",
       });
@@ -141,15 +141,15 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     newSocket.on('qr:authorization_complete', (data) => {
       setQrStatus('authorized');
       toast({
-        title: "Pengesahan Berjaya",
-        description: "Menunggu pengesahan akhir...",
+        title: "Authorization Success",
+        description: "Waiting for final confirmation...",
       });
     });
     
     newSocket.on('qr:login_complete', (data) => {
       toast({
-        title: "Login QR Berjaya",
-        description: `Selamat datang, ${data.user.username}!`,
+        title: "QR Login Success",
+        description: `Welcome, ${data.user.username}!`,
       });
       
       // Close modal and login
@@ -160,8 +160,8 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     newSocket.on('qr:expired', () => {
       setQrStatus('expired');
       toast({
-        title: "QR Code Tamat Tempoh",
-        description: "Sila jana QR code baharu",
+        title: "QR Code Expired",
+        description: "Please generate new QR code",
         variant: "destructive",
       });
     });
@@ -176,8 +176,8 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
   const handleVerifierSubmit = async () => {
     if (!qrSessionId || !verifierInput || verifierInput.length !== 6) {
       toast({
-        title: "Kod Tidak Lengkap",
-        description: "Sila masukkan 6-digit kod dari telefon anda",
+        title: "Code Incomplete",
+        description: "Please enter 6-digit code from your phone",
         variant: "destructive",
       });
       return;
@@ -192,19 +192,19 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
       if (result.success && result.userId) {
         toast({
-          title: "Login QR Berjaya",
-          description: "Mengalihkan ke dashboard...",
+          title: "QR Login Success",
+          description: "Redirecting to dashboard...",
         });
         
         // Redirect to dashboard (which has fullscreen TV display mode)
         window.location.href = '/?fullscreen=1';
       } else {
-        throw new Error(result.error || "Kod verifikasi tidak sah");
+        throw new Error(result.error || "Invalid verification code");
       }
     } catch (err: any) {
       toast({
-        title: "Verifikasi Gagal",
-        description: err.message || "Kod tidak sah. Sila cuba lagi.",
+        title: "Verification Failed",
+        description: err.message || "Invalid code. Please try again.",
         variant: "destructive",
       });
       setVerifierInput('');
@@ -274,9 +274,9 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         {/* Login Form */}
         <Card>
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">Log Masuk</CardTitle>
+            <CardTitle className="text-2xl text-center">Login</CardTitle>
             <CardDescription className="text-center">
-              Masukkan maklumat akaun anda untuk mengakses sistem
+              Enter your account information to access the system
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -299,7 +299,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                         <Input
                           {...field}
                           data-testid="input-username"
-                          placeholder="Masukkan username anda"
+                          placeholder="Enter your username"
                           disabled={isLoading}
                           autoComplete="username"
                         />
@@ -320,7 +320,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                           {...field}
                           data-testid="input-password"
                           type="password"
-                          placeholder="Masukkan password anda"
+                          placeholder="Enter your password"
                           disabled={isLoading}
                           autoComplete="current-password"
                         />
@@ -343,12 +343,12 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                   {isLoading ? (
                     <>
                       <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                      Sedang log masuk...
+                      Logging in...
                     </>
                   ) : (
                     <>
                       <LogIn className="w-4 h-4 mr-2" />
-                      Log Masuk
+                      Login
                     </>
                   )}
                 </Button>
@@ -362,7 +362,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
-                  Atau
+                  Or
                 </span>
               </div>
             </div>
@@ -377,14 +377,14 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
               disabled={isLoading}
             >
               <QrCode className="w-4 h-4 mr-2" />
-              Log Masuk dengan QR Code
+              Login with QR Code
             </Button>
           </CardContent>
         </Card>
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-          © 2025 Sistem Panggilan Klinik. Hak cipta terpelihara.
+          © 2025 Clinic Queue System. All rights reserved.
         </div>
       </div>
 
@@ -394,10 +394,10 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Smartphone className="w-5 h-5" />
-              Login dengan QR Code
+              Login with QR Code
             </DialogTitle>
             <DialogDescription>
-              Imbas kod QR di bawah dengan telefon bimbit anda untuk log masuk dengan mudah
+              Scan the QR code below with your mobile phone to login easily
             </DialogDescription>
           </DialogHeader>
 
@@ -405,7 +405,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
             {qrStatus === 'loading' && (
               <div className="flex flex-col items-center space-y-4">
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm text-muted-foreground">Menjana QR Code...</p>
+                <p className="text-sm text-muted-foreground">Generating QR Code...</p>
               </div>
             )}
 
@@ -426,17 +426,17 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                   <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                     <Timer className="w-4 h-4" />
                     <span data-testid="text-countdown">
-                      Tamat tempoh dalam {Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}
+                      Expires in {Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    1. Imbas QR code dengan kamera telefon
+                    1. Scan QR code with phone camera
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    2. Log masuk pada halaman yang terbuka
+                    2. Login on the opened page
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    3. Sistem akan mengalihkan anda secara automatik
+                    3. System will redirect you automatically
                   </p>
                 </div>
               </>
@@ -449,17 +449,17 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                 </div>
                 <div className="text-center">
                   <h3 className="font-semibold text-green-600 dark:text-green-400">
-                    Pengesahan Berjaya!
+                    Authorization Success!
                   </h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Masukkan kod 6-digit yang dipaparkan di telefon anda
+                    Enter the 6-digit code displayed on your phone
                   </p>
                 </div>
 
                 {/* Verifier Input Field */}
                 <div className="w-full max-w-xs space-y-3">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Kod Pengesahan</label>
+                    <label className="block text-sm font-medium mb-2">Verification Code</label>
                     <Input
                       type="text"
                       maxLength={6}
@@ -482,7 +482,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                     className="w-full"
                     data-testid="button-verify"
                   >
-                    {isVerifying ? "Mengesahkan..." : "Sahkan"}
+                    {isVerifying ? "Verifying..." : "Verify"}
                   </Button>
                 </div>
 
@@ -491,7 +491,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                   <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
                     <Timer className="w-3 h-3" />
                     <span>
-                      Tamat tempoh dalam {Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}
+                      Expires in {Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}
                     </span>
                   </div>
                 )}
@@ -505,10 +505,10 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                 </div>
                 <div className="text-center">
                   <h3 className="font-semibold text-red-600 dark:text-red-400">
-                    QR Code Tamat Tempoh
+                    QR Code Expired
                   </h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Sila tutup dan cuba lagi untuk menjana QR code baharu
+                    Please close and try again to generate new QR code
                   </p>
                 </div>
                 <Button 
@@ -516,7 +516,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                   onClick={closeQrModal}
                   data-testid="button-close-qr"
                 >
-                  Tutup
+                  Close
                 </Button>
               </div>
             )}

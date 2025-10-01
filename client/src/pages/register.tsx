@@ -51,15 +51,15 @@ export default function Register() {
       queryClient.invalidateQueries({ queryKey: ['/api/patients/next-number'] });
       
       toast({
-        title: "Pendaftaran Berjaya",
-        description: "Pesakit telah didaftarkan ke dalam sistem",
+        title: "Registration Success",
+        description: "Patient has been registered to the system",
       });
     },
     onError: (error) => {
       console.error("Error registering patient:", error);
       toast({
-        title: "Ralat Pendaftaran",
-        description: "Gagal mendaftarkan pesakit. Sila cuba semula.",
+        title: "Registration Error",
+        description: "Failed to register patient. Please try again.",
         variant: "destructive",
       });
     },
@@ -116,7 +116,7 @@ export default function Register() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Register</h1>
-        <p className="text-muted-foreground">Daftar pesakit baru ke dalam sistem</p>
+        <p className="text-muted-foreground">Register new patient to the system</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -135,21 +135,21 @@ export default function Register() {
           <div>
             <h2 className="text-lg font-semibold mb-4 flex items-center">
               <Users className="h-5 w-5 mr-2" />
-              Statistik Hari Ini
+              Today's Statistics
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center">
                     <UserPlus className="h-4 w-4 mr-2" />
-                    Total Daftar
+                    Total Registered
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-primary" data-testid="text-total-registered">
                     {todayStats.totalRegistered}
                   </div>
-                  <p className="text-xs text-muted-foreground">pesakit</p>
+                  <p className="text-xs text-muted-foreground">patient(s)</p>
                 </CardContent>
               </Card>
 
@@ -157,14 +157,14 @@ export default function Register() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center">
                     <UserPlus className="h-4 w-4 mr-2" />
-                    Dengan Nama
+                    With Name
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-green-600" data-testid="text-name-registrations">
                     {todayStats.nameRegistrations}
                   </div>
-                  <p className="text-xs text-muted-foreground">pesakit</p>
+                  <p className="text-xs text-muted-foreground">patient(s)</p>
                 </CardContent>
               </Card>
 
@@ -172,14 +172,14 @@ export default function Register() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center">
                     <Hash className="h-4 w-4 mr-2" />
-                    Nombor Sahaja
+                    Number Only
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-blue-600" data-testid="text-number-registrations">
                     {todayStats.numberRegistrations}
                   </div>
-                  <p className="text-xs text-muted-foreground">pesakit</p>
+                  <p className="text-xs text-muted-foreground">patient(s)</p>
                 </CardContent>
               </Card>
             </div>
@@ -189,13 +189,13 @@ export default function Register() {
           <div>
             <h2 className="text-lg font-semibold mb-4 flex items-center">
               <Clock className="h-5 w-5 mr-2" />
-              Pendaftaran Terkini
+              Recent Registrations
             </h2>
             <Card>
               <CardContent className="p-0">
                 {recentPatients.length === 0 ? (
                   <div className="p-8 text-center text-muted-foreground">
-                    Belum ada pendaftaran hari ini
+                    No registrations today yet
                   </div>
                 ) : (
                   <div className="divide-y">
@@ -211,7 +211,7 @@ export default function Register() {
                           </div>
                           <div>
                             <div className="font-medium">
-                              {patient.name || "Tanpa Nama"}
+                              {patient.name || "Without Name"}
                             </div>
                             <div className="text-sm text-muted-foreground">
                               {patient.registeredAt}
@@ -223,7 +223,7 @@ export default function Register() {
                             variant={patient.type === "name" ? "default" : "outline"}
                             data-testid={`badge-type-${patient.id}`}
                           >
-                            {patient.type === "name" ? "Nama" : "Nombor"}
+                            {patient.type === "name" ? "Name" : "Number"}
                           </Badge>
                         </div>
                       </div>

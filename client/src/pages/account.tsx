@@ -23,8 +23,8 @@ export default function Account() {
     
     if (userInfo.newPassword !== userInfo.confirmPassword) {
       toast({
-        title: "Ralat",
-        description: "Kata laluan baru tidak sepadan",
+        title: "Error",
+        description: "New password does not match",
         variant: "destructive"
       });
       return;
@@ -32,8 +32,8 @@ export default function Account() {
 
     if (userInfo.newPassword.length < 6) {
       toast({
-        title: "Ralat",
-        description: "Kata laluan mestilah sekurang-kurangnya 6 aksara",
+        title: "Error",
+        description: "Password must be at least 6 characters",
         variant: "destructive"
       });
       return;
@@ -56,14 +56,14 @@ export default function Account() {
       }));
       
       toast({
-        title: "Berjaya",
-        description: "Kata laluan berjaya dikemaskini"
+        title: "Success",
+        description: "Password successfully updated"
       });
     } catch (error) {
       console.error("Password change failed:", error);
       toast({
-        title: "Ralat",
-        description: error instanceof Error ? error.message : "Gagal menukar kata laluan",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to change password",
         variant: "destructive"
       });
     } finally {
@@ -76,7 +76,7 @@ export default function Account() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Account</h1>
-        <p className="text-muted-foreground">Urus maklumat akaun dan kata laluan</p>
+        <p className="text-muted-foreground">Manage account information and password</p>
       </div>
 
       <div className="max-w-2xl">
@@ -85,13 +85,13 @@ export default function Account() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Lock className="h-5 w-5 mr-2" />
-              Tukar Kata Laluan
+              Change Password
             </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handlePasswordChange} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="currentPassword">Kata Laluan Semasa</Label>
+                <Label htmlFor="currentPassword">Current Password</Label>
                 <Input
                   id="currentPassword"
                   type="password"
@@ -103,7 +103,7 @@ export default function Account() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="newPassword">Kata Laluan Baru</Label>
+                <Label htmlFor="newPassword">New Password</Label>
                 <Input
                   id="newPassword"
                   type="password"
@@ -116,7 +116,7 @@ export default function Account() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Sahkan Kata Laluan Baru</Label>
+                <Label htmlFor="confirmPassword">Confirm New Password</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -135,7 +135,7 @@ export default function Account() {
                 data-testid="button-change-password"
               >
                 <Save className="h-4 w-4 mr-2" />
-                {isChangingPassword ? "Menyimpan..." : "Tukar Kata Laluan"}
+                {isChangingPassword ? "Saving..." : "Change Password"}
               </Button>
             </form>
           </CardContent>
@@ -145,14 +145,14 @@ export default function Account() {
       {/* Security Information */}
       <Card>
         <CardHeader>
-          <CardTitle>Maklumat Keselamatan</CardTitle>
+          <CardTitle>Security Information</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-sm text-muted-foreground space-y-2">
-            <p>• Kata laluan mestilah sekurang-kurangnya 6 aksara</p>
-            <p>• Gunakan kombinasi huruf besar, huruf kecil, dan nombor untuk keselamatan yang lebih baik</p>
-            <p>• Jangan kongsikan maklumat login anda dengan orang lain</p>
-            <p>• Log keluar selepas selesai menggunakan sistem</p>
+            <p>• Password must be at least 6 characters</p>
+            <p>• Use combination of uppercase, lowercase, and numbers for better security</p>
+            <p>• Do not share your login information with others</p>
+            <p>• Logout after finishing using the system</p>
           </div>
         </CardContent>
       </Card>

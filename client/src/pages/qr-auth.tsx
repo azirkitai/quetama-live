@@ -13,9 +13,9 @@ import { apiRequest } from "@/lib/queryClient";
 
 // QR Auth form schema
 const qrAuthSchema = z.object({
-  username: z.string().min(1, "Username diperlukan"),
-  password: z.string().min(1, "Password diperlukan"),
-  tvVerifier: z.string().min(4, "Kod pengesahan TV mesti sekurang-kurangnya 4 aksara"),
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+  tvVerifier: z.string().min(4, "TV verification code must be at least 4 characters"),
 });
 
 type QrAuthFormData = z.infer<typeof qrAuthSchema>;
@@ -40,7 +40,7 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
     if (!sessionId) {
       console.error('❌ ERROR: sessionId is empty!');
       setStep('expired');
-      setError('Sesi QR tidak sah. Tiada sessionId diterima.');
+      setError('Invalid QR session. No sessionId received.');
     }
   }, [sessionId]);
 
@@ -73,24 +73,24 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
         setStep('verify');
         
         toast({
-          title: "Pengesahan Berjaya",
-          description: "Sila masukkan kod pengesahan dari TV",
+          title: "Authorization Successful",
+          description: "Please enter the verification code from the TV",
         });
       } else {
-        throw new Error(authResult.error || "Username atau password tidak sah");
+        throw new Error(authResult.error || "Invalid username or password");
       }
     } catch (err: any) {
-      let errorMsg = err.message || "Ralat tidak dijangka berlaku";
+      let errorMsg = err.message || "Unexpected error occurred";
       
       // Handle specific error cases
-      if (errorMsg.includes("tidak sah") || errorMsg.includes("tamat tempoh")) {
+      if (errorMsg.includes("invalid") || errorMsg.includes("expired") || errorMsg.includes("tidak sah") || errorMsg.includes("tamat tempoh")) {
         setStep('expired');
-        errorMsg = "Sesi QR telah tamat tempoh. Sila jana QR code baharu.";
+        errorMsg = "QR session has expired. Please generate a new QR code.";
       }
       
       setError(errorMsg);
       toast({
-        title: "Pengesahan Gagal",
+        title: "Authorization Failed",
         description: errorMsg,
         variant: "destructive",
       });
@@ -114,8 +114,8 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
         setStep('success');
         
         toast({
-          title: "Login QR Berjaya!",
-          description: "Anda akan dialihkan ke sistem dalam beberapa saat",
+          title: "QR Login Successful!",
+          description: "You will be redirected to the system in a few moments",
         });
 
         // Auto redirect after 3 seconds
@@ -123,19 +123,19 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
           window.close(); // Close mobile browser tab
         }, 3000);
       } else {
-        throw new Error(finalizeResult.error || "Kod pengesahan TV tidak sah");
+        throw new Error(finalizeResult.error || "Invalid TV verification code");
       }
     } catch (err: any) {
-      let errorMsg = err.message || "Ralat tidak dijangka berlaku";
+      let errorMsg = err.message || "Unexpected error occurred";
       
-      if (errorMsg.includes("tidak sah") || errorMsg.includes("tamat tempoh")) {
+      if (errorMsg.includes("invalid") || errorMsg.includes("expired") || errorMsg.includes("tidak sah") || errorMsg.includes("tamat tempoh")) {
         setStep('expired');
-        errorMsg = "Sesi QR telah tamat tempoh. Sila jana QR code baharu.";
+        errorMsg = "QR session has expired. Please generate a new QR code.";
       }
       
       setError(errorMsg);
       toast({
-        title: "Pengesahan Gagal",
+        title: "Verification Failed",
         description: errorMsg,
         variant: "destructive",
       });
@@ -171,10 +171,10 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
             <Smartphone className="w-6 h-6 text-primary-foreground" />
           </div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-            Login QR
+            QR Login
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-300">
-            Sistem Panggilan Klinik
+            Clinic Calling System
           </p>
         </div>
 
@@ -185,10 +185,10 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
               <>
                 <CardTitle className="text-lg text-center flex items-center justify-center gap-2">
                   <Shield className="w-5 h-5" />
-                  Pengesahan Diperlukan
+                  Authorization Required
                 </CardTitle>
                 <CardDescription className="text-center text-sm">
-                  Masukkan maklumat akaun anda untuk melengkapkan login QR
+                  Enter your account information to complete QR login
                 </CardDescription>
               </>
             )}
@@ -197,10 +197,10 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
               <>
                 <CardTitle className="text-lg text-center flex items-center justify-center gap-2">
                   <Timer className="w-5 h-5" />
-                  Kod Pengesahan TV
+                  TV Verification Code
                 </CardTitle>
                 <CardDescription className="text-center text-sm">
-                  Masukkan kod 4-6 digit yang terpapar pada skrin TV
+                  Enter the 4-6 digit code displayed on the TV screen
                 </CardDescription>
               </>
             )}
@@ -209,10 +209,10 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
               <>
                 <CardTitle className="text-lg text-center flex items-center justify-center gap-2 text-green-600">
                   <CheckCircle className="w-5 h-5" />
-                  Login Berjaya!
+                  Login Successful!
                 </CardTitle>
                 <CardDescription className="text-center text-sm">
-                  Anda telah berjaya log masuk. Sistem TV akan dialihkan secara automatik.
+                  You have successfully logged in. The TV system will redirect automatically.
                 </CardDescription>
               </>
             )}
@@ -221,10 +221,10 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
               <>
                 <CardTitle className="text-lg text-center flex items-center justify-center gap-2 text-red-600">
                   <AlertCircle className="w-5 h-5" />
-                  Sesi Tamat Tempoh
+                  Session Expired
                 </CardTitle>
                 <CardDescription className="text-center text-sm">
-                  Sesi QR ini telah tamat tempoh. Sila jana QR code baharu dari TV.
+                  This QR session has expired. Please generate a new QR code from the TV.
                 </CardDescription>
               </>
             )}
@@ -251,7 +251,7 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
                           <Input
                             {...field}
                             data-testid="input-qr-username"
-                            placeholder="Username anda"
+                            placeholder="Your username"
                             disabled={isLoading}
                             autoComplete="username"
                             className="text-base" // Prevent iOS zoom
@@ -273,7 +273,7 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
                             {...field}
                             data-testid="input-qr-password"
                             type="password"
-                            placeholder="Password anda"
+                            placeholder="Your password"
                             disabled={isLoading}
                             autoComplete="current-password"
                             className="text-base" // Prevent iOS zoom
@@ -294,12 +294,12 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
                     {isLoading ? (
                       <>
                         <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                        Mengesahkan...
+                        Authorizing...
                       </>
                     ) : (
                       <>
                         <Shield className="w-4 h-4 mr-2" />
-                        Seterusnya
+                        Next
                       </>
                     )}
                   </Button>
@@ -314,7 +314,7 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-600" />
                     <span className="text-sm font-medium text-green-800 dark:text-green-200">
-                      Dipengesahkan sebagai: {authorizedUser.username}
+                      Authorized as: {authorizedUser.username}
                     </span>
                   </div>
                 </div>
@@ -326,12 +326,12 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
                       name="tvVerifier"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm">Kod Pengesahan TV</FormLabel>
+                          <FormLabel className="text-sm">TV Verification Code</FormLabel>
                           <FormControl>
                             <Input
                               {...field}
                               data-testid="input-tv-verifier"
-                              placeholder="Contoh: 1234"
+                              placeholder="Example: 1234"
                               disabled={isLoading}
                               maxLength={6}
                               className="text-base text-center font-mono tracking-widest" // Prevent iOS zoom, center digits
@@ -340,7 +340,7 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
                           </FormControl>
                           <FormMessage />
                           <p className="text-xs text-muted-foreground mt-1">
-                            Lihat kod 4-6 digit yang terpapar pada skrin TV
+                            See the 4-6 digit code displayed on the TV screen
                           </p>
                         </FormItem>
                       )}
@@ -355,12 +355,12 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
                       {isLoading ? (
                         <>
                           <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                          Mengesahkan...
+                          Verifying...
                         </>
                       ) : (
                         <>
                           <CheckCircle className="w-4 h-4 mr-2" />
-                          Selesaikan Login
+                          Complete Login
                         </>
                       )}
                     </Button>
@@ -375,10 +375,10 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
                   <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Login QR berjaya untuk <strong>{authorizedUser?.username}</strong>
+                  QR login successful for <strong>{authorizedUser?.username}</strong>
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Tab ini akan ditutup secara automatik dalam beberapa saat...
+                  This tab will close automatically in a few moments...
                 </p>
               </div>
             )}
@@ -389,7 +389,7 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
                   <Timer className="w-8 h-8 text-red-600 dark:text-red-400" />
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Sesi QR ini tidak lagi sah atau telah tamat tempoh
+                  This QR session is no longer valid or has expired
                 </p>
                 <Button 
                   variant="outline" 
@@ -397,7 +397,7 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
                   data-testid="button-close-expired"
                   className="w-full"
                 >
-                  Tutup
+                  Close
                 </Button>
               </div>
             )}
@@ -408,23 +408,23 @@ export default function QrAuthPage({ sessionId }: QrAuthPageProps) {
         {(step === 'login' || step === 'verify') && (
           <div className="mt-4 p-3 bg-muted/50 rounded-lg">
             <h4 className="text-xs font-medium mb-2 text-muted-foreground">
-              Langkah-langkah:
+              Steps:
             </h4>
             <div className="text-xs space-y-1 text-muted-foreground">
               <div className={step === 'login' ? 'font-medium text-foreground' : ''}>
-                1. Masukkan username dan password anda
+                1. Enter your username and password
               </div>
               <div className={step === 'verify' ? 'font-medium text-foreground' : ''}>
-                2. Masukkan kod pengesahan dari TV
+                2. Enter the verification code from TV
               </div>
-              <div>3. Sistem akan login secara automatik</div>
+              <div>3. System will login automatically</div>
             </div>
           </div>
         )}
 
         {/* Footer */}
         <div className="text-center mt-6 text-xs text-gray-500 dark:text-gray-400">
-          © 2025 Sistem Panggilan Klinik
+          © 2025 Clinic Calling System
         </div>
       </div>
     </div>

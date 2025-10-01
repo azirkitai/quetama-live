@@ -37,14 +37,14 @@ export default function Management() {
       queryClient.invalidateQueries({ queryKey: ["/api/windows"] });
       setNewWindowName("");
       toast({
-        title: "Bilik berjaya ditambah",
-        description: "Bilik baru telah didaftarkan dalam sistem."
+        title: "Room successfully added",
+        description: "New room has been registered in the system."
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Ralat",
-        description: error.message || "Gagal menambah bilik.",
+        title: "Error",
+        description: error.message || "Failed to add room.",
         variant: "destructive"
       });
     }
@@ -65,14 +65,14 @@ export default function Management() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/windows"] });
       toast({
-        title: "Bilik berjaya dikemaskini",
-        description: "Maklumat bilik telah disimpan."
+        title: "Room successfully updated",
+        description: "Room information has been saved."
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Ralat",
-        description: error.message || "Gagal mengemaskini bilik.",
+        title: "Error",
+        description: error.message || "Failed to update room.",
         variant: "destructive"
       });
     }
@@ -90,14 +90,14 @@ export default function Management() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/windows"] });
       toast({
-        title: "Bilik berjaya dipadam",
-        description: "Bilik telah dikeluarkan dari sistem."
+        title: "Room successfully deleted",
+        description: "Room has been removed from system."
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Ralat",
-        description: error.message || "Gagal memadam bilik.",
+        title: "Error",
+        description: error.message || "Failed to delete room.",
         variant: "destructive"
       });
     }
@@ -115,14 +115,14 @@ export default function Management() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/windows"] });
       toast({
-        title: "Status bilik dikemaskini",
-        description: "Status aktif bilik telah ditukar."
+        title: "Room status updated",
+        description: "Room active status has been changed."
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Ralat",
-        description: error.message || "Gagal mengubah status bilik.",
+        title: "Error",
+        description: error.message || "Failed to change room status.",
         variant: "destructive"
       });
     }
@@ -137,7 +137,7 @@ export default function Management() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Management</h1>
-        <p className="text-muted-foreground">Urus bilik rawatan dan tetapan window</p>
+        <p className="text-muted-foreground">Manage treatment rooms and window settings</p>
       </div>
 
       {/* Add New Window */}
@@ -145,21 +145,21 @@ export default function Management() {
         <CardHeader>
           <CardTitle className="flex items-center">
             <Plus className="h-5 w-5 mr-2" />
-            Tambah Bilik Baru
+            Add New Room
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleAddWindow} className="flex gap-4">
             <div className="flex-1">
               <Label htmlFor="windowName" className="sr-only">
-                Nama Bilik
+                Room Name
               </Label>
               <Input
                 id="windowName"
                 type="text"
                 value={newWindowName}
                 onChange={(e) => setNewWindowName(e.target.value)}
-                placeholder="Masukkan nama bilik (cth: Bilik 6 - Dr. Ahmad)"
+                placeholder="Enter room name (e.g.: Room 6 - Dr. Ahmad)"
                 data-testid="input-new-window-name"
               />
             </div>
@@ -169,7 +169,7 @@ export default function Management() {
               data-testid="button-add-window"
             >
               <Plus className="h-4 w-4 mr-2" />
-              {createWindowMutation.isPending ? "Menambah..." : "Tambah"}
+              {createWindowMutation.isPending ? "Adding..." : "Add"}
             </Button>
           </form>
         </CardContent>
@@ -179,14 +179,14 @@ export default function Management() {
       <div>
         <h2 className="text-lg font-semibold mb-4 flex items-center">
           <Settings className="h-5 w-5 mr-2" />
-          Senarai Bilik ({windows.length})
+          Room List ({windows.length})
         </h2>
         
         {isLoading ? (
           <Card>
             <CardContent className="p-8 text-center">
               <div className="text-muted-foreground">
-                Memuat data bilik...
+                Loading room data...
               </div>
             </CardContent>
           </Card>
@@ -194,7 +194,7 @@ export default function Management() {
           <Card>
             <CardContent className="p-8 text-center">
               <div className="text-muted-foreground">
-                Belum ada bilik yang didaftarkan
+                No rooms registered yet
               </div>
             </CardContent>
           </Card>
@@ -217,7 +217,7 @@ export default function Management() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Total Bilik</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Rooms</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="text-total-windows">
@@ -228,7 +228,7 @@ export default function Management() {
         
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Bilik Aktif</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Rooms</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600" data-testid="text-active-windows">
@@ -239,7 +239,7 @@ export default function Management() {
         
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Sedang Digunakan</CardTitle>
+            <CardTitle className="text-sm font-medium">In Use</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600" data-testid="text-occupied-windows">

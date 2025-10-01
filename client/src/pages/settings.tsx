@@ -164,7 +164,7 @@ export default function Settings() {
     marqueeTextMode: 'solid' as 'solid' | 'gradient',
     marqueeTextGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
     marqueeBackgroundColor: '#000000',
-    clinicName: 'KLINIK UTAMA 24 JAM',
+    clinicName: 'MAIN CLINIC 24 HOURS',
     clinicNameTextColor: '#ffffff',
     clinicNameTextMode: 'solid' as 'solid' | 'gradient',
     clinicNameTextGradient: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
@@ -242,7 +242,7 @@ export default function Settings() {
         marqueeTextMode: (settingsObj.marqueeTextMode as 'solid' | 'gradient') || 'solid',
         marqueeTextGradient: settingsObj.marqueeTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
         marqueeBackgroundColor: settingsObj.marqueeBackgroundColor || '#000000',
-        clinicName: settingsObj.clinicName || 'KLINIK UTAMA 24 JAM',
+        clinicName: settingsObj.clinicName || 'MAIN CLINIC 24 HOURS',
         clinicNameTextColor: settingsObj.clinicNameTextColor || '#ffffff',
         clinicNameTextMode: (settingsObj.clinicNameTextMode as 'solid' | 'gradient') || 'solid',
         clinicNameTextGradient: settingsObj.clinicNameTextGradient || 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
@@ -352,8 +352,8 @@ export default function Settings() {
   const handleRefresh = () => {
     refetch();
     toast({
-      title: "Muat Semula",
-      description: "Tetapan telah dimuat semula dengan berjaya",
+      title: "Refresh",
+      description: "Settings refreshed successfully",
     });
   };
 
@@ -386,7 +386,7 @@ export default function Settings() {
       });
       
       if (!response.ok) {
-        throw new Error('Upload gagal');
+        throw new Error('Upload failed');
       }
       
       return response.json();
@@ -397,8 +397,8 @@ export default function Settings() {
     },
     onError: (error: any) => {
       toast({
-        title: "Ralat",
-        description: error.message || "Gagal upload gambar",
+        title: "Error",
+        description: error.message || "Failed to upload image",
         variant: "destructive",
       });
     }
@@ -413,14 +413,14 @@ export default function Settings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/media'] });
       toast({
-        title: "Berjaya",
-        description: "Gambar telah dipadamkan",
+        title: "Success",
+        description: "Image has been deleted",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Ralat",
-        description: "Gagal memadam gambar",
+        title: "Error",
+        description: "Failed to delete image",
         variant: "destructive",
       });
     }
@@ -428,7 +428,7 @@ export default function Settings() {
 
   // Handle delete media
   const handleDeleteMedia = (mediaId: string, filename: string) => {
-    if (confirm(`Adakah anda pasti ingin memadam '${filename}'?`)) {
+    if (confirm(`Are you sure you want to delete '${filename}'?`)) {
       deleteMediaMutation.mutate(mediaId);
     }
   };
@@ -441,14 +441,14 @@ export default function Settings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/settings'] });
       toast({
-        title: "Berjaya",
-        description: "Tetapan telah disimpan dengan berjaya",
+        title: "Success",
+        description: "Settings saved successfully",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Ralat",
-        description: error.message || "Gagal menyimpan tetapan",
+        title: "Error",
+        description: error.message || "Failed to save settings",
         variant: "destructive",
       });
     }
@@ -562,8 +562,8 @@ export default function Settings() {
       
       if (invalidFiles.length > 0) {
         toast({
-          title: "Format tidak disokong",
-          description: `Fail berikut tidak disokong: ${invalidFiles.join(', ')}. Sila pilih fail PNG atau JPEG sahaja.`,
+          title: "Unsupported format",
+          description: `The following files are not supported: ${invalidFiles.join(', ')}. Please select PNG or JPEG files only.`,
           variant: "destructive",
         });
       }
@@ -590,13 +590,13 @@ export default function Settings() {
         }
         
         toast({
-          title: "Upload Berjaya",
-          description: `${selectedFiles.length} gambar telah diupload`,
+          title: "Upload Successful",
+          description: `${selectedFiles.length} images uploaded`,
         });
       } catch (error) {
         toast({
-          title: "Ralat Upload",
-          description: "Gagal mengupload beberapa gambar",
+          title: "Upload Error",
+          description: "Failed to upload some images",
           variant: "destructive",
         });
       }
@@ -632,8 +632,8 @@ export default function Settings() {
     try {
       if (!currentSettings.enableSound) {
         toast({
-          title: "Bunyi Dimatikan",
-          description: "Sila aktifkan bunyi terlebih dahulu untuk test audio",
+          title: "Sound Disabled",
+          description: "Please enable sound first to test audio",
           variant: "destructive",
         });
         return;
@@ -650,14 +650,14 @@ export default function Settings() {
       });
 
       toast({
-        title: "Test Bunyi",
-        description: `Test bunyi ${currentSettings.presetKey} pada volume ${currentSettings.volume}% dimainkan`,
+        title: "Sound Test",
+        description: `Test sound ${currentSettings.presetKey} at volume ${currentSettings.volume}% played`,
       });
     } catch (error) {
       console.error('Error playing test sound:', error);
       toast({
-        title: "Ralat",
-        description: "Gagal memainkan bunyi test. Sila periksa tetapan audio.",
+        title: "Error",
+        description: "Failed to play test sound. Please check audio settings.",
         variant: "destructive",
       });
     }
@@ -668,7 +668,7 @@ export default function Settings() {
       <div className="p-6 space-y-6">
         <div className="flex items-center space-x-2">
           <RefreshCw className="h-4 w-4 animate-spin" />
-          <span>Memuatkan tetapan...</span>
+          <span>Loading settings...</span>
         </div>
       </div>
     );
@@ -680,19 +680,19 @@ export default function Settings() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-          <p className="text-muted-foreground">Konfigurasi paparan, bunyi dan tetapan sistem</p>
+          <p className="text-muted-foreground">Configure display, sound and system settings</p>
           
           {/* Current Settings Status */}
           <div className="mt-2 flex items-center space-x-4">
             <div className="flex items-center space-x-2 text-sm">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <span className="text-muted-foreground">Tetapan Semasa: {(settings as Setting[]).length} konfigurasi aktif</span>
+              <span className="text-muted-foreground">Current Settings: {(settings as Setting[]).length} active configurations</span>
             </div>
             
             {unsavedChanges.length > 0 && (
               <div className="flex items-center space-x-2 text-sm text-orange-600">
                 <Save className="h-4 w-4" />
-                <span>{unsavedChanges.length} perubahan belum disimpan</span>
+                <span>{unsavedChanges.length} unsaved changes</span>
               </div>
             )}
           </div>
@@ -705,7 +705,7 @@ export default function Settings() {
           data-testid="button-refresh-settings"
         >
           <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-          Muat Semula
+          Refresh
         </Button>
       </div>
 
@@ -716,7 +716,7 @@ export default function Settings() {
             <Upload className="h-5 w-5" />
             Media Management
           </h2>
-          <p className="text-sm text-muted-foreground">Tetapan media dan galeri gambar</p>
+          <p className="text-sm text-muted-foreground">Media settings and image gallery</p>
         </div>
         
         <Card>
@@ -729,7 +729,7 @@ export default function Settings() {
           <CardContent className="space-y-6">
             {/* Show in Dashboard Section */}
             <div className="space-y-4">
-              <Label className="text-base font-semibold">Pilihan Media untuk Dashboard:</Label>
+              <Label className="text-base font-semibold">Media Options for Dashboard:</Label>
               <div className="flex space-x-6">
                 <div className="flex items-center space-x-2">
                   <input
@@ -742,7 +742,7 @@ export default function Settings() {
                     className="w-4 h-4 text-blue-600"
                     data-testid="radio-own-media"
                   />
-                  <Label htmlFor="own-media">Upload Gambar (PNG/JPEG)</Label>
+                  <Label htmlFor="own-media">Upload Images (PNG/JPEG)</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <input
@@ -782,7 +782,7 @@ export default function Settings() {
                       ) : (
                         <Save className="h-4 w-4 mr-2" />
                       )}
-                      Simpan YouTube URL
+                      Save YouTube URL
                     </Button>
                   </div>
 
@@ -797,10 +797,10 @@ export default function Settings() {
                         <div className="flex-grow">
                           <div className="flex items-center space-x-2 mb-2">
                             <Star className="h-4 w-4 text-yellow-500" />
-                            <span className="font-medium text-green-800">Video YouTube Aktif</span>
+                            <span className="font-medium text-green-800">Active YouTube Video</span>
                           </div>
                           <p className="text-sm text-green-700">
-                            Video ini akan dipaparkan pada dashboard sebagai latar belakang.
+                            This video will be displayed on the dashboard as background.
                           </p>
                         </div>
                       </div>
@@ -813,22 +813,22 @@ export default function Settings() {
             {/* Media Gallery Section - Only show if "own" media is selected */}
             {currentSettings.dashboardMediaType === "own" && (
               <div className="space-y-4">
-                <Label className="text-base font-semibold">Galeri Media:</Label>
+                <Label className="text-base font-semibold">Media Gallery:</Label>
                 
                 <div className="space-y-4 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
                   <div className="text-center space-y-4">
                     <div className="flex flex-col items-center space-y-2">
                       <Upload className="h-12 w-12 text-gray-400" />
                       <div>
-                        <p className="text-sm text-gray-600 font-medium">Upload Gambar Baru</p>
-                        <p className="text-xs text-gray-500 mt-1">Format yang disokong: PNG, JPEG sahaja (Maks 10MB)</p>
+                        <p className="text-sm text-gray-600 font-medium">Upload New Images</p>
+                        <p className="text-xs text-gray-500 mt-1">Supported formats: PNG, JPEG only (Max 10MB)</p>
                       </div>
                     </div>
                     
                     {selectedFiles.length > 0 ? (
                       <div className="space-y-3">
                         <div className="text-sm font-medium text-gray-700 text-center">
-                          {selectedFiles.length} gambar dipilih
+                          {selectedFiles.length} images selected
                         </div>
                         <div className="max-h-32 overflow-y-auto space-y-2">
                           {selectedFiles.map((file, index) => (
@@ -856,7 +856,7 @@ export default function Settings() {
                             ) : (
                               <Upload className="h-4 w-4 mr-2" />
                             )}
-                            {uploadMediaMutation.isPending ? 'Mengupload...' : `Upload ${selectedFiles.length} Gambar`}
+                            {uploadMediaMutation.isPending ? 'Uploading...' : `Upload ${selectedFiles.length} Images`}
                           </Button>
                           <Button 
                             variant="outline" 
@@ -869,7 +869,7 @@ export default function Settings() {
                             disabled={uploadMediaMutation.isPending}
                             data-testid="button-cancel-upload"
                           >
-                            Batal
+                            Cancel
                           </Button>
                         </div>
                       </div>
@@ -881,7 +881,7 @@ export default function Settings() {
                         data-testid="button-select-file"
                       >
                         <Plus className="h-4 w-4 mr-2" />
-                        Pilih Gambar (Banyak)
+                        Select Images (Multiple)
                       </Button>
                     )}
                     
@@ -937,7 +937,7 @@ export default function Settings() {
                               onClick={() => handleDeleteMedia(media.id, media.filename)}
                               disabled={deleteMediaMutation.isPending}
                               data-testid={`button-delete-media-${media.id}`}
-                              title={`Padam ${media.filename}`}
+                              title={`Delete ${media.filename}`}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -945,7 +945,7 @@ export default function Settings() {
                         ) : (
                           <div key={`empty-${index}`} className="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center"
                                style={{ aspectRatio: '16/9', minHeight: '120px' }}>
-                            <span className="text-gray-400 text-sm">Slot Kosong</span>
+                            <span className="text-gray-400 text-sm">Empty Slot</span>
                           </div>
                         );
                       })}
@@ -956,7 +956,7 @@ export default function Settings() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-sm text-gray-600">
-                              Halaman {currentMediaIndex + 1} daripada {totalPages}
+                              Page {currentMediaIndex + 1} of {totalPages}
                             </p>
                           </div>
                           <div className="flex space-x-2">
@@ -967,7 +967,7 @@ export default function Settings() {
                               data-testid="button-prev-media"
                             >
                               <ChevronLeft className="h-4 w-4" />
-                              Sebelum
+                              Previous
                             </Button>
                             <Button
                               variant="outline"
@@ -975,7 +975,7 @@ export default function Settings() {
                               disabled={currentMediaIndex >= totalPages - 1}
                               data-testid="button-next-media"
                             >
-                              Seterus
+                              Next
                               <ChevronRight className="h-4 w-4 ml-1" />
                             </Button>
                           </div>
@@ -986,7 +986,7 @@ export default function Settings() {
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <Upload className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p>Tiada media ditemui. Gunakan butang "Pilih Gambar" di atas untuk upload gambar.</p>
+                    <p>No media found. Use the "Select Images" button above to upload images.</p>
                   </div>
                 )}
               </div>
@@ -1002,7 +1002,7 @@ export default function Settings() {
             <Palette className="h-4 w-4" />
             Theme & Color Settings
           </h2>
-          <p className="text-xs text-muted-foreground">Kustomisasi warna setiap bahagian skrin secara individu</p>
+          <p className="text-xs text-muted-foreground">Customize each section of the screen individually</p>
         </div>
         
         {/* Grid Layout for Compact Cards - 2 columns */}
@@ -1014,16 +1014,16 @@ export default function Settings() {
               <CardTitle className="flex items-center gap-2">
                 Clinic Name Settings
               </CardTitle>
-              <p className="text-xs text-muted-foreground">Tetapkan nama klinik yang akan dipaparkan di skrin TV</p>
+              <p className="text-xs text-muted-foreground">Set the clinic name to be displayed on the TV screen</p>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="space-y-1">
-                <Label className="text-xs">Nama Klinik</Label>
+                <Label className="text-xs">Clinic Name</Label>
                 <Input
                   type="text"
-                  value={currentSettings.clinicName || "KLINIK UTAMA 24 JAM"}
+                  value={currentSettings.clinicName || "MAIN CLINIC 24 HOURS"}
                   onChange={(e) => updateDisplaySetting('clinicName', e.target.value)}
-                  placeholder="Masukkan nama klinik"
+                  placeholder="Enter clinic name"
                   data-testid="input-clinic-name"
                   className="text-sm"
                 />
@@ -1040,7 +1040,7 @@ export default function Settings() {
                 ) : (
                   <Save className="h-3 w-3 mr-1" />
                 )}
-                Simpan
+                Save
               </Button>
             </CardContent>
           </Card>
@@ -1052,7 +1052,7 @@ export default function Settings() {
                 <Upload className="h-4 w-4" />
                 Clinic Logo
               </CardTitle>
-              <p className="text-xs text-muted-foreground">Upload logo klinik untuk dipaparkan di skrin TV</p>
+              <p className="text-xs text-muted-foreground">Upload clinic logo to be displayed on TV screen</p>
             </CardHeader>
             <CardContent className="space-y-3">
               {/* Logo Preview */}
@@ -1123,7 +1123,7 @@ export default function Settings() {
                 ) : (
                   <Save className="h-3 w-3 mr-1" />
                 )}
-                Simpan Logo
+                Save Logo
               </Button>
             </CardContent>
           </Card>
@@ -1134,12 +1134,12 @@ export default function Settings() {
               <CardTitle className="flex items-center gap-2">
                 Header Display
               </CardTitle>
-              <p className="text-xs text-muted-foreground">Warna untuk bahagian header skrin TV</p>
+              <p className="text-xs text-muted-foreground">Colors for TV screen header section</p>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <Label className="text-xs">Text Header</Label>
+                  <Label className="text-xs">Header Text</Label>
                 
                   <div className="flex space-x-1 mb-1">
                     <Button
@@ -1183,7 +1183,7 @@ export default function Settings() {
                       }}
                     >
                       <Brush className="h-3 w-3 mr-1" />
-                      Pilih Gradient Text
+                      Select Gradient Text
                     </Button>
                   </div>
                 )}
@@ -1233,7 +1233,7 @@ export default function Settings() {
                       }}
                     >
                       <Brush className="h-4 w-4 mr-2" />
-                      Pilih Gradient
+                      Select Gradient
                     </Button>
                     <p className="text-xs text-muted-foreground">
                       Preview: {currentSettings.headerBackgroundGradient}
@@ -1253,7 +1253,7 @@ export default function Settings() {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Simpan Warna Header
+              Save Header Colors
             </Button>
           </CardContent>
         </Card>
@@ -1264,12 +1264,12 @@ export default function Settings() {
             <CardTitle className="flex items-center gap-2">
               Clinic Name Text
             </CardTitle>
-            <p className="text-sm text-muted-foreground">Warna untuk teks nama klinik di skrin TV</p>
+            <p className="text-sm text-muted-foreground">Colors for clinic name text on TV screen</p>
           </CardHeader>
           <CardContent className="space-y-3">
             {/* Compact clinic name text control */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Text Nama Klinik</Label>
+              <Label className="text-sm font-medium">Clinic Name Text</Label>
               <div className="flex items-center gap-2">
                 <div className="flex border rounded-md">
                   <Button
@@ -1327,7 +1327,7 @@ export default function Settings() {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Simpan Text Nama Klinik
+              Save Clinic Name Text
             </Button>
           </CardContent>
         </Card>
@@ -1338,12 +1338,12 @@ export default function Settings() {
             <CardTitle className="flex items-center gap-2">
               Current Call Display
             </CardTitle>
-            <p className="text-sm text-muted-foreground">Warna untuk paparan panggilan semasa</p>
+            <p className="text-sm text-muted-foreground">Colors for current call display</p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Warna Nama Pesakit</Label>
+                <Label>Patient Name Color</Label>
                 
                 {/* Toggle between solid and gradient for call name text */}
                 <div className="flex space-x-2 mb-2">
@@ -1387,13 +1387,13 @@ export default function Settings() {
                       }}
                     >
                       <Brush className="h-3 w-3 mr-1" />
-                      Pilih Gradient Text
+                      Select Gradient Text
                     </Button>
                   </div>
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Background Panggilan</Label>
+                <Label>Call Background</Label>
                 
                 {/* Toggle between solid and gradient */}
                 <div className="flex space-x-2 mb-2">
@@ -1437,7 +1437,7 @@ export default function Settings() {
                       }}
                     >
                       <Brush className="h-4 w-4 mr-2" />
-                      Pilih Gradient
+                      Select Gradient
                     </Button>
                     <p className="text-xs text-muted-foreground">
                       Preview: {currentSettings.callBackgroundGradient}
@@ -1448,7 +1448,7 @@ export default function Settings() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Warna Window/Counter</Label>
+                <Label>Window/Counter Color</Label>
                 
                 {/* Toggle between solid and gradient for window text */}
                 <div className="flex space-x-2 mb-2">
@@ -1492,13 +1492,13 @@ export default function Settings() {
                       }}
                     >
                       <Brush className="h-3 w-3 mr-1" />
-                      Pilih Gradient Text
+                      Select Gradient Text
                     </Button>
                   </div>
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Warna Border</Label>
+                <Label>Border Color</Label>
                 <Input
                   type="color"
                   value={currentSettings.callBorderColor || '#22c55e'}
@@ -1518,7 +1518,7 @@ export default function Settings() {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Simpan Warna Panggilan
+              Save Call Colors
             </Button>
           </CardContent>
         </Card>
@@ -1529,7 +1529,7 @@ export default function Settings() {
             <CardTitle className="flex items-center gap-2">
               Highlight Box (Patient Calling)
             </CardTitle>
-            <p className="text-sm text-muted-foreground">Warna untuk kotak highlight semasa panggil patient</p>
+            <p className="text-sm text-muted-foreground">Colors for highlight box when calling patient</p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -1572,7 +1572,7 @@ export default function Settings() {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Simpan Warna Highlight Box
+              Save Highlight Box Colors
             </Button>
           </CardContent>
         </Card>
@@ -1583,12 +1583,12 @@ export default function Settings() {
             <CardTitle className="flex items-center gap-2">
               Prayer Times Display
             </CardTitle>
-            <p className="text-sm text-muted-foreground">Warna untuk paparan waktu solat</p>
+            <p className="text-sm text-muted-foreground">Colors for prayer times display</p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Warna Text Waktu Solat</Label>
+                <Label>Prayer Times Text Color</Label>
                 
                 {/* Toggle between solid and gradient for prayer times text */}
                 <div className="flex space-x-2 mb-2">
@@ -1632,13 +1632,13 @@ export default function Settings() {
                       }}
                     >
                       <Brush className="h-3 w-3 mr-1" />
-                      Pilih Gradient Text
+                      Select Gradient Text
                     </Button>
                   </div>
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Background Waktu Solat</Label>
+                <Label>Prayer Times Background</Label>
                 
                 {/* Toggle between solid and gradient */}
                 <div className="flex space-x-2 mb-2">
@@ -1682,7 +1682,7 @@ export default function Settings() {
                       }}
                     >
                       <Brush className="h-4 w-4 mr-2" />
-                      Pilih Gradient
+                      Select Gradient
                     </Button>
                     <p className="text-xs text-muted-foreground">
                       Preview: {currentSettings.prayerTimesBackgroundGradient}
@@ -1694,8 +1694,8 @@ export default function Settings() {
             
             {/* Prayer Times Highlight Color */}
             <div className="border-t pt-4 mt-4">
-              <Label className="text-sm font-semibold mb-2 block">Warna Highlight Waktu Solat</Label>
-              <p className="text-xs text-muted-foreground mb-3">Warna untuk waktu solat yang akan datang (slow pulse effect)</p>
+              <Label className="text-sm font-semibold mb-2 block">Prayer Times Highlight Color</Label>
+              <p className="text-xs text-muted-foreground mb-3">Color for upcoming prayer time (slow pulse effect)</p>
               <Input
                 type="color"
                 value={currentSettings.prayerTimesHighlightColor || '#facc15'}
@@ -1715,7 +1715,7 @@ export default function Settings() {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Simpan Warna Waktu Solat
+              Save Prayer Times Colors
             </Button>
           </CardContent>
         </Card>
@@ -1726,12 +1726,12 @@ export default function Settings() {
             <CardTitle className="flex items-center gap-2">
               Weather Display
             </CardTitle>
-            <p className="text-sm text-muted-foreground">Warna untuk paparan cuaca</p>
+            <p className="text-sm text-muted-foreground">Colors for weather display</p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Warna Text Cuaca</Label>
+                <Label>Weather Text Color</Label>
                 
                 {/* Toggle between solid and gradient for weather text */}
                 <div className="flex space-x-2 mb-2">
@@ -1775,13 +1775,13 @@ export default function Settings() {
                       }}
                     >
                       <Brush className="h-3 w-3 mr-1" />
-                      Pilih Gradient Text
+                      Select Gradient Text
                     </Button>
                   </div>
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Background Cuaca</Label>
+                <Label>Weather Background</Label>
                 
                 {/* Toggle between solid and gradient */}
                 <div className="flex space-x-2 mb-2">
@@ -1825,7 +1825,7 @@ export default function Settings() {
                       }}
                     >
                       <Brush className="h-4 w-4 mr-2" />
-                      Pilih Gradient
+                      Select Gradient
                     </Button>
                     <p className="text-xs text-muted-foreground">
                       Preview: {currentSettings.weatherBackgroundGradient}
@@ -1845,7 +1845,7 @@ export default function Settings() {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Simpan Warna Cuaca
+              Save Weather Colors
             </Button>
           </CardContent>
         </Card>
@@ -1856,14 +1856,14 @@ export default function Settings() {
             <CardTitle className="flex items-center gap-2">
               Queue List Display
             </CardTitle>
-            <p className="text-sm text-muted-foreground">Warna untuk senarai giliran pesakit</p>
+            <p className="text-sm text-muted-foreground">Colors for patient queue list</p>
           </CardHeader>
           <CardContent className="space-y-3">
             {/* Compact grid layout */}
             <div className="grid grid-cols-2 gap-3">
               {/* Text Color Section */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Text Senarai</Label>
+                <Label className="text-sm font-medium">List Text</Label>
                 <div className="flex items-center gap-2">
                   <div className="flex border rounded-md">
                     <Button
@@ -1912,7 +1912,7 @@ export default function Settings() {
 
               {/* Background Color Section */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Background Senarai</Label>
+                <Label className="text-sm font-medium">List Background</Label>
                 <div className="flex items-center gap-2">
                   <div className="flex border rounded-md">
                     <Button
@@ -1962,7 +1962,7 @@ export default function Settings() {
             
             {/* Queue Item Background Controls */}
             <div className="border-t pt-4 mt-4">
-              <Label className="text-sm font-semibold mb-2 block">Background Item Queue (Kotak setiap patient)</Label>
+              <Label className="text-sm font-semibold mb-2 block">Queue Item Background (Box for each patient)</Label>
               
               {/* Toggle between solid and gradient for queue items */}
               <div className="flex space-x-2 mb-2">
@@ -2006,7 +2006,7 @@ export default function Settings() {
                     }}
                   >
                     <Brush className="h-4 w-4 mr-2" />
-                    Pilih Gradient untuk Item
+                    Select Gradient untuk Item
                   </Button>
                   <p className="text-xs text-muted-foreground">
                     Preview: {currentSettings.queueItemBackgroundGradient}
@@ -2017,11 +2017,11 @@ export default function Settings() {
             
             {/* History Name Text Controls */}
             <div className="border-t pt-4 mt-4">
-              <Label className="text-sm font-semibold mb-2 block">Warna Nama Patient (History Name)</Label>
+              <Label className="text-sm font-semibold mb-2 block">Patient Name Color (History Name)</Label>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Warna Text Nama</Label>
+                  <Label>Name Text Color</Label>
                   <Input
                     type="color"
                     value={currentSettings.historyNameColor || '#facc15'}
@@ -2030,7 +2030,7 @@ export default function Settings() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Style Nama Patient</Label>
+                  <Label>Patient Name Style</Label>
                   
                   {/* Toggle between solid and gradient for history name text */}
                   <div className="flex space-x-2 mb-2">
@@ -2067,7 +2067,7 @@ export default function Settings() {
                         }}
                       >
                         <Brush className="h-3 w-3 mr-1" />
-                        Pilih Gradient Text
+                        Select Gradient Text
                       </Button>
                     </div>
                   )}
@@ -2077,7 +2077,7 @@ export default function Settings() {
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Warna Highlight</Label>
+                <Label>Highlight Color</Label>
                 <Input
                   type="color"
                   value={currentSettings.queueHighlightColor || '#ef4444'}
@@ -2086,7 +2086,7 @@ export default function Settings() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Warna Border</Label>
+                <Label>Border Color</Label>
                 <Input
                   type="color"
                   value={currentSettings.queueBorderColor || '#d1d5db'}
@@ -2106,7 +2106,7 @@ export default function Settings() {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Simpan Warna Senarai
+              Save Queue List Colors
             </Button>
           </CardContent>
         </Card>
@@ -2119,21 +2119,21 @@ export default function Settings() {
             <Monitor className="h-5 w-5" />
             Information Display Settings
           </h2>
-          <p className="text-sm text-muted-foreground">Tetapan paparan maklumat dan marquee</p>
+          <p className="text-sm text-muted-foreground">Display information and marquee settings</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Tetapan Paparan Maklumat</CardTitle>
+            <CardTitle>Display Information Settings</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Toggle Options */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Waktu Solat</Label>
+                  <Label>Prayer Times</Label>
                   <div className="text-sm text-muted-foreground">
-                    Papar waktu solat pada skrin TV
+                    Display prayer times on TV screen
                   </div>
                 </div>
                 <Switch
@@ -2149,9 +2149,9 @@ export default function Settings() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Cuaca</Label>
+                  <Label>Weather</Label>
                   <div className="text-sm text-muted-foreground">
-                    Papar maklumat cuaca semasa
+                    Display current weather information
                   </div>
                 </div>
                 <Switch
@@ -2174,7 +2174,7 @@ export default function Settings() {
                 <div className="space-y-0.5">
                   <Label>Enable Marquee</Label>
                   <div className="text-sm text-muted-foreground">
-                    Aktifkan paparan teks bergerak di bahagian bawah skrin
+                    Enable scrolling text display at the bottom of the screen
                   </div>
                 </div>
                 <Switch
@@ -2190,11 +2190,11 @@ export default function Settings() {
                   <Textarea
                     value={currentSettings.marqueeText}
                     onChange={(e) => updateDisplaySetting('marqueeText', e.target.value)}
-                    placeholder="Masukkan teks yang akan bergerak di bahagian bawah skrin"
+                    placeholder="Enter text that will scroll at the bottom of the screen"
                     data-testid="textarea-marquee-text"
                   />
               <div className="space-y-2">
-                <Label>Warna Text Marquee</Label>
+                <Label>Marquee Text Color</Label>
                 
                 {/* Toggle between solid and gradient for marquee text */}
                 <div className="flex space-x-2 mb-2">
@@ -2238,13 +2238,13 @@ export default function Settings() {
                       }}
                     >
                       <Brush className="h-3 w-3 mr-1" />
-                      Pilih Gradient Text
+                      Select Gradient Text
                     </Button>
                   </div>
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Background Marquee</Label>
+                <Label>Marquee Background</Label>
                 
                 {/* Toggle between solid and gradient */}
                 <div className="flex space-x-2 mb-2">
@@ -2288,7 +2288,7 @@ export default function Settings() {
                       }}
                     >
                       <Brush className="h-4 w-4 mr-2" />
-                      Pilih Gradient
+                      Select Gradient
                     </Button>
                     <p className="text-xs text-muted-foreground">
                       Preview: {currentSettings.marqueeBackgroundGradient}
@@ -2311,7 +2311,7 @@ export default function Settings() {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Simpan Tetapan Display
+              Save Display Settings
             </Button>
           </CardContent>
         </Card>
@@ -2324,7 +2324,7 @@ export default function Settings() {
             <Volume2 className="h-5 w-5" />
             Audio Settings
           </h2>
-          <p className="text-sm text-muted-foreground">Tetapan bunyi dan audio</p>
+          <p className="text-sm text-muted-foreground">Sound and audio settings</p>
         </div>
         
         <Card>
@@ -2340,7 +2340,7 @@ export default function Settings() {
               <div className="space-y-0.5">
                 <Label>Enable Sound</Label>
                 <div className="text-sm text-muted-foreground">
-                  Aktifkan bunyi untuk panggilan
+                  Enable sound for calls
                 </div>
               </div>
               <Switch
@@ -2415,7 +2415,7 @@ export default function Settings() {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Simpan Tetapan Bunyi
+              Save Sound Settings
             </Button>
           </CardContent>
         </Card>

@@ -75,13 +75,13 @@ export function AppSidebar() {
     try {
       await logout();
       toast({
-        title: "Logout Berjaya",
-        description: "Anda telah berjaya logout dari sistem.",
+        title: "Logout Successful",
+        description: "You have successfully logged out from the system.",
       });
     } catch (error) {
       toast({
-        title: "Logout Gagal",
-        description: "Terdapat masalah semasa logout. Sila cuba lagi.",
+        title: "Logout Failed",
+        description: "There was a problem during logout. Please try again.",
         variant: "destructive",
       });
     }
@@ -186,7 +186,7 @@ export function AppSidebar() {
               {user.username}
             </div>
             <div className="text-sidebar-foreground/60 text-xs">
-              {user.role === 'admin' ? 'Administrator' : 'Pengguna'}
+              {user.role === 'admin' ? 'Administrator' : 'User'}
             </div>
             {user.clinicName && (
               <div className="text-sidebar-foreground/60 text-xs mt-1">
