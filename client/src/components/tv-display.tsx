@@ -504,9 +504,9 @@ export function TVDisplay({
         verticalSpace: `${(vh - STAGE_HEIGHT * scale).toFixed(0)}px`
       });
 
-      // Only scale - centering is handled by viewport CSS Grid
-      stage.style.transformOrigin = 'center center';
-      stage.style.transform = `scale(${scale})`;
+      // Scale from top-left + center vertically with translateY
+      stage.style.transformOrigin = 'top left';
+      stage.style.transform = `scale(${scale}) translateY(-50%)`;
     };
 
     fitStage();
@@ -718,10 +718,13 @@ export function TVDisplay({
 
   // Fixed 1920×1080 stage styling (only for fullscreen)
   const stageStyle = isFullscreen ? {
+    position: 'absolute' as const,
+    top: '50%',
+    left: 0,
     width: '1920px',
     height: '1080px',
-    transform: 'scale(1)',
-    transformOrigin: 'center center', // Scale from center
+    transform: 'scale(1) translateY(-50%)',
+    transformOrigin: 'top left', // Scale from top-left corner
     overflow: 'hidden',
     display: 'grid',
     gridTemplateRows: '700px 380px', // Fixed: Top 700px (16:9 for 1248px), Bottom 380px = 1080px total
@@ -1242,7 +1245,7 @@ export function TVDisplay({
   // Conditional wrapper: fullscreen uses viewport-centered 1920×1080 stage with black background
   if (isFullscreen) {
     return (
-      <div className="fixed inset-0 flex flex-col justify-center items-start bg-black overflow-hidden">
+      <div className="fixed inset-0 bg-black overflow-hidden" style={{ position: 'relative' }}>
         <div 
           ref={stageRef}
           id="stage"
