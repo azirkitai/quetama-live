@@ -1270,18 +1270,18 @@ export function TVDisplay({
               }}
             >
               <span 
-                className="px-8 font-bold text-2xl" 
+                className="px-8 font-bold text-3xl" 
                 style={{ 
-                  fontSize: 'clamp(1.5rem, 2vw, 2rem)',
+                  fontSize: 'clamp(2rem, 2.5vw, 2.5rem)',
                   color: marqueeColor
                 }}
               >
                 {marqueeText}
               </span>
               <span 
-                className="px-8 font-bold text-2xl" 
+                className="px-8 font-bold text-3xl" 
                 style={{ 
-                  fontSize: 'clamp(1.5rem, 2vw, 2rem)',
+                  fontSize: 'clamp(2rem, 2.5vw, 2.5rem)',
                   color: marqueeColor
                 }} 
                 aria-hidden="true"
