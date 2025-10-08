@@ -505,7 +505,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update window assignment if needed
       if (windowId && status === "called") {
         await storage.updateWindowPatient(windowId, req.session.userId, id);
-      } else if (status === "completed" || status === "requeue") {
+      } else if (status === "completed" || status === "requeue" || status === "dispensary") {
         // Clear patient from window
         const windows = await storage.getWindows(req.session.userId);
         const currentWindow = windows.find(w => w.currentPatientId === id);
