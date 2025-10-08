@@ -167,7 +167,11 @@ export default function Dispensary() {
   }, [patients, windows]);
 
   // Filter dispensary patients
-  const dispensaryPatients = enhancedPatients.filter(p => p.status === 'dispensary');
+  // Include: 1) status "dispensary" (waiting), 2) called/in-progress to DISPENSARY window
+  const dispensaryPatients = enhancedPatients.filter(p => 
+    p.status === 'dispensary' || 
+    ((p.status === 'called' || p.status === 'in-progress') && p.windowName === 'DISPENSARY')
+  );
   const priorityDispensary = dispensaryPatients.filter(p => p.isPriority);
   const normalDispensary = dispensaryPatients.filter(p => !p.isPriority);
 
@@ -226,10 +230,51 @@ export default function Dispensary() {
     await deletePatientMutation.mutateAsync(patientId);
   };
 
-  // Dummy handlers for patient card (not used in dispensary)
-  const handleCallAgain = async () => {};
+  // Handle call again
+  const handleCallAgain = async (patientId: string) => {
+    const patient = enhancedPatients.find(p => p.id === patientId);
+    if (!patient || !patient.windowId) return;
+
+    await updatePatientStatusMutation.mutateAsync({
+      patientId,
+      status: "called",
+      windowId: patient.windowId
+    });
+
+    const callText = patient.name || `Number ${patient.number}`;
+    
+    const isAudioEnabled = settings.find(s => s.key === 'enable_audio')?.value === 'true';
+    
+    if (isAudioEnabled && 'speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(`${callText} to DISPENSARY`);
+      utterance.lang = 'en-US';
+      speechSynthesis.speak(utterance);
+    }
+
+    toast({
+      title: "Call Again",
+      description: `${callText} recalled to DISPENSARY`,
+    });
+  };
+
+  // Handle requeue patient
+  const handleRequeue = async (patientId: string, reason?: string) => {
+    await updatePatientStatusMutation.mutateAsync({
+      patientId,
+      status: "requeue",
+    });
+
+    const patient = enhancedPatients.find(p => p.id === patientId);
+    const patientName = patient?.name || `Number ${patient?.number}`;
+
+    toast({
+      title: "Patient Requeued",
+      description: `${patientName} returned to main queue${reason ? `: ${reason}` : ''}`,
+    });
+  };
+
+  // Not used in dispensary
   const handleRecall = async () => {};
-  const handleRequeue = async () => {};
 
   if (patientsLoading) {
     return (
