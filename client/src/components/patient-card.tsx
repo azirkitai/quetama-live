@@ -386,10 +386,9 @@ export function PatientCard({
                   <CheckCircle className="h-4 w-4 mr-1" />
                   Complete
                 </Button>
-              ) : onDispense ? (
+              ) : (
                 <Button
                   onClick={handleDispense}
-                  disabled={disabled}
                   size="sm"
                   variant="default"
                   className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
@@ -397,18 +396,6 @@ export function PatientCard({
                 >
                   <Pill className="h-4 w-4 mr-1" />
                   Dispense
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleComplete}
-                  disabled={shouldDisableButtons}
-                  size="sm"
-                  variant="default"
-                  className="flex-1"
-                  data-testid={`button-complete-${patient.id}`}
-                >
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  Complete
                 </Button>
               )}
               
