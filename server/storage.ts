@@ -1902,6 +1902,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCurrentCall(userId: string): Promise<Patient | undefined> {
+    // Get the most recent called patient regardless of status (completed, dispensary, etc.)
+    // This keeps the display showing last called patient until a NEW patient is called
     const [result] = await db
       .select({
         id: schema.patients.id,
@@ -1919,21 +1921,17 @@ export class DatabaseStorage implements IStorage {
         trackingHistory: schema.patients.trackingHistory,
         archivedAt: schema.patients.archivedAt,
         userId: schema.patients.userId,
-        // Add room name from windows table
-        room: schema.windows.name,
+        // Get room name - use current window if available, otherwise last window
+        room: sql<string>`COALESCE(${schema.windows.name}, lw.name)`,
       })
       .from(schema.patients)
       .leftJoin(schema.windows, eq(schema.patients.windowId, schema.windows.id))
+      .leftJoin(sql`${schema.windows} lw`, eq(schema.patients.lastWindowId, sql`lw.id`))
       .where(and(
         eq(schema.patients.userId, userId),
-        sql`${schema.patients.calledAt} IS NOT NULL`,
-        sql`${schema.patients.completedAt} IS NULL`,
-        sql`${schema.patients.status} IN ('called','in-progress')`
+        sql`${schema.patients.calledAt} IS NOT NULL` // Only patients that have been called
       ))
-      .orderBy(
-        sql`CASE WHEN ${schema.patients.status} = 'called' THEN 0 WHEN ${schema.patients.status} = 'in-progress' THEN 1 ELSE 2 END`,
-        sql`${schema.patients.calledAt} DESC`
-      )
+      .orderBy(sql`${schema.patients.calledAt} DESC`) // Most recent call first
       .limit(1);
     
     console.log("🔍 getCurrentCall raw result:", result);
@@ -1954,10 +1952,11 @@ export class DatabaseStorage implements IStorage {
     const endOfDay = new Date(today);
     endOfDay.setHours(23, 59, 59, 999);
 
-    // Get current call to exclude from history to avoid duplication
+    // Get current call
     const currentCall = await this.getCurrentCall(userId);
 
-    const history = await db.select({
+    // Get all patients that have been called today with their tracking history
+    const patients = await db.select({
       id: schema.patients.id,
       name: schema.patients.name,
       number: schema.patients.number,
@@ -1973,11 +1972,7 @@ export class DatabaseStorage implements IStorage {
       trackingHistory: schema.patients.trackingHistory,
       archivedAt: schema.patients.archivedAt,
       userId: schema.patients.userId,
-      currentRoom: schema.windows.name, // Room name from current windowId
-      lastRoom: sql<string>`lw.name` // Room name from lastWindowId
     }).from(schema.patients)
-      .leftJoin(schema.windows, eq(schema.patients.windowId, schema.windows.id))
-      .leftJoin(sql`${schema.windows} lw`, eq(schema.patients.lastWindowId, sql`lw.id`))
       .where(
         and(
           eq(schema.patients.userId, userId),
@@ -1985,20 +1980,39 @@ export class DatabaseStorage implements IStorage {
           sql`${schema.patients.calledAt} >= ${startOfDay.toISOString()}`,
           sql`${schema.patients.calledAt} <= ${endOfDay.toISOString()}`
         )
-      )
-      .orderBy(sql`${schema.patients.calledAt} DESC`)
-      .limit(limit + 1); // Get one extra in case we need to filter out current call
+      );
 
-    // Filter out current call and map room info
-    const filteredHistory = history
-      .filter(patient => currentCall ? patient.id !== currentCall.id : true)
-      .slice(0, limit)
-      .map(patient => ({
-        ...patient,
-        room: patient.status === 'completed' ? patient.lastRoom : patient.currentRoom // Use last room for completed, current room for others
-      }));
+    // Extract ALL call events from trackingHistory - each call becomes a separate history entry
+    const callEvents: Array<Patient & { room?: string; calledAt: Date }> = [];
+    
+    for (const patient of patients) {
+      if (patient.trackingHistory && Array.isArray(patient.trackingHistory)) {
+        // Find all 'called' events in tracking history
+        const callHistory = patient.trackingHistory.filter((event: any) => event.action === 'called');
+        
+        for (const callEvent of callHistory) {
+          callEvents.push({
+            ...patient,
+            room: callEvent.roomName || 'Unknown Room',
+            calledAt: new Date(callEvent.timestamp) // Use the specific call timestamp
+          });
+        }
+      }
+    }
 
-    return filteredHistory;
+    // Sort by call timestamp (most recent first)
+    const sortedHistory = callEvents
+      .sort((a, b) => b.calledAt.getTime() - a.calledAt.getTime())
+      .filter((event, index, self) => {
+        // Exclude current call from history (keep it in current display only)
+        if (currentCall && event.id === currentCall.id && event.calledAt.getTime() === new Date(currentCall.calledAt || '').getTime()) {
+          return false;
+        }
+        return true;
+      })
+      .slice(0, limit);
+
+    return sortedHistory;
   }
 
   // QR Session methods
