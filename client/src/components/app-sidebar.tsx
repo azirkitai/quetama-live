@@ -7,6 +7,7 @@ import {
   UserCog,
   Shield,
   LogOut,
+  Pill,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import logoImage from "@assets/EZTURN (1)_1759062234605.png";
@@ -40,6 +41,11 @@ const mainNavigationItems = [
     title: "Queue Management",
     url: "/queue",
     icon: ClipboardList,
+  },
+  {
+    title: "Dispensary Management",
+    url: "/dispensary",
+    icon: Pill,
   },
 ];
 
