@@ -389,7 +389,7 @@ export function PatientCard({
               ) : (
                 <Button
                   onClick={handleDispense}
-                  disabled={shouldDisableButtons || !onDispense}
+                  disabled={!onDispense || disabled}
                   size="sm"
                   variant="default"
                   className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
