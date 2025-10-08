@@ -1,19 +1,23 @@
 import { useState } from "react";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 
 interface PatientRegistrationProps {
-  onRegister: (patient: { name: string | null; number: number; type: "name" | "number" }) => void;
+  onRegister: (patient: { name: string | null; number: number; type: "name" | "number"; isPriority?: boolean; priorityReason?: string }) => void;
   nextNumber: number;
   isRegistering?: boolean;
 }
 
 export function PatientRegistration({ onRegister, nextNumber, isRegistering = false }: PatientRegistrationProps) {
   const [patientName, setPatientName] = useState("");
+  const [isPriority, setIsPriority] = useState(false);
+  const [priorityReason, setPriorityReason] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +27,9 @@ export function PatientRegistration({ onRegister, nextNumber, isRegistering = fa
       const patientData = {
         name: patientName.trim() || null,
         number: nextNumber,
-        type: "name" as const
+        type: "name" as const,
+        isPriority: isPriority,
+        priorityReason: isPriority ? priorityReason.trim() : undefined
       };
 
       console.log("Registering patient:", patientData);
@@ -31,6 +37,8 @@ export function PatientRegistration({ onRegister, nextNumber, isRegistering = fa
 
       // Reset form
       setPatientName("");
+      setIsPriority(false);
+      setPriorityReason("");
       
     } catch (error) {
       console.error("Registration failed:", error);
@@ -76,10 +84,45 @@ export function PatientRegistration({ onRegister, nextNumber, isRegistering = fa
             />
           </div>
 
+          {/* Priority Checkbox - Only show when name is entered */}
+          {patientName.trim() && (
+            <div className="flex items-center space-x-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+              <Checkbox
+                id="priority"
+                checked={isPriority}
+                onCheckedChange={(checked) => setIsPriority(checked === true)}
+                data-testid="checkbox-priority"
+              />
+              <Label
+                htmlFor="priority"
+                className="text-sm font-medium text-yellow-700 dark:text-yellow-300 cursor-pointer flex items-center"
+              >
+                <Star className="h-4 w-4 mr-1 fill-current" />
+                Priority Patient
+              </Label>
+            </div>
+          )}
+
+          {/* Priority Reason Input - Only show when priority is checked */}
+          {isPriority && (
+            <div className="space-y-2">
+              <Label htmlFor="priorityReason">Priority Reason</Label>
+              <Textarea
+                id="priorityReason"
+                value={priorityReason}
+                onChange={(e) => setPriorityReason(e.target.value.toUpperCase())}
+                placeholder="Enter reason for priority (e.g., EMERGENCY, ELDERLY, PREGNANT)"
+                maxLength={100}
+                rows={3}
+                data-testid="input-priority-reason"
+              />
+            </div>
+          )}
+
           {/* Submit Button */}
           <Button
             type="submit"
-            disabled={isRegistering || !patientName.trim()}
+            disabled={isRegistering || !patientName.trim() || (isPriority && !priorityReason.trim())}
             className="w-full"
             data-testid="button-register-patient"
           >

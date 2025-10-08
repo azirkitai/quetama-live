@@ -48,6 +48,7 @@ export const patients = pgTable("patients", {
   number: integer("number").notNull(),
   status: text("status").notNull().default("waiting"), // 'waiting', 'called', 'in-progress', 'completed', 'requeue'
   isPriority: boolean("is_priority").notNull().default(false), // Priority patient flag
+  priorityReason: text("priority_reason"), // Reason for priority status
   windowId: varchar("window_id"),
   lastWindowId: varchar("last_window_id"), // Preserve last room they were called to
   registeredAt: timestamp("registered_at").notNull().default(sql`now()`),
@@ -152,6 +153,8 @@ export const insertWindowSchema = createInsertSchema(windows).pick({
 export const insertPatientSchema = createInsertSchema(patients).pick({
   name: true,
   number: true,
+  isPriority: true,
+  priorityReason: true,
   userId: true,
 }).extend({
   name: z.string().nullable().refine(
