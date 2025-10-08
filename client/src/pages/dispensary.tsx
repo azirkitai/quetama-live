@@ -329,7 +329,7 @@ export default function Dispensary() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">
-          DISPENSARY Queue
+          Dispensary Management
         </h1>
         <div className="flex items-center gap-4">
           <div className="text-sm text-muted-foreground">
