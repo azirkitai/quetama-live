@@ -314,7 +314,7 @@ export function PatientCard({
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-2">
-          {patient.status === "waiting" && (
+          {(patient.status === "waiting" || patient.status === "dispensary") && (
             <Button
               onClick={handleCall}
               disabled={shouldDisableButtons}
