@@ -1663,12 +1663,17 @@ export class DatabaseStorage implements IStorage {
     if (status === "dispensary") {
       // Clear patient from window FIRST (before clearing patient.windowId)
       if (currentPatient.windowId) {
-        await db.update(schema.windows)
+        console.log(`🧹 Clearing window ${currentPatient.windowId} for patient ${id}`);
+        const result = await db.update(schema.windows)
           .set({ currentPatientId: null })
           .where(and(
             eq(schema.windows.id, currentPatient.windowId),
             eq(schema.windows.userId, userId)
-          ));
+          ))
+          .returning();
+        console.log(`🧹 Window cleared:`, result);
+      } else {
+        console.log(`⚠️ Patient ${id} has no windowId to clear`);
       }
       
       const updateData: any = { 
@@ -1705,12 +1710,17 @@ export class DatabaseStorage implements IStorage {
       
       // Clear patient from window FIRST (before clearing patient.windowId)
       if (currentPatient.windowId) {
-        await db.update(schema.windows)
+        console.log(`🧹 Clearing window ${currentPatient.windowId} for patient ${id}`);
+        const result = await db.update(schema.windows)
           .set({ currentPatientId: null })
           .where(and(
             eq(schema.windows.id, currentPatient.windowId),
             eq(schema.windows.userId, userId)
-          ));
+          ))
+          .returning();
+        console.log(`🧹 Window cleared:`, result);
+      } else {
+        console.log(`⚠️ Patient ${id} has no windowId to clear`);
       }
       
       const updateData: any = { 
