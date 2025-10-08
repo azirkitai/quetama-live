@@ -504,7 +504,7 @@ export function TVDisplay({
   const [isMediaVisible, setIsMediaVisible] = useState(true);
   
   // Auto-resize text functionality
-  const [patientNameFontSize, setPatientNameFontSize] = useState('4rem');
+  const [patientNameFontSize, setPatientNameFontSize] = useState('7rem');
   const [roomNameFontSize, setRoomNameFontSize] = useState('2.5rem');
   const [historyFontSizes, setHistoryFontSizes] = useState<Record<string, {name: string, room: string}>>({});
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -1074,7 +1074,7 @@ export function TVDisplay({
           {/* History Items */}
           <div className="space-y-4 overflow-y-auto flex-1" data-testid="queue-list">
             {queueHistory.length > 0 ? (
-              queueHistory.slice(0, 4).map((item) => (
+              queueHistory.slice(0, 3).map((item) => (
                 <div key={item.id} className="grid grid-cols-2 gap-1 p-2 rounded-lg"
                      style={{
                        ...getBackgroundStyle(queueItemBackgroundMode, queueItemBackgroundColor, queueItemBackgroundGradient, '#2563eb')
