@@ -382,14 +382,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Session inactive" });
       }
       
+      console.log("📥 POST /api/patients - Request body:", req.body);
+      
       // Add userId from session to patient data
       const patientDataWithUser = {
         ...req.body,
         userId: req.session.userId
       };
       
+      console.log("📦 Patient data with user:", patientDataWithUser);
+      
       const patientData = insertPatientSchema.parse(patientDataWithUser);
+      console.log("✅ Parsed patient data:", patientData);
+      
       const patient = await storage.createPatient(patientData);
+      console.log("💾 Created patient:", patient);
+      
       res.json(patient);
     } catch (error) {
       console.error("Error creating patient:", error);
