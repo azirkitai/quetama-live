@@ -110,7 +110,7 @@ export function PatientCard({
   };
 
   const handleRequeueWithReason = (reason: string) => {
-    if (reason === "OTHER") {
+    if (reason === "Others") {
       setShowCustomReasonInput(true);
       return;
     }
@@ -428,12 +428,13 @@ export function PatientCard({
                         <SelectValue placeholder="Select reason..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="NEBULISER">NEBULISER</SelectItem>
-                        <SelectItem value="GET MEDICATION">GET MEDICATION</SelectItem>
-                        <SelectItem value="WAITING FOR TEST RESULTS">WAITING FOR TEST RESULTS</SelectItem>
+                        <SelectItem value="Nebuliser">Nebuliser</SelectItem>
+                        <SelectItem value="Waiting for the Test result">Waiting for the Test result</SelectItem>
                         <SelectItem value="MGTT">MGTT</SelectItem>
-                        <SelectItem value="BILL & DISCHARGE">BILL & DISCHARGE</SelectItem>
-                        <SelectItem value="OTHER">OTHER</SelectItem>
+                        <SelectItem value="Dressing">Dressing</SelectItem>
+                        <SelectItem value="XRAY">XRAY</SelectItem>
+                        <SelectItem value="Drip">Drip</SelectItem>
+                        <SelectItem value="Others">Others</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
