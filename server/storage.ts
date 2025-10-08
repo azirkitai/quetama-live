@@ -1615,6 +1615,22 @@ export class DatabaseStorage implements IStorage {
           roomName: window.name
         });
       }
+    } else if (status === "dispensary") {
+      // Special handling for dispensary - auto-find DISPENSARY window
+      const [dispensaryWindow] = await db.select()
+        .from(schema.windows)
+        .where(and(
+          eq(schema.windows.name, 'DISPENSARY'),
+          eq(schema.windows.userId, userId)
+        ));
+      
+      if (dispensaryWindow) {
+        trackingHistory.push({
+          timestamp: now.toISOString(),
+          action: 'called',
+          roomName: 'DISPENSARY'
+        });
+      }
     } else if (status === "in-progress") {
       trackingHistory.push({
         timestamp: now.toISOString(),
@@ -1641,6 +1657,43 @@ export class DatabaseStorage implements IStorage {
         requeueReason: requeueReason || 'No reason specified',
         fromRoom: fromRoom
       });
+    }
+    
+    // Special handling for "dispensary" status - auto-find and set DISPENSARY window
+    if (status === "dispensary") {
+      const [dispensaryWindow] = await db.select()
+        .from(schema.windows)
+        .where(and(
+          eq(schema.windows.name, 'DISPENSARY'),
+          eq(schema.windows.userId, userId)
+        ));
+      
+      if (dispensaryWindow) {
+        const updateData: any = { 
+          status: "called", // Change status to "called" for TV display
+          windowId: dispensaryWindow.id,
+          lastWindowId: currentPatient.windowId, // Preserve previous room
+          calledAt: now, // Update calledAt for TV display trigger
+          requeueReason: null,
+          trackingHistory: sql`${JSON.stringify(trackingHistory)}::json`
+        };
+
+        const [updatedPatient] = await db.update(schema.patients)
+          .set(updateData)
+          .where(and(eq(schema.patients.id, id), eq(schema.patients.userId, userId)))
+          .returning();
+
+        console.log(`💊 DISPENSARY updated:`, {
+          id: updatedPatient?.id,
+          name: updatedPatient?.name,
+          status: updatedPatient?.status,
+          windowId: updatedPatient?.windowId,
+          windowName: 'DISPENSARY',
+          calledAt: updatedPatient?.calledAt?.toISOString()
+        });
+
+        return updatedPatient;
+      }
     }
     
     // Special handling for "completed" and "requeue" status - preserve current room to lastWindowId
