@@ -9,6 +9,7 @@ interface Window {
   id: string;
   name: string;
   isActive: boolean;
+  isPermanent?: boolean;
   currentPatientId?: string;
   currentPatientName?: string;
   currentPatientNumber?: number;
@@ -178,7 +179,7 @@ export function WindowCard({
             onClick={handleDelete}
             size="sm"
             variant={isDeleting ? "destructive" : "outline"}
-            disabled={!!window.currentPatientId}
+            disabled={!!window.currentPatientId || !!window.isPermanent}
             data-testid={`button-delete-${window.id}`}
           >
             <Trash2 className="h-4 w-4 mr-1" />
@@ -189,6 +190,12 @@ export function WindowCard({
         {window.currentPatientId && (
           <div className="mt-2 text-xs text-amber-600 dark:text-amber-400">
             Cannot delete while serving a patient
+          </div>
+        )}
+        
+        {window.isPermanent && (
+          <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
+            Permanent room cannot be deleted
           </div>
         )}
       </CardContent>

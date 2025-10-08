@@ -847,6 +847,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { id } = req.params;
       
+      // Check if window is permanent before attempting delete
+      const window = await storage.getWindow(id);
+      if (!window || window.userId !== req.session.userId) {
+        return res.status(404).json({ error: "Window not found" });
+      }
+      
+      if (window.isPermanent) {
+        return res.status(403).json({ error: "Cannot delete permanent room" });
+      }
+      
       const success = await storage.deleteWindow(id, req.session.userId);
       if (!success) {
         return res.status(400).json({ error: "Cannot delete window - window not found or currently occupied" });

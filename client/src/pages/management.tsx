@@ -13,6 +13,7 @@ interface Window {
   id: string;
   name: string;
   isActive: boolean;
+  isPermanent?: boolean;
   currentPatientId?: string;
   currentPatientName?: string;
   currentPatientNumber?: number;

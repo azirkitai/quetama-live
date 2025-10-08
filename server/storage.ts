@@ -1112,6 +1112,7 @@ export class DatabaseStorage implements IStorage {
     this.initializeDefaultSettings();
     this.initializeDefaultTheme();
     this.initializeDefaultTextGroups();
+    this.initializeDefaultWindows();
   }
 
   private async initializeDefaultSettings() {
@@ -1190,6 +1191,36 @@ export class DatabaseStorage implements IStorage {
           ...group,
           userId: this.systemUserId,
         });
+      }
+    }
+  }
+
+  private async initializeDefaultWindows() {
+    // Get all users to ensure each has DISPENSARY room
+    const allUsers = await db.select().from(users);
+    
+    for (const user of allUsers) {
+      // Check if DISPENSARY room exists for this user
+      const existing = await db.select().from(schema.windows)
+        .where(and(
+          eq(schema.windows.name, "DISPENSARY"),
+          eq(schema.windows.userId, user.id)
+        ))
+        .limit(1);
+
+      if (existing.length === 0) {
+        // Create DISPENSARY room for this user
+        await db.insert(schema.windows).values({
+          name: "DISPENSARY",
+          isActive: true,
+          isPermanent: true,
+          userId: user.id,
+        });
+      } else if (!existing[0].isPermanent) {
+        // Update existing DISPENSARY to be permanent
+        await db.update(schema.windows)
+          .set({ isPermanent: true })
+          .where(eq(schema.windows.id, existing[0].id));
       }
     }
   }
@@ -1376,6 +1407,7 @@ export class DatabaseStorage implements IStorage {
       id: w.id,
       name: w.name,
       isActive: w.isActive,
+      isPermanent: w.isPermanent,
       currentPatientId: w.currentPatientId || undefined,
       userId: w.userId
     };

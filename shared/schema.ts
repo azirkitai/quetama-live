@@ -36,6 +36,7 @@ export const windows = pgTable("windows", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   isActive: boolean("is_active").notNull().default(true),
+  isPermanent: boolean("is_permanent").notNull().default(false), // Cannot be deleted
   currentPatientId: varchar("current_patient_id"),
   // Account isolation
   userId: varchar("user_id").notNull(),
