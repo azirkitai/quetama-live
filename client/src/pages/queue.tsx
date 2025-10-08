@@ -433,14 +433,14 @@ export default function Queue() {
 
       {/* Priority Patients */}
       <div>
-        <h2 className="text-lg font-semibold mb-4 flex items-center text-yellow-600 dark:text-yellow-500">
+        <h2 className="text-lg font-semibold mb-4 flex items-center text-red-600 dark:text-red-500">
           <Star className="h-5 w-5 mr-2 fill-current" />
           Priority Patients ({priorityPatients.length})
         </h2>
         {priorityPatients.length === 0 ? (
-          <Card>
+          <Card className="border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/20">
             <CardContent className="p-8 text-center">
-              <div className="text-muted-foreground">
+              <div className="text-red-600 dark:text-red-400">
                 No priority patients
               </div>
             </CardContent>
