@@ -1,9 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Pill, Star } from "lucide-react";
+import { Pill, Star, RefreshCw } from "lucide-react";
 import { PatientCard } from "@/components/patient-card";
 
 interface Patient {
@@ -45,6 +46,7 @@ interface QueuePatient extends Patient {
 
 export default function Dispensary() {
   const { toast } = useToast();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Fetch all patients
   const { data: patients = [], isLoading: patientsLoading } = useQuery<Patient[]>({
@@ -152,6 +154,30 @@ export default function Dispensary() {
       });
     },
   });
+
+  // Handle refresh
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['/api/patients'] }),
+        queryClient.invalidateQueries({ queryKey: ['/api/windows'] }),
+        queryClient.invalidateQueries({ queryKey: ['/api/settings'] }),
+      ]);
+      toast({
+        title: "Refreshed",
+        description: "Data updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to refresh data",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Enhanced patients with window names
   const enhancedPatients = useMemo((): QueuePatient[] => {
@@ -305,8 +331,20 @@ export default function Dispensary() {
         <h1 className="text-3xl font-bold">
           DISPENSARY Queue
         </h1>
-        <div className="text-sm text-muted-foreground">
-          Total: {dispensaryPatients.length} patients
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-muted-foreground">
+            Total: {dispensaryPatients.length} patients
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            data-testid="button-refresh"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </div>
       </div>
 
