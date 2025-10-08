@@ -15,6 +15,7 @@ import Dashboard from "@/pages/dashboard";
 import Management from "@/pages/management";
 import Register from "@/pages/register";
 import Queue from "@/pages/queue";
+import Dispensary from "@/pages/dispensary";
 import Settings from "@/pages/settings";
 import Account from "@/pages/account";
 import Administration from "@/pages/administration";
@@ -29,6 +30,7 @@ function Router() {
       <Route path="/management" component={Management} />
       <Route path="/register" component={Register} />
       <Route path="/queue" component={Queue} />
+      <Route path="/dispensary" component={Dispensary} />
       <Route path="/settings" component={Settings} />
       <Route path="/account" component={Account} />
       <Route path="/administration" component={Administration} />

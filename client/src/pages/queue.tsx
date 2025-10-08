@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { PatientCard } from "@/components/patient-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ClipboardList, Users, RefreshCw, Trash2, Star } from "lucide-react";
+import { ClipboardList, Users, RefreshCw, Trash2, Star, Pill, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Patient, type Setting } from "@shared/schema";
@@ -19,7 +20,7 @@ interface Window {
 }
 
 interface QueuePatient extends Omit<Patient, 'status' | 'trackingHistory' | 'windowId' | 'lastWindowId'> {
-  status: "waiting" | "called" | "in-progress" | "completed" | "requeue";
+  status: "waiting" | "called" | "in-progress" | "completed" | "requeue" | "dispensary";
   windowId?: string;
   windowName?: string;
   lastWindowId?: string;
@@ -323,6 +324,21 @@ export default function Queue() {
     });
   };
 
+  const handleDispensePatient = (patientId: string) => {
+    updatePatientStatusMutation.mutate({
+      patientId,
+      status: "dispensary"
+    });
+    
+    const patient = enhancedPatients.find(p => p.id === patientId);
+    const patientName = patient?.name || `Number ${patient?.number}`;
+    
+    toast({
+      title: "Patient Sent to Dispensary",
+      description: `${patientName} moved to dispensary queue`,
+    });
+  };
+
   const handleRequeuePatient = (patientId: string, reason?: string) => {
     updatePatientStatusMutation.mutate({
       patientId,
@@ -357,6 +373,17 @@ export default function Queue() {
           <p className="text-muted-foreground">Manage patient calls and treatment rooms</p>
         </div>
         <div className="flex items-center gap-2">
+          <Link href="/dispensary">
+            <Button
+              variant="default"
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
+              data-testid="button-go-dispensary"
+            >
+              <Pill className="h-4 w-4 mr-2" />
+              DISPENSARY
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </Link>
           <Button
             variant="outline"
             onClick={handleRefresh}
@@ -437,6 +464,7 @@ export default function Queue() {
                 onRecall={handleRecall}
                 onDelete={handleDeletePatient}
                 onComplete={handleCompletePatient}
+                onDispense={handleDispensePatient}
                 onRequeue={handleRequeuePatient}
                 disabled={!selectedWindow || updatePatientStatusMutation.isPending}
                 selectedWindow={selectedWindow}
@@ -497,6 +525,7 @@ export default function Queue() {
                 onRecall={handleRecall}
                 onDelete={handleDeletePatient}
                 onComplete={handleCompletePatient}
+                onDispense={handleDispensePatient}
                 onRequeue={handleRequeuePatient}
                 disabled={!selectedWindow || updatePatientStatusMutation.isPending}
                 selectedWindow={selectedWindow}

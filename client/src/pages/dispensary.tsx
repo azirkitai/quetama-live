@@ -277,7 +277,7 @@ export default function Dispensary() {
             {priorityDispensary.map((patient) => (
               <PatientCard
                 key={patient.id}
-                patient={patient}
+                patient={patient as any}
                 onCall={handleCallPatient}
                 onCallAgain={handleCallAgain}
                 onRecall={handleRecall}
@@ -311,7 +311,7 @@ export default function Dispensary() {
             {normalDispensary.map((patient) => (
               <PatientCard
                 key={patient.id}
-                patient={patient}
+                patient={patient as any}
                 onCall={handleCallPatient}
                 onCallAgain={handleCallAgain}
                 onRecall={handleRecall}

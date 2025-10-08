@@ -18,7 +18,7 @@ interface Patient {
   id: string;
   name: string | null;
   number: number;
-  status: "waiting" | "called" | "in-progress" | "completed" | "requeue";
+  status: "waiting" | "called" | "in-progress" | "completed" | "requeue" | "dispensary";
   isPriority?: boolean;
   priorityReason?: string | null;
   windowId?: string;
