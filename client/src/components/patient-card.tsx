@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Trash2, RotateCcw, CheckCircle, X, Volume2, PhoneCall, Clock } from "lucide-react";
+import { Bell, Trash2, RotateCcw, CheckCircle, X, Volume2, PhoneCall, Clock, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -57,6 +57,7 @@ export function PatientCard({
   const [showRequeueDropdown, setShowRequeueDropdown] = useState(false);
   const [showCustomReasonInput, setShowCustomReasonInput] = useState(false);
   const [customReason, setCustomReason] = useState("");
+  const [isJourneyExpanded, setIsJourneyExpanded] = useState(false);
 
   // Check if this patient is assigned to a different room than selected
   // BUT allow all rooms to call requeued patients
@@ -193,14 +194,26 @@ export function PatientCard({
       <CardContent>
         {/* Enhanced Journey History - Timeline View */}
         <div className="mb-4 space-y-2">
-          <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+          <button
+            type="button"
+            className="w-full text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2 cursor-pointer hover-elevate active-elevate-2 px-2 py-1 rounded-md -mx-2 bg-transparent border-0"
+            onClick={() => setIsJourneyExpanded(!isJourneyExpanded)}
+            aria-expanded={isJourneyExpanded}
+            aria-label={isJourneyExpanded ? "Collapse patient journey" : "Expand patient journey"}
+            data-testid={`button-toggle-journey-${patient.id}`}
+          >
             <Clock className="h-4 w-4" />
             Patient Journey
-          </div>
+            {isJourneyExpanded ? (
+              <ChevronUp className="h-4 w-4 ml-auto" />
+            ) : (
+              <ChevronDown className="h-4 w-4 ml-auto" />
+            )}
+          </button>
           
-          {/* Display all journey events from trackingHistory */}
+          {/* Display journey events - collapsed shows latest only, expanded shows all */}
           {patient.trackingHistory && patient.trackingHistory.length > 0 ? (
-            patient.trackingHistory.map((event, index) => {
+            (() => {
               const getEventIcon = (action: string) => {
                 switch (action) {
                   case 'registered':
@@ -235,7 +248,12 @@ export function PatientCard({
                 }
               };
 
-              return (
+              // Show only latest event when collapsed, all events when expanded
+              const eventsToShow = isJourneyExpanded 
+                ? patient.trackingHistory 
+                : [patient.trackingHistory[patient.trackingHistory.length - 1]];
+
+              return eventsToShow.map((event, index) => (
                 <div key={index} className="flex items-start gap-2 text-xs">
                   <div className={`w-2 h-2 rounded-full ${getEventIcon(event.action)} mt-1 flex-shrink-0`} />
                   <div className="flex-1">
@@ -264,8 +282,8 @@ export function PatientCard({
                     </div>
                   </div>
                 </div>
-              );
-            })
+              ));
+            })()
           ) : (
             <div className="text-xs text-gray-500 dark:text-gray-400">
               No journey history available
