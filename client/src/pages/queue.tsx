@@ -126,29 +126,6 @@ export default function Queue() {
     },
   });
 
-  // Toggle patient priority mutation
-  const togglePriorityMutation = useMutation({
-    mutationFn: async (patientId: string) => {
-      const response = await apiRequest("PATCH", `/api/patients/${patientId}/priority`);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
-      toast({
-        title: "Success",
-        description: "Patient priority updated",
-      });
-    },
-    onError: (error) => {
-      console.error("Error toggling priority:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update patient priority",
-        variant: "destructive",
-      });
-    },
-  });
-
   // Delete patient mutation
   const deletePatientMutation = useMutation({
     mutationFn: async (patientId: string) => {
@@ -461,7 +438,6 @@ export default function Queue() {
                 onDelete={handleDeletePatient}
                 onComplete={handleCompletePatient}
                 onRequeue={handleRequeuePatient}
-                onTogglePriority={togglePriorityMutation.mutate}
                 disabled={!selectedWindow || updatePatientStatusMutation.isPending}
                 selectedWindow={selectedWindow}
               />
@@ -488,7 +464,6 @@ export default function Queue() {
                 onDelete={handleDeletePatient}
                 onComplete={handleCompletePatient}
                 onRequeue={handleRequeuePatient}
-                onTogglePriority={togglePriorityMutation.mutate}
                 disabled={updatePatientStatusMutation.isPending}
                 selectedWindow={selectedWindow}
               />
@@ -523,7 +498,6 @@ export default function Queue() {
                 onDelete={handleDeletePatient}
                 onComplete={handleCompletePatient}
                 onRequeue={handleRequeuePatient}
-                onTogglePriority={togglePriorityMutation.mutate}
                 disabled={!selectedWindow || updatePatientStatusMutation.isPending}
                 selectedWindow={selectedWindow}
               />

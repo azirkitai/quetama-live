@@ -20,6 +20,7 @@ interface Patient {
   number: number;
   status: "waiting" | "called" | "in-progress" | "completed" | "requeue";
   isPriority?: boolean;
+  priorityReason?: string | null;
   windowId?: string;
   windowName?: string;
   lastWindowId?: string;
@@ -39,7 +40,6 @@ interface PatientCardProps {
   onDelete: (patientId: string) => void;
   onComplete: (patientId: string) => void;
   onRequeue: (patientId: string, reason?: string) => void;
-  onTogglePriority?: (patientId: string) => void;
   disabled?: boolean;
   selectedWindow?: string; // Current selected window by user
 }
@@ -52,7 +52,6 @@ export function PatientCard({
   onDelete,
   onComplete,
   onRequeue,
-  onTogglePriority,
   disabled = false,
   selectedWindow
 }: PatientCardProps) {
@@ -193,6 +192,14 @@ export function PatientCard({
             {patient.lastWindowName && !patient.windowName && (
               <span className="text-xs text-gray-400 ml-1">(Last Room)</span>
             )}
+          </div>
+        )}
+        {patient.isPriority && patient.priorityReason && (
+          <div className="mt-2 flex items-center gap-2">
+            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300" data-testid={`badge-priority-reason-${patient.id}`}>
+              <Star className="h-3 w-3 mr-1 fill-yellow-600 text-yellow-600" />
+              Priority: {patient.priorityReason}
+            </Badge>
           </div>
         )}
       </CardHeader>
@@ -439,20 +446,6 @@ export function PatientCard({
                 </div>
               )}
             </>
-          )}
-
-          {onTogglePriority && (
-            <Button
-              onClick={() => onTogglePriority(patient.id)}
-              disabled={shouldDisableButtons}
-              size="sm"
-              variant={patient.isPriority ? "default" : "outline"}
-              className={patient.isPriority ? "bg-yellow-600 hover:bg-yellow-700" : ""}
-              data-testid={`button-toggle-priority-${patient.id}`}
-            >
-              <Star className={`h-4 w-4 mr-1 ${patient.isPriority ? 'fill-current' : ''}`} />
-              {patient.isPriority ? "Priority" : "Set Priority"}
-            </Button>
           )}
 
           <Button
