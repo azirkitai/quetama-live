@@ -1280,33 +1280,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async authenticateUser(username: string, password: string): Promise<User | null> {
-    console.log('🔐 AUTH (DB): Attempting login for username:', username);
     const user = await this.getUserByUsername(username);
     
-    if (!user) {
-      console.log('❌ AUTH (DB): User not found');
+    if (!user || !user.isActive) {
       return null;
     }
-    
-    if (!user.isActive) {
-      console.log('❌ AUTH (DB): User is inactive');
-      return null;
-    }
-    
-    console.log('🔑 AUTH (DB): User found, verifying password...');
-    console.log('🔑 AUTH (DB): Provided password length:', password.length);
-    console.log('🔑 AUTH (DB): Stored hash starts with:', user.password.substring(0, 10));
     
     const isPasswordValid = await bcrypt.compare(password, user.password);
     
-    console.log('🔑 AUTH (DB): Password valid?', isPasswordValid);
-    
     if (!isPasswordValid) {
-      console.log('❌ AUTH (DB): Invalid password');
       return null;
     }
     
-    console.log('✅ AUTH (DB): Login successful for user:', username);
     return user;
   }
 

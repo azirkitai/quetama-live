@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a comprehensive clinic patient calling system designed for healthcare facilities. The application enables efficient patient queue management with real-time TV displays, multi-user administration, and streamlined workflows for medical staff. Built with React, TypeScript, and modern web technologies, it supports both named and numbered patient registration, window/room management, and administrative controls.
+This is a comprehensive clinic patient calling system designed for healthcare facilities. The application enables efficient patient queue management with real-time TV displays, multi-user administration, and streamlined workflows for medical staff. Built with React, TypeScript, and modern web technologies, it supports named patient registration with automatic queue numbering, window/room management, and administrative controls.
 
 ## User Preferences
 
@@ -39,7 +39,7 @@ The system uses four main entities:
 - **Administration**: Role-based user management and system configuration
 
 ### Key Features
-- **Dual Registration Types**: Support for both named patients and anonymous number-based registration
+- **Named Patient Registration**: All patients register with their full name and receive an automatic queue number
 - **Real-time Queue Management**: Live updates for patient status and queue position
 - **Multi-window Support**: Flexible room/station configuration with individual patient assignments
 - **TV Display Mode**: Large-format display for patient calling with Islamic prayer times integration
