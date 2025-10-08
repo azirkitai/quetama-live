@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Trash2, RotateCcw, CheckCircle, X, Volume2, PhoneCall, Clock, ChevronDown, ChevronUp, Star } from "lucide-react";
+import { Bell, Trash2, RotateCcw, CheckCircle, X, Volume2, PhoneCall, Clock, ChevronDown, ChevronUp, Star, Pill } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,7 @@ interface PatientCardProps {
   onRecall: (patientId: string) => void;
   onDelete: (patientId: string) => void;
   onComplete: (patientId: string) => void;
+  onDispense?: (patientId: string) => void;
   onRequeue: (patientId: string, reason?: string) => void;
   disabled?: boolean;
   selectedWindow?: string; // Current selected window by user
@@ -51,6 +52,7 @@ export function PatientCard({
   onRecall,
   onDelete,
   onComplete,
+  onDispense,
   onRequeue,
   disabled = false,
   selectedWindow
@@ -95,6 +97,13 @@ export function PatientCard({
   const handleComplete = () => {
     console.log(`Completing patient ${patient.id}`);
     onComplete(patient.id);
+  };
+
+  const handleDispense = () => {
+    console.log(`Dispensing patient ${patient.id}`);
+    if (onDispense) {
+      onDispense(patient.id);
+    }
   };
 
   const handleRequeue = () => {
@@ -360,17 +369,31 @@ export function PatientCard({
                 Call Again
               </Button>
               
-              <Button
-                onClick={handleComplete}
-                disabled={shouldDisableButtons}
-                size="sm"
-                variant="default"
-                className="flex-1"
-                data-testid={`button-complete-${patient.id}`}
-              >
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Complete
-              </Button>
+              {patient.windowName === "DISPENSARY" ? (
+                <Button
+                  onClick={handleComplete}
+                  disabled={shouldDisableButtons}
+                  size="sm"
+                  variant="default"
+                  className="flex-1"
+                  data-testid={`button-complete-${patient.id}`}
+                >
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Complete
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleDispense}
+                  disabled={shouldDisableButtons || !onDispense}
+                  size="sm"
+                  variant="default"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
+                  data-testid={`button-dispense-${patient.id}`}
+                >
+                  <Pill className="h-4 w-4 mr-1" />
+                  Dispense
+                </Button>
+              )}
               
               {!showRequeueDropdown ? (
                 <Button
