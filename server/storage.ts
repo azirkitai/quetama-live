@@ -1659,41 +1659,40 @@ export class DatabaseStorage implements IStorage {
       });
     }
     
-    // Special handling for "dispensary" status - auto-find and set DISPENSARY window
+    // Special handling for "dispensary" status - just queue patient, don't auto-call
     if (status === "dispensary") {
-      const [dispensaryWindow] = await db.select()
-        .from(schema.windows)
-        .where(and(
-          eq(schema.windows.name, 'DISPENSARY'),
-          eq(schema.windows.userId, userId)
-        ));
-      
-      if (dispensaryWindow) {
-        const updateData: any = { 
-          status: "called", // Change status to "called" for TV display
-          windowId: dispensaryWindow.id,
-          lastWindowId: currentPatient.windowId, // Preserve previous room
-          calledAt: now, // Update calledAt for TV display trigger
-          requeueReason: null,
-          trackingHistory: sql`${JSON.stringify(trackingHistory)}::json`
-        };
-
-        const [updatedPatient] = await db.update(schema.patients)
-          .set(updateData)
-          .where(and(eq(schema.patients.id, id), eq(schema.patients.userId, userId)))
-          .returning();
-
-        console.log(`💊 DISPENSARY updated:`, {
-          id: updatedPatient?.id,
-          name: updatedPatient?.name,
-          status: updatedPatient?.status,
-          windowId: updatedPatient?.windowId,
-          windowName: 'DISPENSARY',
-          calledAt: updatedPatient?.calledAt?.toISOString()
-        });
-
-        return updatedPatient;
+      // Clear patient from window FIRST (before clearing patient.windowId)
+      if (currentPatient.windowId) {
+        await db.update(schema.windows)
+          .set({ currentPatientId: null })
+          .where(and(
+            eq(schema.windows.id, currentPatient.windowId),
+            eq(schema.windows.userId, userId)
+          ));
       }
+      
+      const updateData: any = { 
+        status: "dispensary", // Keep status as "dispensary" (not auto-called)
+        windowId: null, // Clear current room
+        lastWindowId: currentPatient.windowId, // Preserve previous room
+        requeueReason: null,
+        trackingHistory: sql`${JSON.stringify(trackingHistory)}::json`
+      };
+
+      const [updatedPatient] = await db.update(schema.patients)
+        .set(updateData)
+        .where(and(eq(schema.patients.id, id), eq(schema.patients.userId, userId)))
+        .returning();
+
+      console.log(`💊 DISPENSARY queued (not called):`, {
+        id: updatedPatient?.id,
+        name: updatedPatient?.name,
+        status: updatedPatient?.status,
+        windowId: updatedPatient?.windowId,
+        lastWindowId: updatedPatient?.lastWindowId
+      });
+
+      return updatedPatient;
     }
     
     // Special handling for "completed" and "requeue" status - preserve current room to lastWindowId
@@ -1703,6 +1702,16 @@ export class DatabaseStorage implements IStorage {
         currentWindowId: currentPatient.windowId,
         willSetLastWindowId: currentPatient.windowId
       });
+      
+      // Clear patient from window FIRST (before clearing patient.windowId)
+      if (currentPatient.windowId) {
+        await db.update(schema.windows)
+          .set({ currentPatientId: null })
+          .where(and(
+            eq(schema.windows.id, currentPatient.windowId),
+            eq(schema.windows.userId, userId)
+          ));
+      }
       
       const updateData: any = { 
         status,
