@@ -436,12 +436,20 @@ export default function Queue() {
       </Card>
 
       {/* Priority Patients */}
-      {priorityPatients.length > 0 && (
-        <div>
-          <h2 className="text-lg font-semibold mb-4 flex items-center text-yellow-600 dark:text-yellow-500">
-            <Star className="h-5 w-5 mr-2 fill-current" />
-            Priority Patients ({priorityPatients.length})
-          </h2>
+      <div>
+        <h2 className="text-lg font-semibold mb-4 flex items-center text-yellow-600 dark:text-yellow-500">
+          <Star className="h-5 w-5 mr-2 fill-current" />
+          Priority Patients ({priorityPatients.length})
+        </h2>
+        {priorityPatients.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <div className="text-muted-foreground">
+                No priority patients
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {priorityPatients.map((patient) => (
               <PatientCard
@@ -459,8 +467,8 @@ export default function Queue() {
               />
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Active Patients */}
       {activePatients.length > 0 && (
