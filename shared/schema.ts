@@ -47,6 +47,7 @@ export const patients = pgTable("patients", {
   name: text("name"), // Can be null for number-only patients
   number: integer("number").notNull(),
   status: text("status").notNull().default("waiting"), // 'waiting', 'called', 'in-progress', 'completed', 'requeue'
+  isPriority: boolean("is_priority").notNull().default(false), // Priority patient flag
   windowId: varchar("window_id"),
   lastWindowId: varchar("last_window_id"), // Preserve last room they were called to
   registeredAt: timestamp("registered_at").notNull().default(sql`now()`),

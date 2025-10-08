@@ -63,6 +63,7 @@ export interface IStorage {
   getPatientsByDate(date: string, userId: string): Promise<Patient[]>;
   getNextPatientNumber(userId: string): Promise<number>;
   updatePatientStatus(patientId: string, status: string, userId: string, windowId?: string | null, requeueReason?: string): Promise<Patient | undefined>;
+  togglePatientPriority(patientId: string, userId: string): Promise<Patient | undefined>;
   deletePatient(patientId: string, userId: string): Promise<boolean>;
   archiveCompletedPatients(userId: string): Promise<number>; // Soft delete completed patients for queue reset
   deleteAllTodayPatients(userId: string): Promise<number>; // Delete ALL today's patients for complete queue reset
@@ -356,6 +357,7 @@ export class MemStorage implements IStorage {
       name: insertPatient.name || null,
       number: insertPatient.number,
       status: "waiting",
+      isPriority: false,
       windowId: null,
       lastWindowId: null,
       registeredAt: now,
@@ -470,6 +472,19 @@ export class MemStorage implements IStorage {
       lastWindowId: lastWindowId,
       requeueReason: status === "requeue" ? requeueReason || null : patient.requeueReason,
       trackingHistory: trackingHistory
+    };
+
+    this.patients.set(patientId, updatedPatient);
+    return updatedPatient;
+  }
+
+  async togglePatientPriority(patientId: string, userId: string): Promise<Patient | undefined> {
+    const patient = this.patients.get(patientId);
+    if (!patient || patient.userId !== userId) return undefined;
+
+    const updatedPatient = {
+      ...patient,
+      isPriority: !patient.isPriority
     };
 
     this.patients.set(patientId, updatedPatient);
@@ -1664,6 +1679,24 @@ export class DatabaseStorage implements IStorage {
     return updatedPatient;
   }
 
+  async togglePatientPriority(patientId: string, userId: string): Promise<Patient | undefined> {
+    const patient = await db.query.patients.findFirst({
+      where: and(
+        eq(schema.patients.id, patientId),
+        eq(schema.patients.userId, userId)
+      )
+    });
+
+    if (!patient) return undefined;
+
+    const [updatedPatient] = await db.update(schema.patients)
+      .set({ isPriority: !patient.isPriority })
+      .where(and(eq(schema.patients.id, patientId), eq(schema.patients.userId, userId)))
+      .returning();
+
+    return updatedPatient;
+  }
+
   async deletePatient(patientId: string, userId: string): Promise<boolean> {
     const result = await db.delete(schema.patients)
       .where(and(eq(schema.patients.id, patientId), eq(schema.patients.userId, userId)));
@@ -1842,6 +1875,7 @@ export class DatabaseStorage implements IStorage {
         name: schema.patients.name,
         number: schema.patients.number,
         status: schema.patients.status,
+        isPriority: schema.patients.isPriority,
         windowId: schema.patients.windowId,
         lastWindowId: schema.patients.lastWindowId,
         registeredAt: schema.patients.registeredAt,
@@ -1894,6 +1928,7 @@ export class DatabaseStorage implements IStorage {
       name: schema.patients.name,
       number: schema.patients.number,
       status: schema.patients.status,
+      isPriority: schema.patients.isPriority,
       windowId: schema.patients.windowId,
       lastWindowId: schema.patients.lastWindowId,
       registeredAt: schema.patients.registeredAt,

@@ -484,6 +484,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Toggle patient priority
+  app.patch("/api/patients/:id/priority", async (req, res) => {
+    try {
+      // Check authentication
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Session inactive" });
+      }
+      
+      const { id } = req.params;
+      const patient = await storage.togglePatientPriority(id, req.session.userId);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+      
+      res.json(patient);
+    } catch (error) {
+      console.error("Error toggling patient priority:", error);
+      res.status(500).json({ error: "Failed to toggle patient priority" });
+    }
+  });
+
   // Delete patient
   app.delete("/api/patients/:id", async (req, res) => {
     try {

@@ -29,7 +29,7 @@ Preferred communication style: Simple, everyday language.
 The system uses four main entities:
 - **Users**: Authentication and role-based access (admin/user roles)
 - **Windows**: Treatment rooms/stations with active status tracking
-- **Patients**: Queue management with status tracking (waiting, called, in-progress, completed, requeue)
+- **Patients**: Queue management with status tracking (waiting, called, in-progress, completed, requeue) and priority flagging
 - **Settings**: Configurable system parameters for display, sound, and general settings
 
 ### Component Architecture
@@ -40,6 +40,7 @@ The system uses four main entities:
 
 ### Key Features
 - **Named Patient Registration**: All patients register with their full name and receive an automatic queue number
+- **Priority Patient Management**: Toggle priority status for urgent cases with dedicated section display and visual indicators
 - **Real-time Queue Management**: Live updates for patient status and queue position
 - **Multi-window Support**: Flexible room/station configuration with individual patient assignments
 - **TV Display Mode**: Large-format display for patient calling with Islamic prayer times integration

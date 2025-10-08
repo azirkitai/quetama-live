@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ClipboardList, Users, RefreshCw, Trash2 } from "lucide-react";
+import { ClipboardList, Users, RefreshCw, Trash2, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Patient, type Setting } from "@shared/schema";
@@ -18,11 +18,13 @@ interface Window {
   currentPatientId?: string;
 }
 
-interface QueuePatient extends Omit<Patient, 'status' | 'trackingHistory'> {
+interface QueuePatient extends Omit<Patient, 'status' | 'trackingHistory' | 'windowId' | 'lastWindowId'> {
   status: "waiting" | "called" | "in-progress" | "completed" | "requeue";
+  windowId?: string;
   windowName?: string;
+  lastWindowId?: string;
   lastWindowName?: string;
-  trackingHistory?: string[];
+  trackingHistory?: any[];
 }
 
 export default function Queue() {
@@ -124,6 +126,29 @@ export default function Queue() {
     },
   });
 
+  // Toggle patient priority mutation
+  const togglePriorityMutation = useMutation({
+    mutationFn: async (patientId: string) => {
+      const response = await apiRequest("PATCH", `/api/patients/${patientId}/priority`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
+      toast({
+        title: "Success",
+        description: "Patient priority updated",
+      });
+    },
+    onError: (error) => {
+      console.error("Error toggling priority:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update patient priority",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete patient mutation
   const deletePatientMutation = useMutation({
     mutationFn: async (patientId: string) => {
@@ -201,9 +226,11 @@ export default function Queue() {
     return patients.map(patient => ({
       ...patient,
       status: patient.status as "waiting" | "called" | "in-progress" | "completed" | "requeue",
+      windowId: patient.windowId || undefined,
       windowName: patient.windowId ? windows.find(w => w.id === patient.windowId)?.name : undefined,
+      lastWindowId: patient.lastWindowId || undefined,
       lastWindowName: patient.lastWindowId ? windows.find(w => w.id === patient.lastWindowId)?.name : undefined,
-      trackingHistory: patient.trackingHistory || undefined
+      trackingHistory: Array.isArray(patient.trackingHistory) ? patient.trackingHistory : undefined
     }));
   }, [patients, windows]);
 
@@ -339,7 +366,9 @@ export default function Queue() {
   };
 
   const activeWindows = windows.filter(w => w.isActive);
-  const waitingPatients = enhancedPatients.filter(p => p.status === "waiting" || p.status === "requeue");
+  const allWaitingPatients = enhancedPatients.filter(p => p.status === "waiting" || p.status === "requeue");
+  const priorityPatients = allWaitingPatients.filter(p => p.isPriority);
+  const waitingPatients = allWaitingPatients.filter(p => !p.isPriority);
   const activePatients = enhancedPatients.filter(p => p.status === "called" || p.status === "in-progress");
 
   return (
@@ -406,6 +435,33 @@ export default function Queue() {
         </CardContent>
       </Card>
 
+      {/* Priority Patients */}
+      {priorityPatients.length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold mb-4 flex items-center text-yellow-600 dark:text-yellow-500">
+            <Star className="h-5 w-5 mr-2 fill-current" />
+            Priority Patients ({priorityPatients.length})
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {priorityPatients.map((patient) => (
+              <PatientCard
+                key={patient.id}
+                patient={patient}
+                onCall={handleCallPatient}
+                onCallAgain={handleCallAgain}
+                onRecall={handleRecall}
+                onDelete={handleDeletePatient}
+                onComplete={handleCompletePatient}
+                onRequeue={handleRequeuePatient}
+                onTogglePriority={togglePriorityMutation.mutate}
+                disabled={!selectedWindow || updatePatientStatusMutation.isPending}
+                selectedWindow={selectedWindow}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Active Patients */}
       {activePatients.length > 0 && (
         <div>
@@ -424,6 +480,7 @@ export default function Queue() {
                 onDelete={handleDeletePatient}
                 onComplete={handleCompletePatient}
                 onRequeue={handleRequeuePatient}
+                onTogglePriority={togglePriorityMutation.mutate}
                 disabled={updatePatientStatusMutation.isPending}
                 selectedWindow={selectedWindow}
               />
@@ -458,6 +515,7 @@ export default function Queue() {
                 onDelete={handleDeletePatient}
                 onComplete={handleCompletePatient}
                 onRequeue={handleRequeuePatient}
+                onTogglePriority={togglePriorityMutation.mutate}
                 disabled={!selectedWindow || updatePatientStatusMutation.isPending}
                 selectedWindow={selectedWindow}
               />

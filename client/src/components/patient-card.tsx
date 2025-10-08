@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Trash2, RotateCcw, CheckCircle, X, Volume2, PhoneCall, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { Bell, Trash2, RotateCcw, CheckCircle, X, Volume2, PhoneCall, Clock, ChevronDown, ChevronUp, Star } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,7 @@ interface Patient {
   name: string | null;
   number: number;
   status: "waiting" | "called" | "in-progress" | "completed" | "requeue";
+  isPriority?: boolean;
   windowId?: string;
   windowName?: string;
   lastWindowId?: string;
@@ -38,6 +39,7 @@ interface PatientCardProps {
   onDelete: (patientId: string) => void;
   onComplete: (patientId: string) => void;
   onRequeue: (patientId: string, reason?: string) => void;
+  onTogglePriority?: (patientId: string) => void;
   disabled?: boolean;
   selectedWindow?: string; // Current selected window by user
 }
@@ -50,6 +52,7 @@ export function PatientCard({
   onDelete,
   onComplete,
   onRequeue,
+  onTogglePriority,
   disabled = false,
   selectedWindow
 }: PatientCardProps) {
@@ -165,8 +168,11 @@ export function PatientCard({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="text-2xl font-bold text-primary">
+            <div className="text-2xl font-bold text-primary flex items-center gap-2">
               #{patient.number.toString().padStart(3, '0')}
+              {patient.isPriority && (
+                <Star className="h-5 w-5 fill-yellow-500 text-yellow-500" data-testid={`icon-priority-${patient.id}`} />
+              )}
             </div>
             {patient.name && (
               <div className="text-lg font-medium" data-testid={`text-patient-name-${patient.id}`}>
@@ -433,6 +439,20 @@ export function PatientCard({
                 </div>
               )}
             </>
+          )}
+
+          {onTogglePriority && (
+            <Button
+              onClick={() => onTogglePriority(patient.id)}
+              disabled={shouldDisableButtons}
+              size="sm"
+              variant={patient.isPriority ? "default" : "outline"}
+              className={patient.isPriority ? "bg-yellow-600 hover:bg-yellow-700" : ""}
+              data-testid={`button-toggle-priority-${patient.id}`}
+            >
+              <Star className={`h-4 w-4 mr-1 ${patient.isPriority ? 'fill-current' : ''}`} />
+              {patient.isPriority ? "Priority" : "Set Priority"}
+            </Button>
           )}
 
           <Button
