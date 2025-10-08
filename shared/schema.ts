@@ -47,7 +47,7 @@ export const patients = pgTable("patients", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name"), // Can be null for number-only patients
   number: integer("number").notNull(),
-  status: text("status").notNull().default("waiting"), // 'waiting', 'called', 'in-progress', 'completed', 'requeue'
+  status: text("status").notNull().default("waiting"), // 'waiting', 'called', 'in-progress', 'completed', 'requeue', 'dispensary'
   isPriority: boolean("is_priority").notNull().default(false), // Priority patient flag
   priorityReason: text("priority_reason"), // Reason for priority status
   windowId: varchar("window_id"),
