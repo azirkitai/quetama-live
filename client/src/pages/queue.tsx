@@ -71,8 +71,8 @@ export default function Queue() {
         );
       });
 
-      // Optimistically update windows - clear currentPatientId if patient completed
-      if (status === 'completed') {
+      // Optimistically update windows - clear currentPatientId if patient completed, requeued, or dispensed
+      if (status === 'completed' || status === 'requeue' || status === 'dispensary') {
         queryClient.setQueryData(['/api/windows'], (old: any) => {
           if (!old) return old;
           return old.map((window: any) => 
