@@ -178,7 +178,7 @@ export function PatientCard({
             <div className="text-2xl font-bold text-primary flex items-center gap-2">
               #{patient.number.toString().padStart(3, '0')}
               {patient.isPriority && (
-                <Star className="h-5 w-5 fill-yellow-500 text-yellow-500" data-testid={`icon-priority-${patient.id}`} />
+                <Star className="h-5 w-5 fill-red-500 text-red-500 dark:fill-red-400 dark:text-red-400" data-testid={`icon-priority-${patient.id}`} />
               )}
             </div>
             {patient.name && (
@@ -204,8 +204,8 @@ export function PatientCard({
         )}
         {patient.isPriority && patient.priorityReason && (
           <div className="mt-2 flex items-center gap-2">
-            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300" data-testid={`badge-priority-reason-${patient.id}`}>
-              <Star className="h-3 w-3 mr-1 fill-yellow-600 text-yellow-600" />
+            <Badge className="bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-400 dark:border-red-900" data-testid={`badge-priority-reason-${patient.id}`}>
+              <Star className="h-3 w-3 mr-1 fill-red-600 text-red-600 dark:fill-red-500 dark:text-red-500" />
               Priority: {patient.priorityReason}
             </Badge>
           </div>
