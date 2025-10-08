@@ -325,12 +325,8 @@ export default function Queue() {
   };
 
   const handleDispensePatient = (patientId: string) => {
-    console.log(`🟢 handleDispensePatient called for patient: ${patientId}`);
-    
     const patient = enhancedPatients.find(p => p.id === patientId);
     const patientName = patient?.name || `Number ${patient?.number}`;
-    
-    console.log(`🟢 Updating patient ${patientName} status to dispensary`);
     
     updatePatientStatusMutation.mutate({
       patientId,
@@ -495,6 +491,7 @@ export default function Queue() {
                 onRecall={handleRecall}
                 onDelete={handleDeletePatient}
                 onComplete={handleCompletePatient}
+                onDispense={handleDispensePatient}
                 onRequeue={handleRequeuePatient}
                 disabled={updatePatientStatusMutation.isPending}
                 selectedWindow={selectedWindow}
