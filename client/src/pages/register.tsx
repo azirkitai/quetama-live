@@ -2,8 +2,7 @@ import { useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { PatientRegistration } from "@/components/patient-registration";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { UserPlus, Users, Hash, Clock } from "lucide-react";
+import { UserPlus, Users, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Patient } from "@shared/schema";
@@ -69,18 +68,14 @@ export default function Register() {
   const todayStats = useMemo(() => {
     if (!todayPatients) {
       return {
-        totalRegistered: 0,
-        nameRegistrations: 0,
-        numberRegistrations: 0
+        totalRegistered: 0
       };
     }
 
     const actualTodayPatients = filterTodayPatients(todayPatients);
 
     return {
-      totalRegistered: actualTodayPatients.length,
-      nameRegistrations: actualTodayPatients.filter(p => p.name).length,
-      numberRegistrations: actualTodayPatients.filter(p => !p.name).length
+      totalRegistered: actualTodayPatients.length
     };
   }, [todayPatients]);
 
@@ -101,8 +96,7 @@ export default function Register() {
           hour: '2-digit', 
           minute: '2-digit',
           hour12: true 
-        }),
-        type: patient.name ? "name" as const : "number" as const
+        })
       }));
   }, [todayPatients]);
 
@@ -137,52 +131,20 @@ export default function Register() {
               <Users className="h-5 w-5 mr-2" />
               Today's Statistics
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center">
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Total Registered
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-primary" data-testid="text-total-registered">
-                    {todayStats.totalRegistered}
-                  </div>
-                  <p className="text-xs text-muted-foreground">patient(s)</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center">
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    With Name
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600" data-testid="text-name-registrations">
-                    {todayStats.nameRegistrations}
-                  </div>
-                  <p className="text-xs text-muted-foreground">patient(s)</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center">
-                    <Hash className="h-4 w-4 mr-2" />
-                    Number Only
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-600" data-testid="text-number-registrations">
-                    {todayStats.numberRegistrations}
-                  </div>
-                  <p className="text-xs text-muted-foreground">patient(s)</p>
-                </CardContent>
-              </Card>
-            </div>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Total Registered
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-primary" data-testid="text-total-registered">
+                  {todayStats.totalRegistered}
+                </div>
+                <p className="text-xs text-muted-foreground">patient(s)</p>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Recent Registrations */}
@@ -202,7 +164,7 @@ export default function Register() {
                     {recentPatients.map((patient) => (
                       <div 
                         key={patient.id} 
-                        className="p-4 flex items-center justify-between hover:bg-muted/50"
+                        className="p-4 flex items-center hover:bg-muted/50"
                         data-testid={`recent-patient-${patient.id}`}
                       >
                         <div className="flex items-center space-x-3">
@@ -217,14 +179,6 @@ export default function Register() {
                               {patient.registeredAt}
                             </div>
                           </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge 
-                            variant={patient.type === "name" ? "default" : "outline"}
-                            data-testid={`badge-type-${patient.id}`}
-                          >
-                            {patient.type === "name" ? "Name" : "Number"}
-                          </Badge>
                         </div>
                       </div>
                     ))}
