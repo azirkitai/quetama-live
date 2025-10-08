@@ -1201,76 +1201,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Upload media file with actual file handling
-  app.post("/api/media/upload", requireAuth, upload.single('file'), async (req, res) => {
+  // Save uploaded media metadata (after direct upload to object storage)
+  app.post("/api/media/save-uploaded", requireAuth, async (req, res) => {
     try {
-      // Auth already checked by requireAuth middleware
+      const { uploadURL, filename, name, mimeType, size } = req.body;
       
-      if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
+      if (!uploadURL || !filename) {
+        return res.status(400).json({ error: "Upload URL and filename are required" });
       }
 
-      const { name, type } = req.body;
-      const file = req.file;
+      // Normalize the upload URL to object path
+      const objectStorageService = new ObjectStorageService();
+      const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
 
-      // Validate file type
-      if (file.mimetype !== 'image/png' && file.mimetype !== 'image/jpeg') {
-        return res.status(400).json({ error: "Only PNG and JPEG files are allowed" });
-      }
-
-      // Generate filename with timestamp to avoid conflicts
-      const timestamp = Date.now();
-      const extension = file.mimetype === 'image/png' ? 'png' : 'jpg';
-      const filename = `${timestamp}_${(name || file.originalname).toLowerCase().replace(/\s+/g, '_').replace(/\.[^/.]+$/, "")}.${extension}`;
-      
-      // Use object storage path - ALWAYS use relative to workspace
-      const PUBLIC_OBJECT_SEARCH_PATHS = process.env.PUBLIC_OBJECT_SEARCH_PATHS;
-      let publicPath = 'replit-objstore-85caca72-fd47-41c6-a360-3c3d4b8873eb/public'; // default object storage path
-      
-      if (PUBLIC_OBJECT_SEARCH_PATHS) {
-        try {
-          // Try parsing as JSON first
-          const paths = JSON.parse(PUBLIC_OBJECT_SEARCH_PATHS);
-          if (Array.isArray(paths) && paths.length > 0) {
-            // Convert absolute path to relative (remove leading /)
-            const absPath = paths[0];
-            publicPath = absPath.startsWith('/') ? absPath.substring(1) : absPath;
-          }
-        } catch (e) {
-          // If not JSON, treat as direct path string
-          console.log('Using PUBLIC_OBJECT_SEARCH_PATHS as direct path:', PUBLIC_OBJECT_SEARCH_PATHS);
-          // Convert absolute path to relative (remove leading /)
-          publicPath = PUBLIC_OBJECT_SEARCH_PATHS.startsWith('/') ? PUBLIC_OBJECT_SEARCH_PATHS.substring(1) : PUBLIC_OBJECT_SEARCH_PATHS;
-        }
-      }
-
-      const filePath = path.join(publicPath, filename);
-      const url = `/${publicPath}/${filename}`;
-
-      console.log('Uploading file to:', filePath);
-      console.log('File URL will be:', url);
-
-      // Ensure directory exists (create recursively)
-      await fs.mkdir(publicPath, { recursive: true });
-
-      // Write file to object storage
-      await fs.writeFile(filePath, file.buffer);
+      // Set ACL policy for public access (TV display images)
+      await objectStorageService.trySetObjectEntityAclPolicy(uploadURL, {
+        owner: req.session.userId as string,
+        visibility: "public",
+      });
 
       // Save to database
       const media = await storage.createMedia({
-        name: name || file.originalname,
+        name: name || filename,
         filename,
-        url,
+        url: objectPath,
         type: 'image',
-        mimeType: file.mimetype,
-        size: file.size,
+        mimeType: mimeType || 'image/jpeg',
+        size: size || 0,
         userId: req.session.userId as string,
       });
 
       res.status(201).json(media);
     } catch (error) {
-      console.error("Error uploading media:", error);
-      res.status(500).json({ error: "Failed to upload media" });
+      console.error("Error saving uploaded media:", error);
+      res.status(500).json({ error: "Failed to save media" });
     }
   });
 

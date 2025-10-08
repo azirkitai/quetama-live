@@ -374,29 +374,39 @@ export default function Settings() {
     }
   };
 
-  // Upload media mutation
+  // Upload media mutation using object storage
   const uploadMediaMutation = useMutation({
     mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('name', file.name);
-      formData.append('type', 'image');
+      // Step 1: Get presigned upload URL
+      const urlResponse = await apiRequest('POST', '/api/objects/upload');
+      const { uploadURL } = await urlResponse.json();
       
-      const response = await fetch('/api/media/upload', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
+      // Step 2: Upload file directly to object storage
+      const uploadResponse = await fetch(uploadURL, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
       });
       
-      if (!response.ok) {
-        throw new Error('Upload failed');
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload to storage');
       }
       
-      return response.json();
+      // Step 3: Save metadata to database
+      const saveResponse = await apiRequest('POST', '/api/media/save-uploaded', {
+        uploadURL,
+        filename: file.name,
+        name: file.name,
+        mimeType: file.type,
+        size: file.size,
+      });
+      
+      return saveResponse.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/media'] });
-      // Note: File clearing is now handled in handleUploadFiles function
     },
     onError: (error: any) => {
       toast({
@@ -1089,15 +1099,49 @@ export default function Settings() {
               <Input
                 type="file"
                 accept="image/*"
-                onChange={(e) => {
+                onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                      const result = event.target?.result as string;
-                      updateDisplaySetting('clinicLogo', result);
-                    };
-                    reader.readAsDataURL(file);
+                    try {
+                      // Upload to object storage
+                      const urlResponse = await apiRequest('POST', '/api/objects/upload');
+                      const { uploadURL } = await urlResponse.json();
+                      
+                      const uploadResponse = await fetch(uploadURL, {
+                        method: 'PUT',
+                        body: file,
+                        headers: {
+                          'Content-Type': file.type,
+                        },
+                      });
+                      
+                      if (!uploadResponse.ok) {
+                        throw new Error('Failed to upload logo');
+                      }
+                      
+                      // Normalize and set the object path
+                      const saveResponse = await apiRequest('POST', '/api/media/save-uploaded', {
+                        uploadURL,
+                        filename: file.name,
+                        name: 'clinic-logo',
+                        mimeType: file.type,
+                        size: file.size,
+                      });
+                      
+                      const { url: objectPath } = await saveResponse.json();
+                      updateDisplaySetting('clinicLogo', objectPath);
+                      
+                      toast({
+                        title: "Success",
+                        description: "Logo uploaded successfully",
+                      });
+                    } catch (error) {
+                      toast({
+                        title: "Error",
+                        description: "Failed to upload logo",
+                        variant: "destructive",
+                      });
+                    }
                   }
                 }}
                 className="text-xs"
