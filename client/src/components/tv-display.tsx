@@ -1211,7 +1211,7 @@ export function TVDisplay({
                 )}
                 
                 {/* All Weather Info in One Row */}
-                <div className="flex items-center justify-start gap-8">
+                <div className="flex items-center justify-center gap-8">
                   <span className="text-7xl">{weatherData.current.icon}</span>
                   <span className="text-6xl font-bold" style={{
                     ...getTextStyle(weatherTextMode, weatherTextColor, weatherTextGradient, '#ffffff')
