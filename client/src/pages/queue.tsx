@@ -358,7 +358,7 @@ export default function Queue() {
     }
   };
 
-  const activeWindows = windows.filter(w => w.isActive);
+  const activeWindows = windows.filter(w => w.isActive && w.name !== "DISPENSARY");
   const allWaitingPatients = enhancedPatients.filter(p => p.status === "waiting" || p.status === "requeue");
   const priorityPatients = allWaitingPatients.filter(p => p.isPriority);
   const waitingPatients = allWaitingPatients.filter(p => !p.isPriority);
