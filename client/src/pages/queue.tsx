@@ -362,7 +362,11 @@ export default function Queue() {
   const allWaitingPatients = enhancedPatients.filter(p => p.status === "waiting" || p.status === "requeue");
   const priorityPatients = allWaitingPatients.filter(p => p.isPriority);
   const waitingPatients = allWaitingPatients.filter(p => !p.isPriority);
-  const activePatients = enhancedPatients.filter(p => p.status === "called" || p.status === "in-progress");
+  // Exclude dispensary patients from Queue page - they appear only in Dispensary page
+  const activePatients = enhancedPatients.filter(p => 
+    (p.status === "called" || p.status === "in-progress") && 
+    p.windowName !== "DISPENSARY"
+  );
 
   return (
     <div className="p-6 space-y-6">
