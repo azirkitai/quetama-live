@@ -100,9 +100,14 @@ export function PatientCard({
   };
 
   const handleDispense = () => {
-    console.log(`Dispensing patient ${patient.id}`);
+    console.log(`🔵 handleDispense clicked for patient ${patient.id}`);
+    console.log(`🔵 onDispense prop exists:`, !!onDispense);
+    console.log(`🔵 shouldDisableButtons:`, shouldDisableButtons);
     if (onDispense) {
+      console.log(`🔵 Calling onDispense...`);
       onDispense(patient.id);
+    } else {
+      console.log(`🔴 onDispense is not defined!`);
     }
   };
 

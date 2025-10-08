@@ -325,13 +325,17 @@ export default function Queue() {
   };
 
   const handleDispensePatient = (patientId: string) => {
+    console.log(`🟢 handleDispensePatient called for patient: ${patientId}`);
+    
+    const patient = enhancedPatients.find(p => p.id === patientId);
+    const patientName = patient?.name || `Number ${patient?.number}`;
+    
+    console.log(`🟢 Updating patient ${patientName} status to dispensary`);
+    
     updatePatientStatusMutation.mutate({
       patientId,
       status: "dispensary"
     });
-    
-    const patient = enhancedPatients.find(p => p.id === patientId);
-    const patientName = patient?.name || `Number ${patient?.number}`;
     
     toast({
       title: "Patient Sent to Dispensary",
