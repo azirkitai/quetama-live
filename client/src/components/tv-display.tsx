@@ -852,13 +852,16 @@ export function TVDisplay({
 
   // YouTube video helper functions
   const isYouTubeUrl = (url: string): boolean => {
-    return url.includes('youtube.com/watch') || url.includes('youtu.be/');
+    return url.includes('youtube.com/watch') || url.includes('youtube.com/live/') || url.includes('youtu.be/');
   };
 
   const getYouTubeEmbedUrl = (url: string): string => {
     if (url.includes('youtube.com/watch')) {
       const videoId = url.split('v=')[1]?.split('&')[0];
       return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}`;
+    } else if (url.includes('youtube.com/live/')) {
+      const videoId = url.split('live/')[1]?.split('?')[0];
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1`;
     } else if (url.includes('youtu.be/')) {
       const videoId = url.split('youtu.be/')[1]?.split('?')[0];
       return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}`;
