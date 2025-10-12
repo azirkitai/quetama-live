@@ -108,15 +108,29 @@ export default function Queue() {
         queryClient.setQueryData(['/api/windows'], context.previousWindows);
       }
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
       queryClient.invalidateQueries({ queryKey: ['/api/windows'] });
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/current-call'] });
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/history'] });
       
+      // Display appropriate message based on status
+      let description = "Patient successfully updated";
+      if (variables.status === "called") {
+        description = "Patient successfully called";
+      } else if (variables.status === "requeue") {
+        description = "Patient successfully requeued";
+      } else if (variables.status === "completed") {
+        description = "Patient marked as completed";
+      } else if (variables.status === "dispensary") {
+        description = "Patient sent to dispensary";
+      } else if (variables.status === "in-progress") {
+        description = "Patient marked as in progress";
+      }
+      
       toast({
         title: "Success",
-        description: "Patient successfully called",
+        description,
       });
     },
     onSettled: () => {
