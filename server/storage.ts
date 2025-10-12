@@ -1974,8 +1974,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCurrentCall(userId: string): Promise<Patient | undefined> {
-    // Get the most recent called patient regardless of status (completed, dispensary, etc.)
-    // This keeps the display showing last called patient until a NEW patient is called
+    // Get the most recent called patient - EXCLUDE dispensary patients from TV display
+    // Dispensary patients should only appear in Dispensary Management page, not on TV until manually called
     const [result] = await db
       .select({
         id: schema.patients.id,
@@ -2001,7 +2001,8 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(sql`${schema.windows} lw`, eq(schema.patients.lastWindowId, sql`lw.id`))
       .where(and(
         eq(schema.patients.userId, userId),
-        sql`${schema.patients.calledAt} IS NOT NULL` // Only patients that have been called
+        sql`${schema.patients.calledAt} IS NOT NULL`, // Only patients that have been called
+        sql`${schema.patients.status} != 'dispensary'` // Exclude dispensary patients from TV display
       ))
       .orderBy(sql`${schema.patients.calledAt} DESC`) // Most recent call first
       .limit(1);
@@ -2028,6 +2029,7 @@ export class DatabaseStorage implements IStorage {
     const currentCall = await this.getCurrentCall(userId);
 
     // Get all patients that have been called today with their tracking history
+    // EXCLUDE patients with status 'dispensary' - they should not appear on TV until manually called from dispensary
     const patients = await db.select({
       id: schema.patients.id,
       name: schema.patients.name,
@@ -2050,7 +2052,8 @@ export class DatabaseStorage implements IStorage {
           eq(schema.patients.userId, userId),
           sql`${schema.patients.calledAt} IS NOT NULL`,
           sql`${schema.patients.calledAt} >= ${startOfDay.toISOString()}`,
-          sql`${schema.patients.calledAt} <= ${endOfDay.toISOString()}`
+          sql`${schema.patients.calledAt} <= ${endOfDay.toISOString()}`,
+          sql`${schema.patients.status} != 'dispensary'` // Exclude dispensary patients from TV display
         )
       );
 
