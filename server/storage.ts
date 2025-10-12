@@ -708,11 +708,11 @@ export class MemStorage implements IStorage {
   }
 
   async getRecentHistory(userId: string, limit: number = 10): Promise<Patient[]> {
-    // Get all patients that have been called - include requeued patients in history
-    // Don't clear history even when patients are requeued
+    // Get all patients that have been called - EXCLUDE requeued and dispensary patients
+    // Requeued/dispensary patients should not appear on TV until called again
     return Array.from(this.patients.values())
       .filter(p => p.userId === userId)
-      .filter(p => p.status === 'called' || p.status === 'completed' || p.status === 'requeue' || p.status === 'in-progress')
+      .filter(p => p.status === 'called' || p.status === 'completed' || p.status === 'in-progress') // Exclude 'requeue' and 'dispensary'
       .filter(p => p.calledAt) // Only include patients that have actually been called
       .sort((a, b) => {
         const timeA = a.calledAt?.getTime() || 0;
@@ -1974,7 +1974,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCurrentCall(userId: string): Promise<Patient | undefined> {
-    // Get the most recent called patient - EXCLUDE dispensary patients from TV display
+    // Get the most recent called patient - EXCLUDE requeued and dispensary patients from TV display
+    // Requeued patients should go back to waiting queue, not stay on TV
     // Dispensary patients should only appear in Dispensary Management page, not on TV until manually called
     const [result] = await db
       .select({
@@ -2002,7 +2003,8 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(schema.patients.userId, userId),
         sql`${schema.patients.calledAt} IS NOT NULL`, // Only patients that have been called
-        sql`${schema.patients.status} != 'dispensary'` // Exclude dispensary patients from TV display
+        sql`${schema.patients.status} != 'dispensary'`, // Exclude dispensary patients from TV display
+        sql`${schema.patients.status} != 'requeue'` // Exclude requeued patients from TV display - they go back to waiting
       ))
       .orderBy(sql`${schema.patients.calledAt} DESC`) // Most recent call first
       .limit(1);
@@ -2029,7 +2031,7 @@ export class DatabaseStorage implements IStorage {
     const currentCall = await this.getCurrentCall(userId);
 
     // Get all patients that have been called today with their tracking history
-    // EXCLUDE patients with status 'dispensary' - they should not appear on TV until manually called from dispensary
+    // EXCLUDE patients with status 'dispensary' or 'requeue' - they should not appear on TV until manually called again
     const patients = await db.select({
       id: schema.patients.id,
       name: schema.patients.name,
@@ -2053,7 +2055,8 @@ export class DatabaseStorage implements IStorage {
           sql`${schema.patients.calledAt} IS NOT NULL`,
           sql`${schema.patients.calledAt} >= ${startOfDay.toISOString()}`,
           sql`${schema.patients.calledAt} <= ${endOfDay.toISOString()}`,
-          sql`${schema.patients.status} != 'dispensary'` // Exclude dispensary patients from TV display
+          sql`${schema.patients.status} != 'dispensary'`, // Exclude dispensary patients from TV display
+          sql`${schema.patients.status} != 'requeue'` // Exclude requeued patients from TV display - they go back to waiting
         )
       );
 
