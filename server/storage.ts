@@ -450,6 +450,19 @@ export class MemStorage implements IStorage {
         requeueReason: requeueReason || 'No reason specified',
         fromRoom: currentWindow?.name || 'Unknown'
       });
+    } else if (status === "dispensary") {
+      // Special handling for dispensary - find DISPENSARY window
+      const dispensaryWindow = Array.from(this.windows.values()).find(
+        w => w.name === 'DISPENSARY' && w.userId === userId
+      );
+      
+      if (dispensaryWindow) {
+        trackingHistory.push({
+          timestamp: now.toISOString(),
+          action: 'dispensary',
+          roomName: 'DISPENSARY'
+        });
+      }
     }
 
     // Preserve last window before clearing for completed/requeue status
@@ -1627,7 +1640,7 @@ export class DatabaseStorage implements IStorage {
       if (dispensaryWindow) {
         trackingHistory.push({
           timestamp: now.toISOString(),
-          action: 'called',
+          action: 'dispensary',
           roomName: 'DISPENSARY'
         });
       }
