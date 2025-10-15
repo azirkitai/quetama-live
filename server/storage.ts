@@ -699,21 +699,17 @@ export class MemStorage implements IStorage {
   }
 
   async getCurrentCall(userId: string): Promise<Patient | undefined> {
-    // Get currently active called patient - only 'called' or 'in-progress' status
-    // Exclude completed patients to prevent them from appearing as current call
+    // Get the most recent called patient to display on TV
+    // INCLUDE: called, in-progress, completed, dispensary (all should remain visible until new call)
+    // EXCLUDE: requeue (goes back to waiting queue, should not stay on TV)
     const calledPatients = Array.from(this.patients.values())
       .filter(p => p.userId === userId)
-      .filter(p => p.status === 'called' || p.status === 'in-progress') // Only active calls
+      .filter(p => p.status !== 'requeue' && p.status !== 'waiting') // Exclude requeue and waiting
       .filter(p => p.calledAt) // Only patients that have actually been called
-      .filter(p => !p.completedAt) // Exclude completed patients
       .sort((a, b) => {
-        // Prioritize 'called' status over 'in-progress'
-        if (a.status === 'called' && b.status !== 'called') return -1;
-        if (b.status === 'called' && a.status !== 'called') return 1;
-        
-        // Then sort by most recent calledAt
-        const timeA = a.calledAt?.getTime() || a.registeredAt.getTime();
-        const timeB = b.calledAt?.getTime() || b.registeredAt.getTime();
+        // Sort by most recent calledAt
+        const timeA = a.calledAt?.getTime() || 0;
+        const timeB = b.calledAt?.getTime() || 0;
         return timeB - timeA;
       });
     
@@ -1987,9 +1983,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCurrentCall(userId: string): Promise<Patient | undefined> {
-    // Get the most recent called patient - EXCLUDE requeued and dispensary patients from TV display
-    // Requeued patients should go back to waiting queue, not stay on TV
-    // Dispensary patients should only appear in Dispensary Management page, not on TV until manually called
+    // Get the most recent called patient to display on TV
+    // INCLUDE: called, in-progress, completed, dispensary (all should remain visible until new call)
+    // EXCLUDE: requeue (goes back to waiting queue, should not stay on TV)
     const [result] = await db
       .select({
         id: schema.patients.id,
@@ -2016,8 +2012,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(schema.patients.userId, userId),
         sql`${schema.patients.calledAt} IS NOT NULL`, // Only patients that have been called
-        sql`${schema.patients.status} != 'dispensary'`, // Exclude dispensary patients from TV display
-        sql`${schema.patients.status} != 'requeue'` // Exclude requeued patients from TV display - they go back to waiting
+        sql`${schema.patients.status} != 'requeue'` // Exclude requeued patients - they go back to waiting queue
       ))
       .orderBy(sql`${schema.patients.calledAt} DESC`) // Most recent call first
       .limit(1);
