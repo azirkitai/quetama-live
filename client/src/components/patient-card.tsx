@@ -241,9 +241,9 @@ export function PatientCard({
           
           return (
             <div className="mt-2 flex items-center gap-2" data-testid={`waiting-time-${patient.id}`}>
-              <div className={`w-2 h-2 rounded-full ${colorClass} animate-pulse`} />
-              <span className={`text-sm font-semibold ${textColorClass} flex items-center gap-1`}>
-                <Timer className="h-3.5 w-3.5" />
+              <div className={`w-3 h-3 rounded-full ${colorClass} animate-pulse`} />
+              <span className={`text-base font-bold ${textColorClass} flex items-center gap-1`}>
+                <Timer className="h-4 w-4" />
                 Waiting: {formatWaitingTime(waitingMinutes)}
               </span>
             </div>
