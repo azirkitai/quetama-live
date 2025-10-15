@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 
 interface JourneyEvent {
   timestamp: string;
-  action: 'registered' | 'called' | 'in-progress' | 'completed' | 'requeued';
+  action: 'registered' | 'called' | 'in-progress' | 'completed' | 'requeued' | 'dispensary';
   roomName?: string;
   requeueReason?: string;
   fromRoom?: string;
@@ -21,6 +21,7 @@ interface Patient {
   status: "waiting" | "called" | "in-progress" | "completed" | "requeue" | "dispensary";
   isPriority?: boolean;
   priorityReason?: string | null;
+  readyForDispensary?: boolean;
   windowId?: string;
   windowName?: string;
   lastWindowId?: string;
@@ -245,6 +246,8 @@ export function PatientCard({
                     return 'bg-purple-500';
                   case 'requeued':
                     return 'bg-yellow-500';
+                  case 'dispensary':
+                    return 'bg-cyan-500';
                   case 'completed':
                     return 'bg-gray-500';
                   default:
@@ -262,6 +265,8 @@ export function PatientCard({
                     return 'Consultation Started';
                   case 'requeued':
                     return 'Requeued';
+                  case 'dispensary':
+                    return 'Ready for Dispensary';
                   case 'completed':
                     return 'Completed';
                   default:
@@ -314,7 +319,7 @@ export function PatientCard({
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-2">
-          {(patient.status === "waiting" || patient.status === "dispensary") && (
+          {(patient.status === "waiting" || patient.readyForDispensary) && (
             <Button
               onClick={handleCall}
               disabled={shouldDisableButtons}

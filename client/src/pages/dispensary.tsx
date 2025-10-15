@@ -14,6 +14,7 @@ interface Patient {
   status: string;
   isPriority: boolean;
   priorityReason?: string | null;
+  readyForDispensary?: boolean;
   windowId?: string | null;
   lastWindowId?: string | null;
   registeredAt: string;
