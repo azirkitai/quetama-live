@@ -65,8 +65,8 @@ export function PatientCard({
   const [isJourneyExpanded, setIsJourneyExpanded] = useState(false);
 
   // Check if this patient is assigned to a different room than selected
-  // BUT allow all rooms to call requeued patients
-  const isAssignedToOtherRoom = Boolean(patient.windowId && selectedWindow && patient.windowId !== selectedWindow && patient.status !== "requeue");
+  // BUT allow all rooms to call requeued patients and dispensary-ready patients
+  const isAssignedToOtherRoom = Boolean(patient.windowId && selectedWindow && patient.windowId !== selectedWindow && patient.status !== "requeue" && !patient.readyForDispensary);
   const shouldDisableButtons = disabled || isAssignedToOtherRoom;
 
   const handleCall = () => {
