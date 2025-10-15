@@ -359,6 +359,7 @@ export class MemStorage implements IStorage {
       status: "waiting",
       isPriority: insertPatient.isPriority || false,
       priorityReason: insertPatient.priorityReason || null,
+      readyForDispensary: false,
       windowId: null,
       lastWindowId: null,
       registeredAt: now,
@@ -426,6 +427,7 @@ export class MemStorage implements IStorage {
           roomName: window.name
         });
         patient.calledAt = now;
+        patient.readyForDispensary = false; // Clear flag when patient is called
       } else if (windowId) {
         // Invalid window assignment - reject the operation
         return undefined;
@@ -463,6 +465,16 @@ export class MemStorage implements IStorage {
           roomName: 'DISPENSARY'
         });
       }
+      
+      // For dispensary, keep status and window unchanged, just set readyForDispensary flag
+      const updatedPatient = {
+        ...patient,
+        readyForDispensary: true,
+        trackingHistory: trackingHistory
+      };
+      
+      this.patients.set(patientId, updatedPatient);
+      return updatedPatient;
     }
 
     // Preserve last window before clearing for completed/requeue status
@@ -1416,7 +1428,6 @@ export class DatabaseStorage implements IStorage {
       id: w.id,
       name: w.name,
       isActive: w.isActive,
-      isPermanent: w.isPermanent,
       currentPatientId: w.currentPatientId || undefined,
       userId: w.userId
     };
@@ -1668,28 +1679,11 @@ export class DatabaseStorage implements IStorage {
       });
     }
     
-    // Special handling for "dispensary" status - just queue patient, don't auto-call
+    // Special handling for "dispensary" status - set readyForDispensary flag, keep status and window unchanged
     if (status === "dispensary") {
-      // Clear patient from window FIRST (before clearing patient.windowId)
-      if (currentPatient.windowId) {
-        console.log(`🧹 Clearing window ${currentPatient.windowId} for patient ${id}`);
-        const result = await db.update(schema.windows)
-          .set({ currentPatientId: null })
-          .where(and(
-            eq(schema.windows.id, currentPatient.windowId),
-            eq(schema.windows.userId, userId)
-          ))
-          .returning();
-        console.log(`🧹 Window cleared:`, result);
-      } else {
-        console.log(`⚠️ Patient ${id} has no windowId to clear`);
-      }
-      
       const updateData: any = { 
-        status: "dispensary", // Keep status as "dispensary" (not auto-called)
-        windowId: null, // Clear current room
-        lastWindowId: currentPatient.windowId, // Preserve previous room
-        requeueReason: null,
+        readyForDispensary: true, // Mark as ready for dispensary
+        // Status and windowId remain unchanged - patient stays visible on TV until dispensary calls them
         trackingHistory: sql`${JSON.stringify(trackingHistory)}::json`
       };
 
@@ -1698,12 +1692,12 @@ export class DatabaseStorage implements IStorage {
         .where(and(eq(schema.patients.id, id), eq(schema.patients.userId, userId)))
         .returning();
 
-      console.log(`💊 DISPENSARY queued (not called):`, {
+      console.log(`💊 DISPENSARY queued (status/window remain):`, {
         id: updatedPatient?.id,
         name: updatedPatient?.name,
         status: updatedPatient?.status,
         windowId: updatedPatient?.windowId,
-        lastWindowId: updatedPatient?.lastWindowId
+        readyForDispensary: updatedPatient?.readyForDispensary
       });
 
       return updatedPatient;
@@ -1772,8 +1766,10 @@ export class DatabaseStorage implements IStorage {
 
     // CRITICAL: ALWAYS update calledAt when status is "called" (including recalls)
     // This ensures TV display detects the change and triggers highlight overlay
+    // Also clear readyForDispensary flag when patient is called
     if (status === "called") {
       updateData.calledAt = now;
+      updateData.readyForDispensary = false; // Clear flag when patient is called
       console.log(`📞 CALLING PATIENT: ${id} - New calledAt: ${now.toISOString()}`);
     }
 
@@ -1994,6 +1990,7 @@ export class DatabaseStorage implements IStorage {
         status: schema.patients.status,
         isPriority: schema.patients.isPriority,
         priorityReason: schema.patients.priorityReason,
+        readyForDispensary: schema.patients.readyForDispensary,
         windowId: schema.patients.windowId,
         lastWindowId: schema.patients.lastWindowId,
         registeredAt: schema.patients.registeredAt,
@@ -2047,6 +2044,7 @@ export class DatabaseStorage implements IStorage {
       status: schema.patients.status,
       isPriority: schema.patients.isPriority,
       priorityReason: schema.patients.priorityReason,
+      readyForDispensary: schema.patients.readyForDispensary,
       windowId: schema.patients.windowId,
       lastWindowId: schema.patients.lastWindowId,
       registeredAt: schema.patients.registeredAt,

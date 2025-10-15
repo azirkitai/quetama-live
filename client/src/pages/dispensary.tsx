@@ -193,9 +193,9 @@ export default function Dispensary() {
   }, [patients, windows]);
 
   // Filter dispensary patients
-  // Include: 1) status "dispensary" (waiting), 2) called/in-progress to DISPENSARY window
+  // Include: 1) readyForDispensary flag (waiting), 2) called/in-progress to DISPENSARY window
   const dispensaryPatients = enhancedPatients.filter(p => 
-    p.status === 'dispensary' || 
+    p.readyForDispensary || 
     ((p.status === 'called' || p.status === 'in-progress') && p.windowName === 'DISPENSARY')
   );
   const priorityDispensary = dispensaryPatients.filter(p => p.isPriority);
