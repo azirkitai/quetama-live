@@ -656,10 +656,11 @@ export function TVDisplay({
       return; // Don't trigger highlight for requeue action itself
     }
     
-    const hasNewCall = currentPatient && (
-      currentPatient.id !== prevPatientId || 
-      (currentCalledAtTimestamp && currentCalledAtTimestamp !== prevCalledAt)
-    );
+    // Only trigger audio for NEW calls (calledAt timestamp INCREASES, not just changes)
+    // This prevents audio when switching back to older patient after dispensing recent one
+    const hasNewCall = currentPatient && 
+      currentCalledAtTimestamp && 
+      currentCalledAtTimestamp > (prevCalledAt || 0);
     
     console.log('🔔 TV TRIGGER CHECK:', {
       hasNewCall,
