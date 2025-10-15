@@ -643,15 +643,16 @@ export function TVDisplay({
     const wasRequeued = currentPatient?.requeueReason && 
                         currentPatient.requeueReason !== prevRequeueReason;
     
-    // If patient was requeued, reset tracking so only NEW calls after requeue will trigger
+    // If patient was requeued, update tracking but DON'T trigger highlight/sound
     if (wasRequeued && currentPatient?.id === prevPatientId) {
-      console.log('🔄 PATIENT REQUEUED - Resetting tracking:', {
+      console.log('🔄 PATIENT REQUEUED - Updating tracking (no trigger):', {
         patientId: currentPatient.id,
         requeueReason: currentPatient.requeueReason,
-        prevRequeueReason
+        prevRequeueReason,
+        keepingCalledAt: currentCalledAtTimestamp
       });
-      // Reset calledAt tracking so next call will be treated as new
-      setPrevCalledAt(null);
+      // Keep current calledAt - only NEW calls after requeue will trigger
+      setPrevCalledAt(currentCalledAtTimestamp);
       setPrevRequeueReason(currentPatient.requeueReason);
       return; // Don't trigger highlight for requeue action itself
     }
