@@ -385,7 +385,7 @@ export function PatientCard({
                   <CheckCircle className="h-4 w-4 mr-1" />
                   Complete
                 </Button>
-              ) : (
+              ) : !patient.readyForDispensary && (
                 <Button
                   onClick={handleDispense}
                   size="sm"
