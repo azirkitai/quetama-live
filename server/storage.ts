@@ -2092,30 +2092,31 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
-    // Extract ALL call events from trackingHistory - each call becomes a separate history entry
-    const callEvents: Array<Patient & { room?: string; calledAt: Date }> = [];
+    // Get windows to map room names
+    const windows = await db.select().from(schema.windows).where(eq(schema.windows.userId, userId));
     
-    for (const patient of patients) {
-      if (patient.trackingHistory && Array.isArray(patient.trackingHistory)) {
-        // Find all 'called' events in tracking history
-        const callHistory = patient.trackingHistory.filter((event: any) => event.action === 'called');
-        
-        for (const callEvent of callHistory) {
-          callEvents.push({
-            ...patient,
-            room: callEvent.roomName || 'Unknown Room',
-            calledAt: new Date(callEvent.timestamp) // Use the specific call timestamp
-          });
-        }
-      }
-    }
+    // Create unique patient entries with their LATEST room assignment
+    const patientEntries: Array<Patient & { room?: string }> = patients.map(patient => {
+      // Get room name from windowId
+      const window = windows.find(w => w.id === patient.windowId);
+      const roomName = window?.name || 'Unknown Room';
+      
+      return {
+        ...patient,
+        room: roomName
+      };
+    });
 
-    // Sort by call timestamp (most recent first)
-    const sortedHistory = callEvents
-      .sort((a, b) => b.calledAt.getTime() - a.calledAt.getTime())
-      .filter((event, index, self) => {
+    // Sort by call timestamp (most recent first) and exclude current call
+    const sortedHistory = patientEntries
+      .sort((a, b) => {
+        const timeA = a.calledAt?.getTime() || 0;
+        const timeB = b.calledAt?.getTime() || 0;
+        return timeB - timeA;
+      })
+      .filter(patient => {
         // Exclude current call from history (keep it in current display only)
-        if (currentCall && event.id === currentCall.id && event.calledAt.getTime() === new Date(currentCall.calledAt || '').getTime()) {
+        if (currentCall && patient.id === currentCall.id) {
           return false;
         }
         return true;

@@ -232,7 +232,7 @@ export default function Dashboard() {
       >
         <TVDisplay
           currentPatient={currentCall ? convertToQueueItem(currentCall) : undefined}
-          queueHistory={[...history].reverse().map(convertToQueueItem)}
+          queueHistory={history.map(convertToQueueItem)}
           clinicName={clinicName}
           mediaItems={activeMedia.map(media => ({
             url: media.url,
@@ -388,7 +388,7 @@ export default function Dashboard() {
             <div className="h-full scale-[0.42] origin-top-left" style={{ width: '238%', height: '238%' }}>
               <TVDisplay
                 currentPatient={currentCall ? convertToQueueItem(currentCall) : undefined}
-                queueHistory={[...history].reverse().slice(0, 4).map(convertToQueueItem)}
+                queueHistory={history.slice(0, 4).map(convertToQueueItem)}
                 clinicName={clinicName}
                 mediaItems={activeMedia.map(media => ({
                   url: media.url,
