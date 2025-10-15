@@ -442,7 +442,18 @@ export class MemStorage implements IStorage {
         timestamp: now.toISOString(),
         action: 'completed'
       });
-      patient.completedAt = now;
+      
+      // Keep windowId unchanged - patient stays visible on TV
+      const updatedPatient = {
+        ...patient,
+        status: "completed",
+        completedAt: now,
+        trackingHistory: trackingHistory
+        // windowId remains unchanged
+      };
+      
+      this.patients.set(patientId, updatedPatient);
+      return updatedPatient;
     } else if (status === "requeue") {
       // Get current room name for tracking
       const currentWindow = patient.windowId ? this.windows.get(patient.windowId) : null;
@@ -489,11 +500,8 @@ export class MemStorage implements IStorage {
       return updatedPatient;
     }
 
-    // Preserve last window before clearing for completed status
+    // Preserve last window for other status changes if needed
     let lastWindowId = patient.lastWindowId;
-    if (status === "completed" && patient.windowId) {
-      lastWindowId = patient.windowId;
-    }
 
     // SECURITY: Validate windowId belongs to same user if provided
     if (windowId && windowId !== patient.windowId) {
@@ -1745,33 +1753,16 @@ export class DatabaseStorage implements IStorage {
       return updatedPatient;
     }
     
-    // Special handling for "completed" status - preserve current room to lastWindowId
+    // Special handling for "completed" status - keep window unchanged, patient stays visible on TV
     if (status === "completed") {
-      console.log(`🔄 COMPLETED: Preserving windowId`, {
+      console.log(`🔄 COMPLETED: Keeping windowId unchanged (patient stays on TV)`, {
         patientId: id,
-        currentWindowId: currentPatient.windowId,
-        willSetLastWindowId: currentPatient.windowId
+        currentWindowId: currentPatient.windowId
       });
-      
-      // Clear patient from window FIRST (before clearing patient.windowId)
-      if (currentPatient.windowId) {
-        console.log(`🧹 Clearing window ${currentPatient.windowId} for patient ${id}`);
-        const result = await db.update(schema.windows)
-          .set({ currentPatientId: null })
-          .where(and(
-            eq(schema.windows.id, currentPatient.windowId),
-            eq(schema.windows.userId, userId)
-          ))
-          .returning();
-        console.log(`🧹 Window cleared:`, result);
-      } else {
-        console.log(`⚠️ Patient ${id} has no windowId to clear`);
-      }
       
       const updateData: any = { 
         status,
-        windowId: null, // Clear current room
-        lastWindowId: currentPatient.windowId, // Preserve current room as last room
+        // windowId remains unchanged - patient stays visible on TV
         completedAt: now,
         trackingHistory: sql`${JSON.stringify(trackingHistory)}::json`
       };
@@ -1781,12 +1772,11 @@ export class DatabaseStorage implements IStorage {
         .where(and(eq(schema.patients.id, id), eq(schema.patients.userId, userId)))
         .returning();
 
-      console.log(`✅ COMPLETED updated:`, {
+      console.log(`✅ COMPLETED updated (stays on TV):`, {
         id: updatedPatient?.id,
         name: updatedPatient?.name,
         status: updatedPatient?.status,
-        windowId: updatedPatient?.windowId,
-        lastWindowId: updatedPatient?.lastWindowId
+        windowId: updatedPatient?.windowId
       });
 
       return updatedPatient;
