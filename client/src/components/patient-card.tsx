@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Bell, Trash2, RotateCcw, CheckCircle, X, Volume2, PhoneCall, Clock, ChevronDown, ChevronUp, Star, Pill } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Bell, Trash2, RotateCcw, CheckCircle, X, Volume2, PhoneCall, Clock, ChevronDown, ChevronUp, Star, Pill, Timer } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +63,40 @@ export function PatientCard({
   const [showCustomReasonInput, setShowCustomReasonInput] = useState(false);
   const [customReason, setCustomReason] = useState("");
   const [isJourneyExpanded, setIsJourneyExpanded] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update current time every second for waiting time calculation
+  useEffect(() => {
+    if (patient.status === "waiting") {
+      const interval = setInterval(() => {
+        setCurrentTime(new Date());
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [patient.status]);
+
+  // Calculate waiting time in minutes
+  const getWaitingMinutes = () => {
+    if (patient.status !== "waiting") return 0;
+    const registeredTime = new Date(patient.registeredAt);
+    const diffMs = currentTime.getTime() - registeredTime.getTime();
+    return Math.floor(diffMs / 60000); // Convert to minutes
+  };
+
+  // Get color based on waiting time (green -> red gradient)
+  const getWaitingTimeColor = (minutes: number) => {
+    if (minutes <= 10) return "bg-green-500"; // 0-10 min: green
+    if (minutes <= 20) return "bg-yellow-500"; // 11-20 min: yellow
+    if (minutes <= 30) return "bg-orange-500"; // 21-30 min: orange
+    return "bg-red-500"; // 30+ min: red
+  };
+
+  // Format waiting time display
+  const formatWaitingTime = (minutes: number) => {
+    if (minutes < 1) return "< 1 min";
+    if (minutes === 1) return "1 min";
+    return `${minutes} mins`;
+  };
 
   // Check if this patient is assigned to a different room than selected
   // BUT allow all rooms to call requeued patients and dispensary-ready patients
@@ -195,6 +229,27 @@ export function PatientCard({
             {getStatusLabel(patient.status)}
           </Badge>
         </div>
+        
+        {/* Waiting Time Indicator - Only for waiting patients */}
+        {patient.status === "waiting" && (() => {
+          const waitingMinutes = getWaitingMinutes();
+          const colorClass = getWaitingTimeColor(waitingMinutes);
+          const textColorClass = waitingMinutes <= 10 ? "text-green-700 dark:text-green-400" : 
+                                 waitingMinutes <= 20 ? "text-yellow-700 dark:text-yellow-400" :
+                                 waitingMinutes <= 30 ? "text-orange-700 dark:text-orange-400" :
+                                 "text-red-700 dark:text-red-400";
+          
+          return (
+            <div className="mt-2 flex items-center gap-2" data-testid={`waiting-time-${patient.id}`}>
+              <div className={`w-2 h-2 rounded-full ${colorClass} animate-pulse`} />
+              <span className={`text-sm font-semibold ${textColorClass} flex items-center gap-1`}>
+                <Timer className="h-3.5 w-3.5" />
+                Waiting: {formatWaitingTime(waitingMinutes)}
+              </span>
+            </div>
+          );
+        })()}
+        
         {(patient.windowName || patient.lastWindowName) && (
           <div className="text-sm text-muted-foreground" data-testid={`text-window-${patient.id}`}>
             {patient.windowName || patient.lastWindowName}
