@@ -444,7 +444,7 @@ export class MemStorage implements IStorage {
       });
       patient.completedAt = now;
     } else if (status === "requeue") {
-      // Get current room name before clearing
+      // Get current room name for tracking
       const currentWindow = patient.windowId ? this.windows.get(patient.windowId) : null;
       trackingHistory.push({
         timestamp: now.toISOString(),
@@ -452,6 +452,18 @@ export class MemStorage implements IStorage {
         requeueReason: requeueReason || 'No reason specified',
         fromRoom: currentWindow?.name || 'Unknown'
       });
+      
+      // Keep windowId unchanged - patient stays visible on TV
+      const updatedPatient = {
+        ...patient,
+        status: "requeue",
+        requeueReason: requeueReason || null,
+        trackingHistory: trackingHistory
+        // windowId remains unchanged
+      };
+      
+      this.patients.set(patientId, updatedPatient);
+      return updatedPatient;
     } else if (status === "dispensary") {
       // Special handling for dispensary - find DISPENSARY window
       const dispensaryWindow = Array.from(this.windows.values()).find(
@@ -477,9 +489,9 @@ export class MemStorage implements IStorage {
       return updatedPatient;
     }
 
-    // Preserve last window before clearing for completed/requeue status
+    // Preserve last window before clearing for completed status
     let lastWindowId = patient.lastWindowId;
-    if ((status === "completed" || status === "requeue") && patient.windowId) {
+    if (status === "completed" && patient.windowId) {
       lastWindowId = patient.windowId;
     }
 
@@ -496,7 +508,6 @@ export class MemStorage implements IStorage {
       status,
       windowId: windowId === null ? null : (windowId || patient.windowId),
       lastWindowId: lastWindowId,
-      requeueReason: status === "requeue" ? requeueReason || null : patient.requeueReason,
       trackingHistory: trackingHistory
     };
 
@@ -1703,9 +1714,40 @@ export class DatabaseStorage implements IStorage {
       return updatedPatient;
     }
     
-    // Special handling for "completed" and "requeue" status - preserve current room to lastWindowId
-    if (status === "completed" || status === "requeue") {
-      console.log(`🔄 ${status.toUpperCase()}: Preserving windowId`, {
+    // Special handling for "requeue" status - keep window unchanged, patient stays visible on TV
+    if (status === "requeue") {
+      console.log(`🔄 REQUEUE: Keeping windowId unchanged (patient stays on TV)`, {
+        patientId: id,
+        currentWindowId: currentPatient.windowId,
+        requeueReason: requeueReason
+      });
+      
+      const updateData: any = { 
+        status,
+        // windowId remains unchanged - patient stays visible on TV
+        requeueReason: requeueReason || null,
+        trackingHistory: sql`${JSON.stringify(trackingHistory)}::json`
+      };
+
+      const [updatedPatient] = await db.update(schema.patients)
+        .set(updateData)
+        .where(and(eq(schema.patients.id, id), eq(schema.patients.userId, userId)))
+        .returning();
+
+      console.log(`✅ REQUEUE updated (stays on TV):`, {
+        id: updatedPatient?.id,
+        name: updatedPatient?.name,
+        status: updatedPatient?.status,
+        windowId: updatedPatient?.windowId,
+        requeueReason: updatedPatient?.requeueReason
+      });
+
+      return updatedPatient;
+    }
+    
+    // Special handling for "completed" status - preserve current room to lastWindowId
+    if (status === "completed") {
+      console.log(`🔄 COMPLETED: Preserving windowId`, {
         patientId: id,
         currentWindowId: currentPatient.windowId,
         willSetLastWindowId: currentPatient.windowId
@@ -1730,27 +1772,21 @@ export class DatabaseStorage implements IStorage {
         status,
         windowId: null, // Clear current room
         lastWindowId: currentPatient.windowId, // Preserve current room as last room
-        requeueReason: requeueReason || null,
+        completedAt: now,
         trackingHistory: sql`${JSON.stringify(trackingHistory)}::json`
       };
-
-      // Only set completedAt for "completed" status
-      if (status === "completed") {
-        updateData.completedAt = now;
-      }
 
       const [updatedPatient] = await db.update(schema.patients)
         .set(updateData)
         .where(and(eq(schema.patients.id, id), eq(schema.patients.userId, userId)))
         .returning();
 
-      console.log(`✅ ${status.toUpperCase()} updated:`, {
+      console.log(`✅ COMPLETED updated:`, {
         id: updatedPatient?.id,
         name: updatedPatient?.name,
         status: updatedPatient?.status,
         windowId: updatedPatient?.windowId,
-        lastWindowId: updatedPatient?.lastWindowId,
-        requeueReason: updatedPatient?.requeueReason
+        lastWindowId: updatedPatient?.lastWindowId
       });
 
       return updatedPatient;
