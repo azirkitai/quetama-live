@@ -372,13 +372,18 @@ export default function Queue() {
   };
 
   const activeWindows = windows.filter(w => w.isActive && w.name !== "DISPENSARY");
-  const allWaitingPatients = enhancedPatients.filter(p => p.status === "waiting" || p.status === "requeue");
+  // Exclude patients ready for dispensary - they appear only in Dispensary page
+  const allWaitingPatients = enhancedPatients.filter(p => 
+    (p.status === "waiting" || p.status === "requeue") && 
+    !p.readyForDispensary
+  );
   const priorityPatients = allWaitingPatients.filter(p => p.isPriority);
   const waitingPatients = allWaitingPatients.filter(p => !p.isPriority);
   // Exclude dispensary patients from Queue page - they appear only in Dispensary page
   const activePatients = enhancedPatients.filter(p => 
     (p.status === "called" || p.status === "in-progress") && 
-    p.windowName !== "DISPENSARY"
+    p.windowName !== "DISPENSARY" &&
+    !p.readyForDispensary
   );
 
   return (
