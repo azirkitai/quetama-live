@@ -16,7 +16,7 @@ export function setGlobalIo(io: SocketIOServer) {
 import multer from "multer";
 import fs from "fs/promises";
 import path from "path";
-import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { ObjectStorageService } from "./objectStorage";
 
 // Configure multer for file uploads
 const upload = multer({
